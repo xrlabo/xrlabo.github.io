@@ -1,0 +1,165 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>local video を Babylon.js で表示</title>
+    </head>
+
+    <body>
+        <button onclick="start_clicked();" style="width: 300px; height: 50px; margin: 10px"><font size="5">Start local video</font></button><br>
+
+        <video id="local_video" controls style="display: none;"></video>
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 90%; touch-action: none; margin: auto; position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></canvas>
+        <script type="text/javascript">
+        	// canvas DOM 要素を取得する
+			const canvas = document.getElementById('renderCanvas');
+			// Initialize Babylon.js variables.
+			let	sceneToRender;
+            let xrHelper;
+			const createDefaultEngine = function (canvas) {
+                return new BABYLON.Engine(canvas, true, {
+					preserveDrawingBuffer: true,
+					stencil: true
+				});
+            }
+
+            const engine = createDefaultEngine(canvas);
+
+			//Create scene and create XR experience.
+			const createScene = async function() {
+				//新しいシーンオブジェクトを作成する
+                var scene = new BABYLON.Scene(engine);
+                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+                // scene.detachControl();
+
+				//つねに原点を中心として回転するカメラを作成する
+				// var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 4, 3.8, new BABYLON.Vector3(0, 1, 0), scene);
+                // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
+				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
+				// カメラの向きを座標0地点にする
+				camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+				// カメラの視野角を 95 度に設定
+				// const cameraFovRadian = 100 * (Math.PI / 180);
+				// camera.fov = cameraFovRadian;
+
+                // Camera の操作を canvas 上で可能にする
+    			camera.attachControl(canvas, true);
+                // console.log(camera.inputs);
+                camera.inputs.attached.gamepad.detachControl();
+
+                // scene.activeCamera.beta += 0.8;
+
+				// Create a light and aim it vertically to the sky (0, 1, 0).
+				// let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
+
+				// Set light intensity to a lower value (default is 1).
+				// light.intensity = 0.5;
+
+				// Add one of Babylon's built-in sphere shapes.
+				//let sphere = BABYLON.MeshBuilder.CreateSphere('sphere-1', {
+				//	diameter: 2,
+				//	segments: 32
+				//}, scene);
+
+				// Position the sphere up by half of its height.
+				//sphere.position.y = 1;
+
+                var videoDome = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('local_video'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+
+                // videoDome.fovMultiplier = 1;
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+
+
+                // Create a default environment for the scene.
+				var environment = scene.createDefaultEnvironment();
+                // environment.ground.parent.position.y = 0;
+                // environment.ground.position.y = 0
+
+
+                // Initialize XR experience with default experience helper.
+				xrHelper = await scene.createDefaultXRExperienceAsync({
+                    // floorMeshes: [environment.ground]
+                });
+
+                //===Stick=====================================================================================================
+                //==============================================================================================================
+				if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+
+                    xrHelper.teleportation.rotationAngle = 0;
+
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+				}
+
+                return scene;
+            }
+
+			// Create scene.
+			scene = createScene();
+			scene.then(function (returnedScene) {
+				sceneToRender = returnedScene;
+			});
+            engine.runRenderLoop(function () {
+				if (sceneToRender) {
+					sceneToRender.render();
+				}
+			});
+            // engine.runRenderLoop(function () {
+			// 	scene.render();
+			// });
+
+
+			// Handle browser resize.
+			window.addEventListener('resize', function () {
+				engine.resize();
+			});
+
+            let localStream;
+
+            function start_clicked() {
+                navigator.mediaDevices
+                .getUserMedia({ audio: false, video: true })
+                .then((stream) => {
+                    localStream = stream;
+                    document.getElementById('local_video').srcObject = stream;
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+            }
+    </script>
+  </body>
+</html>
