@@ -480,9 +480,9 @@
 
                     // xrHelper.input.xrCamera.inputs.clear();
 
+                    xrHelper.teleportation.rotationEnabled = false;
 
-                    xrHelper.input.onControllerAddedObservable.add((controller) => {
-                        xrHelper.teleportation.rotationEnabled = false;
+                    // xrHelper.input.onControllerAddedObservable.add((controller) => {
                 //         if (intervalID == null) {
                 //             intervalID = setInterval(soraSendDataChannelLoop, 1000.0/20.0);
                 //             soraSendDataChannelLoop();
@@ -560,37 +560,39 @@
                 //         });
                 //     });
                 //
-                //     xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                //         if(state === BABYLON.WebXRState.IN_XR){
-                //             scene.onBeforeCameraRenderObservable.add((xr_camera) => {
-                //                 if (xr_camera.isLeftCamera) {
-                //                     // videoDome.texture = videoTexture_left;
-                //                     epos_send_count++;
-                //                     if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
-                //                         console.log(xrHelper.baseExperience.camera.rotationQuaternion.y);
-                //                         sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
-                //                         epos_send_count = 0;
-                //                     }
-                //                 }
-                //                 else {
-                //                     // videoDome.texture = videoTexture_right;
-                //                 }
-                //                 // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                //                 // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
-                //             });
-                //             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
-                //             // xrHelper.baseExperience.camera.position.set(0, 0, 0);
-                //             // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
-                //         }
-                //         else if (state === BABYLON.WebXRState.NOT_IN_XR) {
-                //             lin = 0;
-                //             ang = 0;
-                //             side = 0;
-                //             sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                //             clearInterval(intervalID);
-                //             intervalID = null;
-                //             camera.inputs.attached.gamepad.detachControl();
-                //         }
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        if(state === BABYLON.WebXRState.IN_XR){
+                            // scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                            //     if (xr_camera.isLeftCamera) {
+                            //         // videoDome.texture = videoTexture_left;
+                            //         epos_send_count++;
+                            //         if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
+                            //             console.log(xrHelper.baseExperience.camera.rotationQuaternion.y);
+                            //             sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
+                            //             epos_send_count = 0;
+                            //         }
+                            //     }
+                            //     else {
+                            //         // videoDome.texture = videoTexture_right;
+                            //     }
+                            //     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                            //     // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                            // });
+                            // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                            // xrHelper.baseExperience.camera.position.set(0, 0, 0);
+                            // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                        }
+                        else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                            // lin = 0;
+                            // ang = 0;
+                            // side = 0;
+                            // sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            // clearInterval(intervalID);
+                            // intervalID = null;
+                            // camera.inputs.attached.gamepad.detachControl();
+                        }
                 //         console.log(state);
                     });
 				}
@@ -629,7 +631,12 @@
                         console.log(stream);
                         sendrecv_right.connect(stream);
                         sendrecv_right_A1.connect(stream);
-                        localStream.getAudioTracks()[0].enabled = false;
+                        if (document.getElementsByName('mic_on_off')[0]) {
+                            localStream.getAudioTracks()[0].enabled = true;
+                        }
+                        else {
+                            localStream.getAudioTracks()[0].enabled = false;
+                        }
                         // document.getElementById('remoteVideo_left').srcObject = stream;
                         // document.getElementById('remoteVideo_left').muted = true;
                     })

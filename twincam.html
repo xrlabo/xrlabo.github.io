@@ -191,8 +191,8 @@
                  }
             });
 
-            let header = 0x43, lin = 0, ang = 0, side = 0;
-            let remote_time = 0, remote_ang = 0, remote_lin = 0;
+            var header = 0x43, lin = 0, ang = 0, side = 0;
+            var remote_time = 0, remote_ang = 0, remote_lin = 0;
 
             sendrecv_right.on('message', (event) => {
                 if (event.data.byteLength == 12) {
@@ -252,6 +252,7 @@
 				// カメラの視野角を 95 度に設定
 				const cameraFovRadian = 80 * (Math.PI / 180);
 				camera.fov = cameraFovRadian;
+                camera.setTarget(new BABYLON.Vector3(1, 0, 0));
 
                 // Camera の操作を canvas 上で可能にする
     			camera.attachControl(canvas, true);
@@ -291,8 +292,8 @@
 
                 const bottom = -3;
                 let length = 3;
-                let a = 0;
-                let b = 1; // a + b = 1
+                let a = 1;
+                let b = 0; // a + b = 1
 
                 const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
                     box.position = new BABYLON.Vector3(0, bottom, 5);
@@ -463,7 +464,6 @@
                             // panel.addControl(titleheader);
 
                         var buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Change Control");
-                            console.log(buttonheader);
                             buttonheader.width = "1000px";
                             buttonheader.height = "200px";
                             buttonheader.color = "white";
@@ -544,9 +544,9 @@
 
                     // xrHelper.input.xrCamera.inputs.clear();
 
+                    xrHelper.teleportation.rotationEnabled = false;
 
                     xrHelper.input.onControllerAddedObservable.add((controller) => {
-                        xrHelper.teleportation.rotationEnabled = false;
                         if (intervalID == null) {
                             intervalID = setInterval(soraSendDataChannelLoop, 1000.0/20.0);
                             soraSendDataChannelLoop();
@@ -597,6 +597,8 @@
                     });
 
                     xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
                             scene.onBeforeCameraRenderObservable.add((xr_camera) => {
                                 if (xr_camera.isLeftCamera) {
@@ -668,7 +670,12 @@
                         console.log(stream);
                         sendrecv_right.connect(stream);
                         sendrecv_right_A1.connect(stream);
-                        localStream.getAudioTracks()[0].enabled = false;
+                        if (document.getElementsByName('mic_on_off')[0]) {
+                            localStream.getAudioTracks()[0].enabled = true;
+                        }
+                        else {
+                            localStream.getAudioTracks()[0].enabled = false;
+                        }
                         // document.getElementById('remoteVideo_left').srcObject = stream;
                         // document.getElementById('remoteVideo_left').muted = true;
                     })
@@ -786,10 +793,10 @@
                 let gp = gamepads[0];
                 if (gp != null) {
                     // let side = -gp.axes[2];
-                    let side = gp.buttons[6].value - gp.buttons[7].value;
+                    side = gp.buttons[6].value - gp.buttons[7].value;
                     // console.log(gp.buttons);
-                    let ang = -gp.axes[0];
-                    let lin = -gp.axes[3];
+                    ang = -gp.axes[0];
+                    lin = -gp.axes[3];
                     // document.getElementById('leftright').value = 127*ang;
                     // document.getElementById('leftright_out').innerHTML = (127*ang).toFixed(0);
                     // document.getElementById('frontrear').value = 127*lin;
@@ -826,12 +833,9 @@
                             // if (gp.buttons[15].pressed) {
                             //     side = -127;
                             // }
-                            ang = 127*ang;
-                            lin = 127*lin;
-                            side = 127*side;
                             // ang = (ang << 8) & 0x0000ff00;
                             // lin = lin & 0x000000ff;
-                            let send_value = new Uint8Array([header, side, ang, lin]);
+                            let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
                             console.log(ang)
                             sendrecv_right.sendMessage("#sora-devtools", send_value);
                             return;
