@@ -25,9 +25,9 @@
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic on</font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
-        <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;"><font size="7">scene1</font>　　
-        <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;"><font size="7">scene2</font><br>
-        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" checked style="width: 100px; height: 50px;"><font size="7">segway</font><br> -->
+        <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;">　　
+        <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;">
+        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" checked style="width: 100px; height: 50px;"><font size="7">segway</font> -->
         <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" style="width: 100px; height: 50px;"><font size="7">Unitree A1</font> -->
 
         <div id="remote-videos">
@@ -444,6 +444,46 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
+
+                var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
+                    planeheader.position = new BABYLON.Vector3(5, 2.0, 7);
+                    planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
+                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                    var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
+                        var panel = new BABYLON.GUI.StackPanel();
+                        advancedTextureheader.addControl(panel);
+
+                        var titleheader = new BABYLON.GUI.TextBlock();
+                            titleheader.text = 'Controlling Segway';
+                            titleheader.height = "300px";
+                            titleheader.width = "1000px"
+                            titleheader.color = "white";
+                            titleheader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                            titleheader.fontSize = "100";
+                            // panel.addControl(titleheader);
+
+                        var buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Change Control");
+                            console.log(buttonheader);
+                            buttonheader.width = "1000px";
+                            buttonheader.height = "200px";
+                            buttonheader.color = "white";
+                            buttonheader.cornerRadius = 100;
+                            buttonheader.fontSize = 80;
+                            buttonheader.background = "green";
+                            buttonheader.onPointerClickObservable.add(() => {
+                                if (header == 0x43) {
+                                    titleheader.text = "Controlling A1";
+                                    header = 0xa1;
+                                }
+                                else if (header == 0xa1 || header == 0xaa) {
+                                    titleheader.text = "Controlling Segway";
+                                    header = 0x43;
+                                }
+                            });
+                            panel.addControl(buttonheader);
+                            panel.addControl(titleheader);
+
+
                 scene.registerBeforeRender(function () {
                     title.text = segway_info;
                     camera.setTarget(new BABYLON.Vector3(0, 0, 0));
@@ -527,17 +567,17 @@
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
                                     side = -event._currentValue;
                                 });
-                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
-                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
-                                //     if (bbuttonComponent.pressed) {
-                                //         if (header == 0xa1) {
-                                //             header = 0xaa;
-                                //         }
-                                //         else if (header == 0xaa) {
-                                //             header = 0xa1;
-                                //         }
-                                //     }
-                                // });
+                                let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (bbuttonComponent.pressed) {
+                                        if (header == 0xa1) {
+                                            header = 0xaa;
+                                        }
+                                        else if (header == 0xaa) {
+                                            header = 0xa1;
+                                        }
+                                    }
+                                });
                             }
                             if (motionController.handness === 'left') {
                                 const xr_ids = motionController.getComponentIds();
@@ -683,29 +723,29 @@
     		// 	});
             // }
 
-            // function change_header_clicked() {
-            //     if (document.getElementsByName('change_header')[0].checked) {
-            //         header = 0x43;
-            //     }
-            //     else {
-            //         header = 0xa1;
-            //     }
-            //     engine.stopRenderLoop();
-            //     if (document.getElementsByName('change_scene')[0].checked) {
-            //         scene = createScene(document.getElementById('remoteVideo_left'));
-            //     }
-            //     else {
-            //         scene = createScene(document.getElementById('remoteVideo_right'));
-            //     }
-            //     scene.then(function (returnedScene) {
-            //         sceneToRender = returnedScene;
-            //     });
-            //     engine.runRenderLoop(function () {
-    		// 		if (sceneToRender) {
-    		// 			sceneToRender.render();
-    		// 		}
-    		// 	});
-            // }
+            function change_header_clicked() {
+                if (document.getElementsByName('change_header')[0].checked) {
+                    header = 0x43;
+                }
+                else {
+                    header = 0xa1;
+                }
+                // engine.stopRenderLoop();
+                // if (document.getElementsByName('change_scene')[0].checked) {
+                //     scene = createScene(document.getElementById('remoteVideo_left'));
+                // }
+                // else {
+                //     scene = createScene(document.getElementById('remoteVideo_right'));
+                // }
+                // scene.then(function (returnedScene) {
+                //     sceneToRender = returnedScene;
+                // });
+                // engine.runRenderLoop(function () {
+    			// 	if (sceneToRender) {
+    			// 		sceneToRender.render();
+    			// 	}
+    			// });
+            }
 
             // function change_scene() {
             //     engine.stopRenderLoop();
