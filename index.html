@@ -20,10 +20,10 @@
     </head>
 
     <body>
-        <button onclick="connect_clicked();" style="height: 50px; margin: 10px"><font size="5">Connect</font></button>
+        <!-- <button onclick="connect_clicked();" style="height: 50px; margin: 10px"><font size="5">Connect</font></button> -->
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic on</font>
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic on</font> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic off</font><br> -->
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
         <input type="radio" name="change_scene" onclick="change_scene_clicked()" checked style="width: 100px; height: 50px; display: none;">
         <input type="radio" name="change_scene" onclick="change_scene_clicked()" style="width: 100px; height: 50px; display: none;">
@@ -41,7 +41,7 @@
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
 		<!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 80%; height: 80%; float: left; touch-action: none; margin: auto; position: absolute; top: 0;"></canvas> -->
-        <canvas id="renderCanvas" style="border: 3px solid gray; width: 80%; height: 80%; touch-action: none; margin: auto; position: absolute; top: 0; bottom: -100;left: 0;right: 0; touch-action: none"></canvas>
+        <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; height: 100%; touch-action: none; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none"></canvas>
         <script type="text/javascript">
             let CLOSE_DATA_CHANNEL = false;
         </script>
@@ -178,6 +178,8 @@
                 }
             });
 
+            let localStream;
+
 
 
             /////////////////////////////////////////////////////////////////////////
@@ -229,6 +231,7 @@
 				// カメラの視野角を 95 度に設定
 				const cameraFovRadian = 80 * (Math.PI / 180);
 				camera.fov = cameraFovRadian;
+                console.log(camera);
 
                 // Camera の操作を canvas 上で可能にする
     			camera.attachControl(canvas, true);
@@ -240,6 +243,8 @@
                     camera.inputs.attached.pointers.multiTouchPanning = false;
                     camera.inputs.attached.pointers.pinchInwards = false;
                     camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
                 }
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
@@ -247,6 +252,8 @@
                 if (camera.inputs.attached.gamepad) {
                     camera.inputs.attached.gamepad.detachControl();
                 }
+
+                console.log(camera);
 
                 // console.log(camera);
 
@@ -310,7 +317,7 @@
 
 
                 var plane = BABYLON.Mesh.CreatePlane("plane", 1);
-                    plane.position = new BABYLON.Vector3(0, 0.5, 2);
+                    plane.position = new BABYLON.Vector3(0, 0.1, 2);
                     const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
                         planeMat.alpha = 1;
                         planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
@@ -353,8 +360,8 @@
             			sideOrientation: BABYLON.Mesh.DOUBLESIDE
             	};
             	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(-4, 1, 7);
-                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/12, 0);
+                    ANote0Video.position = new BABYLON.Vector3(-6, 0.5, 7);
+                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/7, 0);
                 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
                     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
                     	ANote0VideoMat.roughness = 1;
@@ -364,8 +371,8 @@
                 // console.log(ANote0Video);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
-                    planeb.position = new BABYLON.Vector3(-4, 2.7, 7);
-                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/12, 0);
+                    planeb.position = new BABYLON.Vector3(-6, 2.5, 7);
+                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/7, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
@@ -413,12 +420,63 @@
                             }
                         });
                         button.width = "1000px";
-                        button.height = "200px";
+                        button.height = "300px";
                         button.color = "white";
                         button.cornerRadius = 100;
                         button.fontSize = 80;
                         button.background = "green";
                     advancedTextureb.addControl(button);
+
+                var plane_radio = BABYLON.Mesh.CreatePlane("plane_radio", 10);
+                    plane_radio.position = new BABYLON.Vector3(0.1, 2.5, 7);
+                    plane_radio.rotation = new BABYLON.Vector3(0, 0, 0);
+
+                    var advancedTexture_radio = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_radio);
+                        var panel_radio = new BABYLON.GUI.StackPanel("radio_panel");
+                        panel_radio._isVertical = false;
+                        console.log(panel_radio);
+                        advancedTexture_radio.addControl(panel_radio);
+                            var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
+                                radio_button0.width = '50px';
+                                radio_button0.height = '50px';
+                                radio_button0.color = 'white';
+                                radio_button0.background = "green";
+                                radio_button0._isChecked = true;
+                            panel_radio.addControl(radio_button0);
+                            var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
+                                text_radio0.text = 'mic on';
+                                text_radio0.width = '200px';
+                                text_radio0.height = '100px';
+                                text_radio0.fontSize = 50;
+                                text_radio0.color = 'white';
+                            panel_radio.addControl(text_radio0);
+                            var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
+                                radio_button1.width = '50px';
+                                radio_button1.height = '50px';
+                                radio_button1.color = 'white';
+                                radio_button1.background = "green";
+                                radio_button1._isChecked = false;
+                            panel_radio.addControl(radio_button1);
+                            var text_radio1 = new BABYLON.GUI.TextBlock("text_radio1");
+                                text_radio1.text = 'mic off';
+                                text_radio1.width = '200px';
+                                text_radio1.height = '100px';
+                                text_radio1.fontSize = 50;
+                                text_radio1.color = 'white';
+                            panel_radio.addControl(text_radio1);
+
+                            radio_button0.onIsCheckedChangedObservable.add((state) => {
+                                if (state) {
+                                    localStream.getAudioTracks()[0].enabled = true;
+                                }
+                            });
+                            radio_button1.onIsCheckedChangedObservable.add((state) => {
+                                if (state) {
+                                    localStream.getAudioTracks()[0].enabled = false;
+                                }
+                            });
+
+
 
                 scene.registerBeforeRender(function () {
                     title.text = segway_info;
@@ -438,6 +496,8 @@
                         triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
                     }
                 });
+
+
 
                 // Create a default environment for the scene.
 				var environment = scene.createDefaultEnvironment();
@@ -620,7 +680,7 @@
 				engine.resize();
 			});
 
-            let localStream;
+            // let localStream;
 
             function connect_clicked() {
                 if (!sendrecv_right.signalingSwitched) {
@@ -631,12 +691,13 @@
                         console.log(stream);
                         sendrecv_right.connect(stream);
                         sendrecv_right_A1.connect(stream);
-                        if (document.getElementsByName('mic_on_off')[0]) {
-                            localStream.getAudioTracks()[0].enabled = true;
-                        }
-                        else {
-                            localStream.getAudioTracks()[0].enabled = false;
-                        }
+                        localStream.getAudioTracks()[0].enabled = false;
+                        // if (document.getElementsByName('mic_on_off')[0]) {
+                        //     localStream.getAudioTracks()[0].enabled = true;
+                        // }
+                        // else {
+                        //     localStream.getAudioTracks()[0].enabled = false;
+                        // }
                         // document.getElementById('remoteVideo_left').srcObject = stream;
                         // document.getElementById('remoteVideo_left').muted = true;
                     })
@@ -649,14 +710,14 @@
                 // soraSendDataChannelLoop();
             }
 
-            function mic_on_off_clicked() {
-                if (document.getElementsByName('mic_on_off')[0].checked) {
-                    localStream.getAudioTracks()[0].enabled = true;
-                }
-                else {
-                    localStream.getAudioTracks()[0].enabled = false;
-                }
-            }
+            // function mic_on_off_clicked() {
+            //     if (document.getElementsByName('mic_on_off')[0].checked) {
+            //         localStream.getAudioTracks()[0].enabled = true;
+            //     }
+            //     else {
+            //         localStream.getAudioTracks()[0].enabled = false;
+            //     }
+            // }
 
 
             // function soraSendDataChannelLoop() {
@@ -671,6 +732,7 @@
                     connect_clicked();
                 }
             }
+            connect_clicked();
     </script>
   </body>
 </html>
