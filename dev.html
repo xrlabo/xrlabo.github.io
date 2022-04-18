@@ -566,7 +566,7 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     // console.log(ang);
-                                    // ang = -axes.x;
+                                    side = -axes.x;
                                     lin = -axes.y;
                                     // dome_position_z = 2000*axes.y;
                                     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
@@ -574,7 +574,7 @@
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
-                                    side = -event._currentValue;
+                                    // side = -event._currentValue;
                                 });
                                 let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
                                 bbuttonComponent.onButtonStateChangedObservable.add(() => {
@@ -599,7 +599,7 @@
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
-                                    side = event._currentValue;
+                                    // side = event._currentValue;
                                 });
                             }
                         });
