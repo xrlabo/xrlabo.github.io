@@ -676,7 +676,7 @@
                         console.log(stream);
                         sendrecv_right.connect(stream);
                         sendrecv_right_A1.connect(stream);
-                        if (document.getElementsByName('mic_on_off')[0]) {
+                        if (document.getElementsByName('mic_on_off')[0].checked) {
                             localStream.getAudioTracks()[0].enabled = true;
                         }
                         else {
