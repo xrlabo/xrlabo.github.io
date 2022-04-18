@@ -407,7 +407,7 @@
                         button.onPointerClickObservable.add(() => {
                             if (document.getElementsByName('change_scene')[0].checked) {
                                 videoDome.dispose();
-                                header = 0x43;
+                                header = 0xa1;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
                                     document.getElementById('remoteVideo_right_A1'),
@@ -427,7 +427,7 @@
                             }
                             else {
                                 videoDome.dispose();
-                                header = 0xa1;
+                                header = 0x43;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
                                     document.getElementById('remoteVideo_right'),
@@ -835,7 +835,7 @@
                             sendrecv_right.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
                             return;
                         }
-                        if (start) {
+                        if (start && sendjoy) {
                             // if (gp.buttons[14].pressed) {
                             //     side = 127;
                             // }
