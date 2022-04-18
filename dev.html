@@ -229,6 +229,7 @@
             const engine = createDefaultEngine(canvas);
 
             let intervalID = null;
+            let sendjoy = false;
 
             let dome_position_x = 0;
             let dome_position_y = 0;
@@ -406,6 +407,7 @@
                         button.onPointerClickObservable.add(() => {
                             if (document.getElementsByName('change_scene')[0].checked) {
                                 videoDome.dispose();
+                                header = 0x43;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
                                     document.getElementById('remoteVideo_right_A1'),
@@ -425,6 +427,7 @@
                             }
                             else {
                                 videoDome.dispose();
+                                header = 0xa1;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
                                     document.getElementById('remoteVideo_right'),
@@ -461,7 +464,7 @@
                         advancedTextureheader.addControl(panel);
 
                         var titleheader = new BABYLON.GUI.TextBlock();
-                            titleheader.text = 'Controlling Segway';
+                            titleheader.text = 'Control OFF';
                             titleheader.height = "300px";
                             titleheader.width = "1000px"
                             titleheader.color = "white";
@@ -469,7 +472,7 @@
                             titleheader.fontSize = "100";
                             // panel.addControl(titleheader);
 
-                        var buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Change Control");
+                        var buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Control ON/OFF");
                             buttonheader.width = "1000px";
                             buttonheader.height = "200px";
                             buttonheader.color = "white";
@@ -477,13 +480,13 @@
                             buttonheader.fontSize = 80;
                             buttonheader.background = "green";
                             buttonheader.onPointerClickObservable.add(() => {
-                                if (header == 0x43) {
-                                    titleheader.text = "Controlling A1";
-                                    header = 0xa1;
+                                if (titleheader.text == 'Control OFF') {
+                                    titleheader.text = "Control ON";
+                                    sendjoy = true;
                                 }
-                                else if (header == 0xa1 || header == 0xaa) {
-                                    titleheader.text = "Controlling Segway";
-                                    header = 0x43;
+                                else {
+                                    sendjoy = false;
+                                    titleheader.text = "Control OFF";
                                 }
                             });
                             panel.addControl(buttonheader);
@@ -705,7 +708,7 @@
 
 
             function soraSendDataChannelLoop() {
-                if (sendrecv_right.signalingSwitched) {
+                if (sendrecv_right.signalingSwitched && sendjoy) {
                     sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                 }
             }
