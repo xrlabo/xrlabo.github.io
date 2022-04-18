@@ -95,9 +95,10 @@
             const sendrecv_right = sora.sendrecv("twincam-right", null, options_right);
             const sendrecv_right_A1 = sora.sendrecv("twincam-right-A1", null, options_right);
 
-            let mediaStream_id_left = null;
-            let mediaStream_id_right = null;
-            let mediaStream_id_right_A1 = null;
+            let videoStream_id_left = null;
+            let videoStream_id_right = null;
+            let audioStream_id_right = null;
+            let videoStream_id_right_A1 = null;
 
             recvonly_left.on("track", (event) => {
                 console.log(event);
@@ -118,12 +119,17 @@
                 }
 
                 if (event.track.kind == 'audio') {
+                    // if (audioStream_id_right) {
+                    //     document.getElementById(`audio-${audioStream_id_right}`);
+                    //     audioStream_id_right = null;
+                    // }
                     const audio = document.createElement('audio');
                     audio.id = "audio-" + event.streams[0].id;
                     audio.srcObject = event.streams[0];
                     audio.controls = true;
                     audio.autoplay = true;
                     document.getElementById('remote-videos').appendChild(audio);
+                    // audioStream_id_right = event.streams[0].id;
                 }
 
             });
@@ -138,14 +144,14 @@
                     return;
                 }
 
-                if (event.track.kind == 'audio') {
-                    const audio = document.createElement('audio');
-                    audio.id = "audio-" + event.streams[0].id;
-                    audio.srcObject = event.streams[0];
-                    audio.controls = true;
-                    audio.autoplay = true;
-                    document.getElementById('remote-videos').appendChild(audio);
-                }
+                // if (event.track.kind == 'audio') {
+                //     const audio = document.createElement('audio');
+                //     audio.id = "audio-" + event.streams[0].id;
+                //     audio.srcObject = event.streams[0];
+                //     audio.controls = true;
+                //     audio.autoplay = true;
+                //     document.getElementById('remote-videos').appendChild(audio);
+                // }
 
             });
 

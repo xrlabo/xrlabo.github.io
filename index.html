@@ -130,15 +130,15 @@
                     return;
                 }
 
-                if (event.track.kind == 'audio') {
-                    const audio = document.createElement('audio');
-                    audio.id = "audio-" + event.streams[0].id;
-                    audio.srcObject = event.streams[0];
-                    audio.controls = true;
-                    audio.autoplay = true;
-                    audio.style = "display: none;";
-                    document.getElementById('remote-videos').appendChild(audio);
-                }
+                // if (event.track.kind == 'audio') {
+                //     const audio = document.createElement('audio');
+                //     audio.id = "audio-" + event.streams[0].id;
+                //     audio.srcObject = event.streams[0];
+                //     audio.controls = true;
+                //     audio.autoplay = true;
+                //     audio.style = "display: none;";
+                //     document.getElementById('remote-videos').appendChild(audio);
+                // }
 
             });
 
