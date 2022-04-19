@@ -407,6 +407,8 @@
                         button.onPointerClickObservable.add(() => {
                             if (document.getElementsByName('change_scene')[0].checked) {
                                 videoDome.dispose();
+                                sendjoy = false;
+                                titleheader.text = "Control OFF";
                                 header = 0xa1;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
