@@ -169,7 +169,7 @@
                     remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
                     remote_ang = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
 
-                    segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
+                    segway_info = 'Segway\nForward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
                     // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
                 }
                 if (event.data.byteLength == 4 && (new Uint8Array(event.data)[0] == 0x43 || new Uint8Array(event.data)[0] == 0xa1)) {
@@ -332,7 +332,7 @@
                 var rect = new BABYLON.GUI.Rectangle('rect');
                     rect.background = 'green';
                     rect.alpha = 0.3;
-                    rect.height = '500px';
+                    rect.height = '600px';
                     rect.width = '1000px';
                     advancedTexture.addControl(rect);
                     // panel.addControl(rect);
@@ -346,11 +346,11 @@
                     //     title.text = "Controlling Unitree\nA1";
                     //     // header = 0xa1;
                     // }
-                    title.height = "500px";
+                    title.height = "700px";
                     title.width = "1000px"
                     title.color = "white";
                     title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                    title.fontSize = "80";
+                    title.fontSize = "100";
                     // panel.addControl(title);
                     advancedTexture.addControl(title);
 
@@ -482,12 +482,14 @@
                     if (document.getElementsByName('change_scene')[0].checked) {
                         title.alpha = 1;
                         rect.alpha = 0.3;
+                        rect.height = '700px'
                         title.text = segway_info;
                     }
                     else {
-                        title.text = '';
-                        rect.alpha = 0;
-                        title.alpha = 0;
+                        title.text = 'Unitree A1';
+                        rect.alpha = 0.3;
+                        title.alpha = 1;
+                        rect.height = '300px'
                     }
                     camera.setTarget(new BABYLON.Vector3(0, 0, 0));
                     if (lin >= 0) {
