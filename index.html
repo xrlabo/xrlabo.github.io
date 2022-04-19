@@ -172,7 +172,7 @@
                     segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
                     // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
                 }
-                if (event.data.byteLength == 4 && new Uint8Array(event.data)[0] == 0x43) {
+                if (event.data.byteLength == 4 && (new Uint8Array(event.data)[0] == 0x43 || new Uint8Array(event.data)[0] == 0xa1)) {
                     ang = new Int8Array(event.data)[2]/127.0;
                     lin = new Int8Array(event.data)[3]/127.0;
                 }
