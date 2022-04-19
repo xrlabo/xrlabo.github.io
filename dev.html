@@ -429,6 +429,8 @@
                             }
                             else {
                                 videoDome.dispose();
+                                sendjoy = false;
+                                titleheader.text = "Control OFF";
                                 header = 0x43;
                                 videoDome = new BABYLON.VideoDome(
                                     'VideoDome',
