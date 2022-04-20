@@ -438,22 +438,23 @@
                         advancedTexture_radio.addControl(panel_radio);
                             var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
                                 radio_button0.width = '50px';
-                                radio_button0.height = '50px';
-                                radio_button0.color = 'white';
+                                radio_button0.height = '60px';
+                                radio_button0.color = 'red';
                                 radio_button0.background = "green";
                                 radio_button0._isChecked = false;
                             panel_radio.addControl(radio_button0);
                             var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
-                                text_radio0.text = 'mic on';
-                                text_radio0.width = '200px';
+                                text_radio0.text = ' mic on';
+                                text_radio0.width = '250px';
                                 text_radio0.height = '100px';
                                 text_radio0.fontSize = 50;
-                                text_radio0.color = 'white';
+                                text_radio0.color = 'red';
+                                text_radio0.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
                             panel_radio.addControl(text_radio0);
                             var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
                                 radio_button1.width = '50px';
-                                radio_button1.height = '50px';
-                                radio_button1.color = 'white';
+                                radio_button1.height = '60px';
+                                radio_button1.color = 'red';
                                 radio_button1.background = "green";
                                 radio_button1._isChecked = true;
                             panel_radio.addControl(radio_button1);
@@ -462,7 +463,7 @@
                                 text_radio1.width = '200px';
                                 text_radio1.height = '100px';
                                 text_radio1.fontSize = 50;
-                                text_radio1.color = 'white';
+                                text_radio1.color = 'red';
                             panel_radio.addControl(text_radio1);
 
                             radio_button0.onIsCheckedChangedObservable.add((state) => {
