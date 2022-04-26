@@ -81,22 +81,37 @@
 				// Position the sphere up by half of its height.
 				//sphere.position.y = 1;
 
-                var videoDome = new BABYLON.VideoDome(
-                    'VideoDome',
-                    document.getElementById('local_video'),
-                    {
-                        resolution: 64,
-                        // clickToPlay: true,
-                        autoPlay: true,
-                        // size: 100
-                        // useDirectMapping: false
-                    },
-                    scene
-                );
+                var planeOpts = {
+            			height: 9/4,
+            			width: 16/4,
+            			sideOrientation: BABYLON.Mesh.DOUBLESIDE
+            	};
+            	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
+                    ANote0Video.position = new BABYLON.Vector3(0, 0.5, 7);
+                    // ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
+                    	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('local_video'), scene, true, false);
+                    	ANote0VideoMat.roughness = 1;
+                    	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
+                	ANote0Video.material = ANote0VideoMat;
+
+                var planeOpts = {
+            			height: 9/4,
+            			width: 16/4,
+            			sideOrientation: BABYLON.Mesh.DOUBLESIDE
+            	};
+            	var ANote0Video1 = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
+                    ANote0Video1.position = new BABYLON.Vector3(7, 0.5, 7);
+                    // ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                	var ANote0VideoMat1 = new BABYLON.StandardMaterial("m", scene);
+                    	ANote0VideoMat1.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('local_video'), scene, true, false);
+                    	ANote0VideoMat1.roughness = 1;
+                    	ANote0VideoMat1.emissiveColor = new BABYLON.Color3.White();
+                	ANote0Video1.material = ANote0VideoMat1;
 
                 // videoDome.fovMultiplier = 1;
-                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                // videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                // videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
 
 
                 // Create a default environment for the scene.
