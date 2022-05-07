@@ -16,11 +16,15 @@
 
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
-        <title>babylon sora multi recvonly</title>
+        <title>babylon sora multi sendrecv</title>
     </head>
 
     <body>
-        Channel ID <input type="text" id="channel_id_input" value="rabbit-go@twincamleft" > <input type='button' value="Connect" onclick="connect_clicked();">
+        <font size="6"> Channel ID <input type="text" id="channel_id_input" value="rabbit-go@twincamleft" style="height: 30px;font-size: 19px;position: relative;top: -2;">
+            <input type="button" value="Connect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;">
+        </font>
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 50;"><font size="6">mic on</font>
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 20;"><font size="6">mic off</font><br>
 
         <div id="remote-videos">
 
@@ -38,14 +42,14 @@
             const options = {
                 multistream : true,
                 video : true,
-                audio : false
+                audio : true
             };
 
-            let recvonly = sora.recvonly("rabbit-go@twincamleft", null, options);
+            let sendrecv = sora.sendrecv("rabbit-go@twincamleft", null, options);
 
             let mediaStream_id = null;
 
-            recvonly.on("track", (event) => {
+            sendrecv.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
                 document.querySelector('#remoteVideo').srcObject = stream;
@@ -54,7 +58,7 @@
             });
 
 
-            // recvonly.on("removetrack", (event) => {
+            // sendrecv.on("removetrack", (event) => {
             //     if (event.target.id == mediaStream_id) {
             //         document.querySelector(`#remoteVideo`).srcObject = null;
             //         mediaStream_id = null;
@@ -169,11 +173,29 @@
 				engine.resize();
 			});
 
-            // let localStream;
+            let localStream;
 
             function connect_clicked() {
-                recvonly.channelId = document.getElementById('channel_id_input').value;
-                recvonly.connect();
+                sendrecv.channelId = document.getElementById('channel_id_input').value;
+                navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then((stream) => {
+                    localStream = stream;
+                    console.log(stream);
+                    sendrecv.connect(stream);
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+            }
+
+            function mic_on_off_clicked() {
+                if (document.getElementsByName('mic_on_off')[0].checked) {
+                    localStream.getAudioTracks()[0].enabled = true;
+                }
+                else {
+                    localStream.getAudioTracks()[0].enabled = false;
+                }
             }
 
     </script>
