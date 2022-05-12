@@ -52,9 +52,11 @@
             sendrecv.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
-                document.querySelector('#remoteVideo').srcObject = stream;
-                document.querySelector('#remoteVideo').autoplay = true;
-                mediaStream_id = event.streams[0].id;
+                if (event.track.kind == "video") {
+                    document.querySelector('#remoteVideo').srcObject = stream;
+                    document.querySelector('#remoteVideo').autoplay = true;
+                    mediaStream_id = event.streams[0].id;
+                }
             });
 
 
