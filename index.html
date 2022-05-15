@@ -56,9 +56,25 @@
                     document.querySelector('#remoteVideo').srcObject = stream;
                     document.querySelector('#remoteVideo').autoplay = true;
                     mediaStream_id = event.streams[0].id;
-                    
+
+                }
+                if (event.track.kind == 'audio') {
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    audio.style = "display: none;"
+                    document.getElementById('remote-videos').appendChild(audio);
                 }
             });
+
+            setInterval(observe_video, 10000);
+            function observe_video() {
+                if (document.getElementById(`audio-${mediaStream_id}`)) {
+                    document.getElementById(`audio-${mediaStream_id}`).remove();
+                }
+            }
 
 
             // sendrecv.on("removetrack", (event) => {
