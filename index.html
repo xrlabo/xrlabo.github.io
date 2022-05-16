@@ -20,7 +20,7 @@
     </head>
 
     <body>
-        <canvas id="renderCanvas" style="border: 3px solid gray; width: 98%; height: 90%; margin: auto; position: absolute; top: 50; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
+        <canvas id="renderCanvas" style="border: 3px solid gray; width: 99%; height: 93%; margin: auto; position: absolute; top: 60; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
         <font size="6"> Channel ID <input type="text" id="channel_id_input" value="twincam-right" style="height: 30px;font-size: 19px;position: relative;top: -2;">
             <input type="button" value="Reconnect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;">
         </font>
@@ -129,7 +129,7 @@
     				camera.fov = cameraFovRadian;
 
                     // Camera の操作を canvas 上で可能にする
-        			camera.attachControl(canvas, false);
+        			camera.attachControl(canvas, true);
                     if (camera.inputs.attached.pointers) {
                         camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
                         camera.inputs.attached.pointers.multiTouchPanning = false;
@@ -155,7 +155,7 @@
     				camera.fov = cameraFovRadian;
 
                     // Camera の操作を canvas 上で可能にする
-        			camera.attachControl(canvas, false);
+        			camera.attachControl(canvas, true);
                     if (camera.inputs.attached.keyboard) {
                         camera.inputs.attached.keyboard.detachControl();
                     }
