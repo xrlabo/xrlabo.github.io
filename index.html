@@ -147,7 +147,7 @@
                     var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
     				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
     				// カメラの向きを座標0地点にする
-    				// camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+    				camera.setTarget(new BABYLON.Vector3(0, 0, 1));
     				// カメラの視野角を 95 度に設定
     				var cameraFovRadian = cameraFovDegree * (Math.PI / 180);
     				camera.fov = cameraFovRadian;
