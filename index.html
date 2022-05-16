@@ -104,6 +104,7 @@
 
             const engine = createDefaultEngine(canvas);
 
+            let camera;
             let cameraFovDegree = 60;
 
 
@@ -118,7 +119,7 @@
                 if (navigator.userAgent.match(/iPhone|Android.+Mobile/)) {
                     //つねに原点を中心として回転するカメラを作成する
     				// var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                    var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                    camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
                     // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
     				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
     				// カメラの向きを座標0地点にする
@@ -145,7 +146,7 @@
                     //つねに原点を中心として回転するカメラを作成する
     				// var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
                     // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                    var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
+                    camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
     				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
     				// カメラの向きを座標0地点にする
     				camera.setTarget(new BABYLON.Vector3(0, 0, 1));
@@ -262,26 +263,28 @@
                 if (!xrHelper.baseExperience) {
 					// XR support is unavailable.
 					console.log('WebXR support is unavailable');
-
 				}
                 else {
 					// XR support is available; proceed.
 
-                    xrHelper.teleportation.rotationAngle = 0;
+                    // xrHelper.teleportation.rotationAngle = 0;
+
+                    xrHelper.teleportation.detach();
 
                     xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
 
-                    xrHelper.teleportation.rotationEnabled = false;
-
+                    // xrHelper.teleportation.rotationEnabled = false;
+                    //
                     xrHelper.baseExperience.onStateChangedObservable.add((state) => {
                         if (camera.id == "ArcRotateCamera") {
                             camera.alpha = -Math.PI / 2;
                             camera.beta = Math.PI / 2;
                         }
                         if (camera.id == "UniversalCamera") {
-                            camera.setTarget(0, 0, 1);
+                            camera.position = new BABYLON.Vector3(0, 0, 0);
+                            camera.setTarget(new BABYLON.Vector3(0, 0, 1));
                         }
-
+                        // xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
                         console.log(state);
                     });
 
