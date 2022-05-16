@@ -21,15 +21,15 @@
 
     <body>
         <canvas id="renderCanvas" style="border: 3px solid gray; width: 98%; height: 90%; margin: auto; position: absolute; top: 50; bottom: 0;left: 0;right: 0;"></canvas>
-        <font size="6"> Channel ID <input type="text" id="channel_id_input" value="sora" style="height: 30px;font-size: 19px;position: relative;top: -2;">
-            <input type="button" value="Connect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;">
+        <font size="6"> Channel ID <input type="text" id="channel_id_input" value="twincam-right" style="height: 30px;font-size: 19px;position: relative;top: -2;">
+            <input type="button" value="Reconnect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;">
         </font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 50;"><font size="6">mic on</font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 20;"><font size="6">mic off</font><br>
 
         <div id="remote-videos">
 
-            <video id="remoteVideo" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo" controls muted="false" style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
 
         </div>
 
@@ -46,7 +46,7 @@
                 audio : true
             };
 
-            let sendrecv = sora.sendrecv("rabbit-go@twincamleft", null, options);
+            let sendrecv = sora.sendrecv("twincam-right", null, options);
 
             let mediaStream_id = null;
 
@@ -56,6 +56,7 @@
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo').srcObject = stream;
                     document.querySelector('#remoteVideo').autoplay = true;
+                    document.querySelector('#remoteVideo').muted = false;
                     mediaStream_id = event.streams[0].id;
 
                 }
@@ -219,6 +220,8 @@
                     },
                     scene
                 );
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
 
                 let distance_past = 0, distance_current = 0;
 
