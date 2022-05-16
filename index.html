@@ -259,6 +259,34 @@
                     // floorMeshes: [environment.ground]
                 });
 
+                if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+
+                    xrHelper.teleportation.rotationAngle = 0;
+
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+
+                    xrHelper.teleportation.rotationEnabled = false;
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        if (camera.id == "ArcRotateCamera") {
+                            camera.alpha = -Math.PI / 2;
+                            camera.beta = Math.PI / 2;
+                        }
+                        if (camera.id == "UniversalCamera") {
+                            camera.setTarget(0, 0, 1);
+                        }
+
+                        console.log(state);
+                    });
+
+				}
+
 
                 return scene;
             }
