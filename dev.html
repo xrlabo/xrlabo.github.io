@@ -411,8 +411,12 @@
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
                         button.onPointerClickObservable.add(() => {
                             sendjoy = false;
-                            clearInterval(videoIncrimentalLoop_intervalID);
-                            clearInterval(videoDecrimentalLoop_intervalID);
+                            if (videoDecrimentalLoop_intervalID) {
+                                clearInterval(videoDecrimentalLoop_intervalID);
+                            }
+                            if (videoIncrimentalLoop_intervalID) {
+                                clearInterval(videoIncrimentalLoop_intervalID);
+                            }
                             videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";
@@ -744,11 +748,12 @@
 
             function videoDecrimentalLoop() {
                 if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.1
+                    videoDome.material._alpha = videoDome.material._alpha - 0.2
                 }
                 else {
                     changeVideoFlag = true;
                     clearInterval(videoDecrimentalLoop_intervalID);
+                    videoDecrimentalLoop_intervalID = null;
                 }
             }
 
@@ -759,6 +764,7 @@
                 else {
                     videoDome.material._alpha = 1;
                     clearInterval(videoIncrimentalLoop_intervalID);
+                    videoIncrimentalLoop_intervalID = null;
                 }
             }
 
