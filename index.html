@@ -334,8 +334,12 @@
             let localStream;
 
             function connect_clicked() {
-                clearInterval(videoIncrimentalLoop_intervalID);
-                clearInterval(videoDecrimentalLoop_intervalID);
+                if (videoDecrimentalLoop_intervalID) {
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                }
+                if (videoIncrimentalLoop_intervalID) {
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                }
                 videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
             }
 
@@ -344,7 +348,9 @@
                     videoDome.material._alpha = videoDome.material._alpha - 0.1
                 }
                 else {
+                    videoDome.material._alpha = 0;
                     clearInterval(videoDecrimentalLoop_intervalID);
+                    videoDecrimentalLoop_intervalID = null;
                     sendrecv.channelId = document.getElementById('channel_id_input').value;
                     navigator.mediaDevices
                     .getUserMedia({ audio: true, video: false })
@@ -362,15 +368,16 @@
             }
 
             function videoIncrimentalLoop() {
-                if (videoDome.material._alpha < 0.4) {
+                if (videoDome.material._alpha < 0.2) {
                     videoDome.material._alpha = videoDome.material._alpha + 0.01
                 }
-                else if (videoDome.material._alpha >= 0.4) {
+                else if (videoDome.material._alpha < 1) {
                     videoDome.material._alpha = videoDome.material._alpha + 0.025
                 }
                 else {
                     videoDome.material._alpha = 1;
                     clearInterval(videoIncrimentalLoop_intervalID);
+                    videoIncrimentalLoop_intervalID = null;
                 }
             }
 
