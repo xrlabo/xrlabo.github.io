@@ -3995,6 +3995,14 @@
 	                if (!stream) {
 	                    return;
 	                }
+                    // getStats(this.pc, event.streams[0].getTracks()[0], function(result) {
+                    //     // previewGetStatsResult(this.pc, result);
+                    //     console.log(result.video.latency + 'ms');
+                    // }, 1000);
+                    // getStats(this.pc, function(result) {
+                    //     // previewGetStatsResult(this.pc, result);
+                    //     console.log(result.video.latency + 'ms');
+                    // }, 1000);
 	                const data = {
 	                    "stream.id": stream.id,
 	                    id: event.track.id,

@@ -160,9 +160,9 @@
                 if (document.getElementById(`audio-${mediaStream_id_right}`)) {
                     document.getElementById(`audio-${mediaStream_id_right}`).remove();
                 }
-                if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
-                    document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
-                }
+                // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
+                //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
+                // }
             }
 
 
@@ -230,6 +230,11 @@
 
             let intervalID = null;
             let sendjoy = false;
+
+            let videoDome;
+            let videoDecrimentalLoop_intervalID = null;
+            let videoIncrimentalLoop_intervalID = null
+            let changeVideoFlag = false;
 
             let dome_position_x = 0;
             let dome_position_y = 0;
@@ -322,7 +327,7 @@
                 videoTexture_right = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, true);
                 videoTexture_right_A1 = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
 
-                var videoDome = new BABYLON.VideoDome(
+                videoDome = new BABYLON.VideoDome(
                     'VideoDome',
                     document.getElementById('remoteVideo_right'),
                     {
@@ -405,50 +410,7 @@
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
                         button.onPointerClickObservable.add(() => {
-                            if (document.getElementsByName('change_scene')[0].checked) {
-                                videoDome.dispose();
-                                sendjoy = false;
-                                titleheader.text = "A1 Control OFF";
-                                header = 0xa1;
-                                videoDome = new BABYLON.VideoDome(
-                                    'VideoDome',
-                                    document.getElementById('remoteVideo_right_A1'),
-                                    {
-                                        autoPlay: true,
-                                        resolution: 64,
-                                        size: 5000
-                                        // clickToPlay: true,
-                                    },
-                                    scene
-                                );
-                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                                document.getElementsByName('change_scene')[0].checked = false;
-                                document.getElementsByName('change_scene')[1].checked = true;
-                                ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, false);
-                            }
-                            else {
-                                videoDome.dispose();
-                                sendjoy = false;
-                                titleheader.text = "Segway Control OFF";
-                                header = 0x43;
-                                videoDome = new BABYLON.VideoDome(
-                                    'VideoDome',
-                                    document.getElementById('remoteVideo_right'),
-                                    {
-                                        autoPlay: true,
-                                        resolution: 64,
-                                        size: 5000
-                                        // clickToPlay: true,
-                                    },
-                                    scene
-                                );
-                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                                document.getElementsByName('change_scene')[0].checked = true;
-                                document.getElementsByName('change_scene')[1].checked = false;
-                                ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                            }
+                            videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";
                         button.height = "200px";
@@ -523,6 +485,55 @@
                         box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
                         triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
                         triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
+                    }
+                    if (changeVideoFlag) {
+                        changeVideoFlag = false;
+                        if (document.getElementsByName('change_scene')[0].checked) {
+                            videoDome.dispose();
+                            sendjoy = false;
+                            titleheader.text = "A1 Control OFF";
+                            header = 0xa1;
+                            videoDome = new BABYLON.VideoDome(
+                                'VideoDome',
+                                document.getElementById('remoteVideo_right_A1'),
+                                {
+                                    autoPlay: true,
+                                    resolution: 64,
+                                    size: 5000
+                                    // clickToPlay: true,
+                                },
+                                scene
+                            );
+                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                            document.getElementsByName('change_scene')[0].checked = false;
+                            document.getElementsByName('change_scene')[1].checked = true;
+                            ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, false);
+                        }
+                        else {
+                            videoDome.dispose();
+                            sendjoy = false;
+                            titleheader.text = "Segway Control OFF";
+                            header = 0x43;
+                            videoDome = new BABYLON.VideoDome(
+                                'VideoDome',
+                                document.getElementById('remoteVideo_right'),
+                                {
+                                    autoPlay: true,
+                                    resolution: 64,
+                                    size: 5000
+                                    // clickToPlay: true,
+                                },
+                                scene
+                            );
+                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                            document.getElementsByName('change_scene')[0].checked = true;
+                            document.getElementsByName('change_scene')[1].checked = false;
+                            ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
+                        }
+                        videoDome.material._alpha = 0;
+                        videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
                     }
                 });
 
@@ -728,6 +739,25 @@
                 }
             }
 
+            function videoDecrimentalLoop() {
+                if (videoDome.material._alpha > 0) {
+                    videoDome.material._alpha = videoDome.material._alpha - 0.1
+                }
+                else {
+                    changeVideoFlag = true;
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                }
+            }
+
+            function videoIncrimentalLoop() {
+                if (videoDome.material._alpha < 1) {
+                    videoDome.material._alpha = videoDome.material._alpha + 0.1
+                }
+                else {
+                    videoDome.material._alpha = 1;
+                    clearInterval(videoIncrimentalLoop_intervalID);
+                }
+            }
 
             function soraSendDataChannelLoop() {
                 if (sendrecv_right.signalingSwitched && sendjoy) {

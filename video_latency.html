@@ -24,8 +24,8 @@
         <font size="6"> Channel ID <input type="text" id="channel_id_input" value="twincam-right" style="height: 30px;font-size: 19px;position: relative;top: -2;">
             <input type="button" value="Reconnect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;">
         </font>
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 50;"><font size="6">mic on</font>
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 20;"><font size="6">mic off</font><br>
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 50;"><font size="6">mic on</font> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 20;"><font size="6">mic off</font><br> -->
 
         <div id="remote-videos">
 
@@ -52,15 +52,15 @@
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options = {
                 multistream : true,
-                video : false,
+                video : true,
                 audio : true
             };
 
-            let sendrecv = sora.sendrecv("twincam-right", null, options);
+            let recvonly = sora.recvonly("twincam-right", null, options);
 
             let mediaStream_id = null;
 
-            sendrecv.on("track", (event) => {
+            recvonly.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
                 if (event.track.kind == "video") {
@@ -68,10 +68,10 @@
                     document.querySelector('#remoteVideo').autoplay = true;
                     document.querySelector('#remoteVideo').muted = false;
                     mediaStream_id = event.streams[0].id;
-                    getStats(sendrecv.pc, function(result) {
+                    getStats(recvonly.pc, function(result) {
                         // previewGetStatsResult(this.pc, result);
                         console.log(result.video.latency + 'ms');
-                    }, 500);
+                    }, 1000);
                 }
                 if (event.track.kind == 'audio') {
                     const audio = document.createElement('audio');
@@ -201,7 +201,7 @@
                         console.log(camera.inputs.attached.mousewheel);
                         camera.inputs.attached.mousewheel.wheelPrecisionY = 0.01;
                         camera.inputs.attached.mousewheel.onChangedObservable.add(function(eventData) {
-                            console.log(eventData);
+                            // console.log(eventData);
                             camera.position = new BABYLON.Vector3(0,0,0);
                             cameraFovDegree = cameraFovDegree + eventData.wheelDeltaY*500;
                             if (cameraFovDegree < 0) {
@@ -236,6 +236,9 @@
                 );
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                 videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+
+                videoDome.material._alpha = 0.1;
+                console.log(videoDome);
 
                 let distance_past = 0, distance_current = 0;
 
@@ -327,33 +330,12 @@
 				engine.resize();
 			});
 
-            let localStream;
-
             function connect_clicked() {
-                sendrecv.channelId = document.getElementById('channel_id_input').value;
-                navigator.mediaDevices
-                .getUserMedia({ audio: true, video: false })
-                .then((stream) => {
-                    localStream = stream;
-                    localStream.getAudioTracks()[0].enabled = false;
-                    console.log(stream);
-                    sendrecv.connect(stream);
-                })
-                .catch((e) => {
-                     console.error(e);
-                });
+                recvonly.channelId = document.getElementById('channel_id_input').value;
+                recvonly.connect();
             }
 
-            function mic_on_off_clicked() {
-                if (document.getElementsByName('mic_on_off')[0].checked) {
-                    localStream.getAudioTracks()[0].enabled = true;
-                }
-                else {
-                    localStream.getAudioTracks()[0].enabled = false;
-                }
-            }
-
-            connect_clicked();
+            // connect_clicked();
     </script>
   </body>
 </html>
