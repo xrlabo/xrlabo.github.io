@@ -410,6 +410,7 @@
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
                         button.onPointerClickObservable.add(() => {
+                            sendjoy = false;
                             videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";
