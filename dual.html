@@ -737,7 +737,7 @@
 
             function videoDecrimentalLoop() {
                 if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.1
+                    videoDome.material._alpha = videoDome.material._alpha - 0.2
                 }
                 else {
                     changeVideoFlag = true;
@@ -748,10 +748,10 @@
 
             function videoIncrimentalLoop() {
                 if (videoDome.material._alpha < 0.2) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.01
+                    videoDome.material._alpha = videoDome.material._alpha + 0.1
                 }
                 else if (videoDome.material._alpha < 1) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.025
+                    videoDome.material._alpha = videoDome.material._alpha + 0.1
                 }
                 else {
                     videoDome.material._alpha = 1;
