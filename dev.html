@@ -233,7 +233,7 @@
 
             let videoDome;
             let videoDecrimentalLoop_intervalID = null;
-            let videoIncrimentalLoop_intervalID = null
+            let videoIncrimentalLoop_intervalID = null;
             let changeVideoFlag = false;
 
             let dome_position_x = 0;
@@ -411,6 +411,8 @@
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
                         button.onPointerClickObservable.add(() => {
                             sendjoy = false;
+                            clearInterval(videoIncrimentalLoop_intervalID);
+                            clearInterval(videoDecrimentalLoop_intervalID);
                             videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";

@@ -120,6 +120,10 @@
             let camera;
             let cameraFovDegree = 60;
 
+            let videoDome;
+            let videoDecrimentalLoop_intervalID = null;
+            let videoIncrimentalLoop_intervalID = null;
+            let changeVideoFlag = false;
 
 
 			//Create scene and create XR experience.
@@ -222,7 +226,7 @@
                 }
 
 
-                var videoDome = new BABYLON.VideoDome(
+                videoDome = new BABYLON.VideoDome(
                     'VideoDome',
                     document.getElementById('remoteVideo'),
                     {
@@ -330,19 +334,47 @@
             let localStream;
 
             function connect_clicked() {
-                sendrecv.channelId = document.getElementById('channel_id_input').value;
-                navigator.mediaDevices
-                .getUserMedia({ audio: true, video: false })
-                .then((stream) => {
-                    localStream = stream;
-                    localStream.getAudioTracks()[0].enabled = false;
-                    console.log(stream);
-                    sendrecv.connect(stream);
-                })
-                .catch((e) => {
-                     console.error(e);
-                });
+                clearInterval(videoIncrimentalLoop_intervalID);
+                clearInterval(videoDecrimentalLoop_intervalID);
+                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
             }
+
+            function videoDecrimentalLoop() {
+                if (videoDome.material._alpha > 0) {
+                    videoDome.material._alpha = videoDome.material._alpha - 0.1
+                }
+                else {
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                    sendrecv.channelId = document.getElementById('channel_id_input').value;
+                    navigator.mediaDevices
+                    .getUserMedia({ audio: true, video: false })
+                    .then((stream) => {
+                        localStream = stream;
+                        localStream.getAudioTracks()[0].enabled = false;
+                        console.log(stream);
+                        sendrecv.connect(stream);
+                    })
+                    .catch((e) => {
+                         console.error(e);
+                    });
+                    videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10.0);
+                }
+            }
+
+            function videoIncrimentalLoop() {
+                if (videoDome.material._alpha < 0.4) {
+                    videoDome.material._alpha = videoDome.material._alpha + 0.01
+                }
+                else if (videoDome.material._alpha >= 0.4) {
+                    videoDome.material._alpha = videoDome.material._alpha + 0.025
+                }
+                else {
+                    videoDome.material._alpha = 1;
+                    clearInterval(videoIncrimentalLoop_intervalID);
+                }
+            }
+
+
 
             function mic_on_off_clicked() {
                 if (document.getElementsByName('mic_on_off')[0].checked) {
