@@ -16,7 +16,7 @@
 
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
-        <title>Dual Body</title>
+        <title>VR特論(5/19)</title>
     </head>
 
     <body>
@@ -178,6 +178,7 @@
                 }
             });
 
+
             let header = 0x43, lin = 0, ang = 0, side = 0;
             let remote_time = 0, remote_ang = 0, remote_lin = 0;
 
@@ -264,7 +265,7 @@
                 // scene.detachControl();
 
 				//つねに原点を中心として回転するカメラを作成する
-				camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
+				camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
                 // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
                 // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
 				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
@@ -291,6 +292,10 @@
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
                 }
+                scene.onPointerObservable.add(e => {
+                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }, BABYLON.PointerEventTypes.POINTERWHEEL);
                 if (camera.inputs.attached.gamepad) {
                     camera.inputs.attached.gamepad.detachControl();
                 }
@@ -321,21 +326,21 @@
                 let a = 1;
                 let b = 0; // a + b = 1
 
-                const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
-                    box.position = new BABYLON.Vector3(0, bottom, 5);
-                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 0);
-                    const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
-                        boxMat.alpha = 0.3;
-                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    box.material = boxMat;
-
-                const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
-                    triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
-                    triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
-                    const triMat = new BABYLON.StandardMaterial("triMat", scene);
-                        triMat.alpha = 0.3;
-                        triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    triangle.material = triMat;
+                // const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
+                //     box.position = new BABYLON.Vector3(0, bottom, 5);
+                //     box.scaling = new BABYLON.Vector3(1.0, 1.0, 0);
+                //     const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
+                //         boxMat.alpha = 0.3;
+                //         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                //     box.material = boxMat;
+                //
+                // const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
+                //     triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
+                //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                //     const triMat = new BABYLON.StandardMaterial("triMat", scene);
+                //         triMat.alpha = 0.3;
+                //         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                //     triangle.material = triMat;
 
                 let videoTexture_segway = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
                 let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
@@ -362,7 +367,7 @@
                     plane.position = new BABYLON.Vector3(0, 0.1, 2);
                     const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
                         planeMat.alpha = 1;
-                        planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                        planeMat.ambientColor = new BABYLON.Color3(1, 1, 1);
                         plane.material = planeMat;
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
@@ -374,8 +379,8 @@
                 var rect = new BABYLON.GUI.Rectangle('rect');
                     rect.background = 'green';
                     rect.alpha = 0.3;
-                    rect.height = '600px';
-                    rect.width = '1000px';
+                    rect.height = '300px';
+                    rect.width = '500px';
                     advancedTexture.addControl(rect);
                     // panel.addControl(rect);
 
@@ -402,8 +407,8 @@
             			sideOrientation: BABYLON.Mesh.DOUBLESIDE
             	};
             	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(-6, 0.5, 7);
-                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                    ANote0Video.position = new BABYLON.Vector3(-4, 0.5, 7);
+                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/8, 0);
                 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
                     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
                     	ANote0VideoMat.roughness = 1;
@@ -413,8 +418,8 @@
                 // console.log(ANote0Video);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
-                    planeb.position = new BABYLON.Vector3(-6, 2.5, 7);
-                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                    planeb.position = new BABYLON.Vector3(-4, 2.5, 7);
+                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/8, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
@@ -438,55 +443,55 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
-                var plane_radio = BABYLON.Mesh.CreatePlane("plane_radio", 10);
-                    plane_radio.position = new BABYLON.Vector3(0.1, 2.5, 7);
-                    plane_radio.rotation = new BABYLON.Vector3(0, 0, 0);
-
-                    var advancedTexture_radio = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_radio);
-                        var panel_radio = new BABYLON.GUI.StackPanel("radio_panel");
-                        panel_radio._isVertical = false;
-                        console.log(panel_radio);
-                        advancedTexture_radio.addControl(panel_radio);
-                            var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
-                                radio_button0.width = '50px';
-                                radio_button0.height = '60px';
-                                radio_button0.color = 'red';
-                                radio_button0.background = "green";
-                                radio_button0._isChecked = false;
-                            panel_radio.addControl(radio_button0);
-                            var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
-                                text_radio0.text = ' mic on';
-                                text_radio0.width = '250px';
-                                text_radio0.height = '100px';
-                                text_radio0.fontSize = 50;
-                                text_radio0.color = 'red';
-                                text_radio0.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-                            panel_radio.addControl(text_radio0);
-                            var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
-                                radio_button1.width = '50px';
-                                radio_button1.height = '60px';
-                                radio_button1.color = 'red';
-                                radio_button1.background = "green";
-                                radio_button1._isChecked = true;
-                            panel_radio.addControl(radio_button1);
-                            var text_radio1 = new BABYLON.GUI.TextBlock("text_radio1");
-                                text_radio1.text = 'mic off';
-                                text_radio1.width = '200px';
-                                text_radio1.height = '100px';
-                                text_radio1.fontSize = 50;
-                                text_radio1.color = 'red';
-                            panel_radio.addControl(text_radio1);
-
-                            radio_button0.onIsCheckedChangedObservable.add((state) => {
-                                if (state) {
-                                    localStream.getAudioTracks()[0].enabled = true;
-                                }
-                            });
-                            radio_button1.onIsCheckedChangedObservable.add((state) => {
-                                if (state) {
-                                    localStream.getAudioTracks()[0].enabled = false;
-                                }
-                            });
+                // var plane_radio = BABYLON.Mesh.CreatePlane("plane_radio", 10);
+                //     plane_radio.position = new BABYLON.Vector3(0.1, 2.5, 7);
+                //     plane_radio.rotation = new BABYLON.Vector3(0, 0, 0);
+                //
+                //     var advancedTexture_radio = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_radio);
+                //         var panel_radio = new BABYLON.GUI.StackPanel("radio_panel");
+                //         panel_radio._isVertical = false;
+                //         console.log(panel_radio);
+                //         advancedTexture_radio.addControl(panel_radio);
+                //             var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
+                //                 radio_button0.width = '50px';
+                //                 radio_button0.height = '60px';
+                //                 radio_button0.color = 'red';
+                //                 radio_button0.background = "green";
+                //                 radio_button0._isChecked = false;
+                //             panel_radio.addControl(radio_button0);
+                //             var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
+                //                 text_radio0.text = ' mic on';
+                //                 text_radio0.width = '250px';
+                //                 text_radio0.height = '100px';
+                //                 text_radio0.fontSize = 50;
+                //                 text_radio0.color = 'red';
+                //                 text_radio0.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                //             panel_radio.addControl(text_radio0);
+                //             var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
+                //                 radio_button1.width = '50px';
+                //                 radio_button1.height = '60px';
+                //                 radio_button1.color = 'red';
+                //                 radio_button1.background = "green";
+                //                 radio_button1._isChecked = true;
+                //             panel_radio.addControl(radio_button1);
+                //             var text_radio1 = new BABYLON.GUI.TextBlock("text_radio1");
+                //                 text_radio1.text = 'mic off';
+                //                 text_radio1.width = '200px';
+                //                 text_radio1.height = '100px';
+                //                 text_radio1.fontSize = 50;
+                //                 text_radio1.color = 'red';
+                //             panel_radio.addControl(text_radio1);
+                //
+                //             radio_button0.onIsCheckedChangedObservable.add((state) => {
+                //                 if (state) {
+                //                     localStream.getAudioTracks()[0].enabled = true;
+                //                 }
+                //             });
+                //             radio_button1.onIsCheckedChangedObservable.add((state) => {
+                //                 if (state) {
+                //                     localStream.getAudioTracks()[0].enabled = false;
+                //                 }
+                //             });
 
                 let distance_past = 0, distance_current = 0;
 
@@ -494,7 +499,7 @@
                     if (document.getElementsByName('change_scene')[0].checked) {
                         title.alpha = 1;
                         rect.alpha = 0.3;
-                        rect.height = '700px'
+                        rect.height = '300px'
                         title.text = segway_info;
                         if (segway_info == '') {
                             segway_info = 'Segway';
@@ -506,20 +511,20 @@
                         title.alpha = 1;
                         rect.height = '300px'
                     }
-                    if (lin >= 0) {
-                        box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                        triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                        triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
-                    }
-                    else {
-                        box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                        triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                        triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
-                    }
+                    // if (lin >= 0) {
+                    //     box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
+                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                    //     triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
+                    //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
+                    // }
+                    // else {
+                    //     box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
+                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                    //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
+                    //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
+                    // }
                     if (camera.inputs.attached.pointers) {
                         if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
                         distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
@@ -596,7 +601,8 @@
                     // xrHelper.input.xrCamera.inputs.remove(xrHelper.input.xrCamera.inputs.attached.mouse);
 
                     // xrHelper.input.xrCamera.inputs.attached.mouse.touchEnabled = false;
-                    // xrHelper.input.xrCamera.inputs.attached.mouse._allowCameraRotation = false;
+                    // xrHelper.input.xrCamerecvonly_right.connect();
+                    xrHelper.input.xrCamera.inputs.attached.mouse._allowCameraRotation = false;
 
                     // xrHelper.input.onControllerRemovedObservable.add(() => {
                     //
@@ -688,11 +694,13 @@
                         if (camera.id == "ArcRotateCamera") {
                             camera.alpha = -Math.PI / 2;
                             camera.beta = Math.PI / 2;
+                            camera.radius = 0;
+                            // xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 0));
                         }
-                        if (camera.id == "UniversalCamera") {
-                            camera.position = new BABYLON.Vector3(0, 0, 0);
-                            camera.setTarget(new BABYLON.Vector3(0, 0, 1));
-                        }
+                        // if (camera.id == "UniversalCamera") {
+                        //     camera.position = new BABYLON.Vector3(0, 0, 0);
+                        //     camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                        // }
                         if(state === BABYLON.WebXRState.IN_XR){
                             // scene.onBeforeCameraRenderObservable.add((xr_camera) => {
                             //     if (xr_camera.isLeftCamera) {
@@ -827,9 +835,9 @@
                     connect_clicked();
                 }
             }
-            connect_clicked();
-            // recvonly_right.connect();
-            // recvonly_right_A1.connect();
+            // connect_clicked();
+            recvonly_right.connect();
+            recvonly_right_A1.connect();
     </script>
   </body>
 </html>

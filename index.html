@@ -205,7 +205,7 @@
                         console.log(camera.inputs.attached.mousewheel);
                         camera.inputs.attached.mousewheel.wheelPrecisionY = 0.01;
                         camera.inputs.attached.mousewheel.onChangedObservable.add(function(eventData) {
-                            console.log(eventData);
+                            // console.log(eventData);
                             camera.position = new BABYLON.Vector3(0,0,0);
                             cameraFovDegree = cameraFovDegree + eventData.wheelDeltaY*500;
                             if (cameraFovDegree < 0) {

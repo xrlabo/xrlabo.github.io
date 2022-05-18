@@ -57,7 +57,7 @@
         </main>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
-		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none;"></canvas>
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
         <script type="text/javascript">
             let CLOSE_DATA_CHANNEL = false;
         </script>
@@ -66,7 +66,6 @@
             var segway_info = '';
             const debug = true;
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
-            let video = 1;
             // const sora = Sora.connection("wss://207-148-92-89.stable.sora.sora-labo.shiguredo.app/signaling", debug);
             // const channelId = "OJIMA-YUKIYA@sora-devtools";
             // const metadata = {
@@ -105,7 +104,7 @@
                 const stream = event.streams[0];
                 document.querySelector('#remoteVideo_left').srcObject = stream;
                 document.querySelector('#remoteVideo_left').autoplay = true;
-                mediaStream_id_left = event.streams[0].id;
+                videoStream_id_left = event.streams[0].id;
             });
 
             sendrecv_right.on("track", (event) => {
@@ -114,7 +113,7 @@
                     document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
                     document.querySelector('#remoteVideo_right').autoplay = true;
                     document.querySelector('#remoteVideo_right').muted = false;
-                    mediaStream_id_right = event.streams[0].id;
+                    videoStream_id_right = event.streams[0].id;
                     return;
                 }
 
@@ -157,8 +156,8 @@
 
             setInterval(observe_video, 10000);
             function observe_video() {
-                if (document.getElementById(`audio-${mediaStream_id_right}`)) {
-                    document.getElementById(`audio-${mediaStream_id_right}`).remove();
+                if (document.getElementById(`audio-${videoStream_id_right}`)) {
+                    document.getElementById(`audio-${videoStream_id_right}`).remove();
                 }
                 // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
                 //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
@@ -215,7 +214,13 @@
 
 
 			// canvas DOM 要素を取得する
-			const canvas = document.getElementById('renderCanvas');
+			let canvas = document.getElementById('renderCanvas');
+
+            canvas.addEventListener("mousewheel", (event) => {
+                event.preventDefault();
+                console.log(event);
+            });
+
 			// Initialize Babylon.js variables.
 			let	sceneToRender;
             let xrHelper;
@@ -230,6 +235,9 @@
 
             let intervalID = null;
             let sendjoy = false;
+
+            let camera;
+            let cameraFovDegree = 60;
 
             let videoDome;
             let videoDecrimentalLoop_intervalID = null;
@@ -254,32 +262,30 @@
                 scene.ambientColor = new BABYLON.Color3(1, 1, 1);
                 // scene.detachControl();
 
-				//つねに原点を中心として回転するカメラを作成する
-				var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
-				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
-				// カメラの向きを座標0地点にする
-				// camera.setTarget(new BABYLON.Vector3(0, 0, 1));
-				// カメラの視野角を 95 度に設定
-				const cameraFovRadian = 80 * (Math.PI / 180);
-				camera.fov = cameraFovRadian;
-                camera.setTarget(new BABYLON.Vector3(1, 0, 0));
 
-                // Camera の操作を canvas 上で可能にする
+                camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+    			camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+				camera.fov = cameraFovDegree * (Math.PI / 180);
     			camera.attachControl(canvas, true);
-
-                if (camera.inputs.attached.keyboard) {
-                    camera.inputs.attached.keyboard.detachControl();
-                }
                 if (camera.inputs.attached.pointers) {
                     camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
                     camera.inputs.attached.pointers.multiTouchPanning = false;
                     camera.inputs.attached.pointers.pinchInwards = false;
                     camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.pinchPrecision = 1;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
                 }
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
+                }
+                scene.onPointerObservable.add(e => {
+                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }, BABYLON.PointerEventTypes.POINTERWHEEL);
+
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
                 }
                 if (camera.inputs.attached.gamepad) {
                     camera.inputs.attached.gamepad.detachControl();
@@ -323,9 +329,9 @@
                         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     triangle.material = triMat;
 
-                videoTexture_left = new BABYLON.VideoTexture("left", document.getElementById('remoteVideo_left'), scene, true, true);
-                videoTexture_right = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, true);
-                videoTexture_right_A1 = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
+                // videoTexture_left = new BABYLON.VideoTexture("left", document.getElementById('remoteVideo_left'), scene, true, true);
+                videoTexture_segway = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, true);
+                videoTexture_a1 = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
 
                 videoDome = new BABYLON.VideoDome(
                     'VideoDome',
@@ -340,7 +346,6 @@
                     scene
                 );
 
-                // videoDome.fovMultiplier = 1;
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
 
@@ -475,10 +480,10 @@
                             panel.addControl(buttonheader);
                             panel.addControl(titleheader);
 
+                let distance_past = 0, distance_current = 0;
 
                 scene.registerBeforeRender(function () {
                     title.text = segway_info;
-                    camera.setTarget(new BABYLON.Vector3(0, 0, 0));
                     if (lin >= 0) {
                         box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
                         box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
@@ -493,24 +498,28 @@
                         triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
                         triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
                     }
+                    if (camera.inputs.attached.pointers) {
+                        if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
+                        distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
+                        if (distance_current > distance_past) {
+                            cameraFovDegree = cameraFovDegree - 1;
+                        }
+                        if (distance_current < distance_past) {
+                            cameraFovDegree = cameraFovDegree + 1;
+                        }
+                        distance_past = distance_current;
+                        if (cameraFovDegree < 0) {
+                            cameraFovDegree = 1;
+                        }
+                        if (cameraFovDegree > 180) {
+                            cameraFovDegree = 179;
+                        }
+                        camera.fov = cameraFovDegree * (Math.PI / 180);
+                    }
                     if (changeVideoFlag) {
                         changeVideoFlag = false;
                         if (document.getElementsByName('change_scene')[0].checked) {
-                            videoDome.dispose();
-                            sendjoy = false;
-                            titleheader.text = "A1 Control OFF";
-                            header = 0xa1;
-                            videoDome = new BABYLON.VideoDome(
-                                'VideoDome',
-                                document.getElementById('remoteVideo_right_A1'),
-                                {
-                                    autoPlay: true,
-                                    resolution: 64,
-                                    size: 5000
-                                    // clickToPlay: true,
-                                },
-                                scene
-                            );
+                            videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             document.getElementsByName('change_scene')[0].checked = false;
@@ -518,21 +527,7 @@
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, false);
                         }
                         else {
-                            videoDome.dispose();
-                            sendjoy = false;
-                            titleheader.text = "Segway Control OFF";
-                            header = 0x43;
-                            videoDome = new BABYLON.VideoDome(
-                                'VideoDome',
-                                document.getElementById('remoteVideo_right'),
-                                {
-                                    autoPlay: true,
-                                    resolution: 64,
-                                    size: 5000
-                                    // clickToPlay: true,
-                                },
-                                scene
-                            );
+                            videoDome.texture = videoTexture_segway;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             document.getElementsByName('change_scene')[0].checked = true;
