@@ -203,6 +203,7 @@
                     const stream = event.streams[0];
                     document.querySelector('#remoteVideo_right').srcObject = stream;
                     document.querySelector('#remoteVideo_right').autoplay = true;
+                    document.querySelector('#remoteVideo_right').muted = false;
                 }
             });
 
@@ -212,6 +213,7 @@
                     const stream = event.streams[0];
                     document.querySelector('#remoteVideo_right_A1').srcObject = stream;
                     document.querySelector('#remoteVideo_right_A1').autoplay = true;
+                    document.querySelector('#remoteVideo_right_A1').muted = false;
                 }
             });
 
