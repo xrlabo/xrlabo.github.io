@@ -70,8 +70,8 @@
                     mediaStream_id = event.streams[0].id;
                     getStats(recvonly.pc, function(result) {
                         // previewGetStatsResult(this.pc, result);
-                        console.log(result.video.latency + 'ms');
-                    }, 1000);
+                        console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms');
+                    }, 500);
                 }
                 if (event.track.kind == 'audio') {
                     const audio = document.createElement('audio');
