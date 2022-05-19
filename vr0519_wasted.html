@@ -259,6 +259,10 @@
             let camera;
             let cameraFovDegree = 60;
 
+            canvas.addEventListener('mouseup', e => {
+                console.log(e);
+            });
+
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -280,6 +284,8 @@
 
                 // Camera の操作を canvas 上で可能にする
     			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
                 if (camera.inputs.attached.keyboard) {
                     camera.inputs.attached.keyboard.detachControl();
                 }
@@ -527,6 +533,7 @@
                     //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
                     //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
                     // }
+                    
                     if (camera.inputs.attached.pointers) {
                         if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
                         distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
@@ -837,7 +844,7 @@
                     connect_clicked();
                 }
             }
-            connect_clicked();
+            // connect_clicked();
             // recvonly_right.connect();
             // recvonly_right_A1.connect();
     </script>

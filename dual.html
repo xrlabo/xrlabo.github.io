@@ -277,6 +277,8 @@
 
                 // Camera の操作を canvas 上で可能にする
     			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
                 if (camera.inputs.attached.keyboard) {
                     camera.inputs.attached.keyboard.detachControl();
                 }
