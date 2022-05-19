@@ -409,7 +409,7 @@
             			sideOrientation: BABYLON.Mesh.DOUBLESIDE
             	};
             	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(-4, 0.5, 7);
+                    ANote0Video.position = new BABYLON.Vector3(-5, 0.5, 7);
                     ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/8, 0);
                 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
                     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
@@ -420,7 +420,7 @@
                 // console.log(ANote0Video);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
-                    planeb.position = new BABYLON.Vector3(-4, 2.5, 7);
+                    planeb.position = new BABYLON.Vector3(-5, 2.5, 7);
                     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/8, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
@@ -445,55 +445,55 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
-                // var plane_radio = BABYLON.Mesh.CreatePlane("plane_radio", 10);
-                //     plane_radio.position = new BABYLON.Vector3(0.1, 2.5, 7);
-                //     plane_radio.rotation = new BABYLON.Vector3(0, 0, 0);
-                //
-                //     var advancedTexture_radio = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_radio);
-                //         var panel_radio = new BABYLON.GUI.StackPanel("radio_panel");
-                //         panel_radio._isVertical = false;
-                //         console.log(panel_radio);
-                //         advancedTexture_radio.addControl(panel_radio);
-                //             var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
-                //                 radio_button0.width = '50px';
-                //                 radio_button0.height = '60px';
-                //                 radio_button0.color = 'red';
-                //                 radio_button0.background = "green";
-                //                 radio_button0._isChecked = false;
-                //             panel_radio.addControl(radio_button0);
-                //             var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
-                //                 text_radio0.text = ' mic on';
-                //                 text_radio0.width = '250px';
-                //                 text_radio0.height = '100px';
-                //                 text_radio0.fontSize = 50;
-                //                 text_radio0.color = 'red';
-                //                 text_radio0.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-                //             panel_radio.addControl(text_radio0);
-                //             var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
-                //                 radio_button1.width = '50px';
-                //                 radio_button1.height = '60px';
-                //                 radio_button1.color = 'red';
-                //                 radio_button1.background = "green";
-                //                 radio_button1._isChecked = true;
-                //             panel_radio.addControl(radio_button1);
-                //             var text_radio1 = new BABYLON.GUI.TextBlock("text_radio1");
-                //                 text_radio1.text = 'mic off';
-                //                 text_radio1.width = '200px';
-                //                 text_radio1.height = '100px';
-                //                 text_radio1.fontSize = 50;
-                //                 text_radio1.color = 'red';
-                //             panel_radio.addControl(text_radio1);
-                //
-                //             radio_button0.onIsCheckedChangedObservable.add((state) => {
-                //                 if (state) {
-                //                     localStream.getAudioTracks()[0].enabled = true;
-                //                 }
-                //             });
-                //             radio_button1.onIsCheckedChangedObservable.add((state) => {
-                //                 if (state) {
-                //                     localStream.getAudioTracks()[0].enabled = false;
-                //                 }
-                //             });
+                var plane_radio = BABYLON.Mesh.CreatePlane("plane_radio", 10);
+                    plane_radio.position = new BABYLON.Vector3(0.1, 2.5, 7);
+                    plane_radio.rotation = new BABYLON.Vector3(0, 0, 0);
+
+                    var advancedTexture_radio = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_radio);
+                        var panel_radio = new BABYLON.GUI.StackPanel("radio_panel");
+                        panel_radio._isVertical = false;
+                        console.log(panel_radio);
+                        advancedTexture_radio.addControl(panel_radio);
+                            var radio_button0 = new BABYLON.GUI.RadioButton('radio_button0');
+                                radio_button0.width = '50px';
+                                radio_button0.height = '60px';
+                                radio_button0.color = 'red';
+                                radio_button0.background = "green";
+                                radio_button0._isChecked = false;
+                            panel_radio.addControl(radio_button0);
+                            var text_radio0 = new BABYLON.GUI.TextBlock("text_radio0");
+                                text_radio0.text = ' mic on';
+                                text_radio0.width = '200px';
+                                text_radio0.height = '100px';
+                                text_radio0.fontSize = 50;
+                                text_radio0.color = 'red';
+                                text_radio0.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                            panel_radio.addControl(text_radio0);
+                            var radio_button1 = new BABYLON.GUI.RadioButton('radio_button1');
+                                radio_button1.width = '50px';
+                                radio_button1.height = '60px';
+                                radio_button1.color = 'red';
+                                radio_button1.background = "green";
+                                radio_button1._isChecked = true;
+                            panel_radio.addControl(radio_button1);
+                            var text_radio1 = new BABYLON.GUI.TextBlock("text_radio1");
+                                text_radio1.text = 'mic off';
+                                text_radio1.width = '200px';
+                                text_radio1.height = '100px';
+                                text_radio1.fontSize = 50;
+                                text_radio1.color = 'red';
+                            panel_radio.addControl(text_radio1);
+
+                            radio_button0.onIsCheckedChangedObservable.add((state) => {
+                                if (state) {
+                                    localStream.getAudioTracks()[0].enabled = true;
+                                }
+                            });
+                            radio_button1.onIsCheckedChangedObservable.add((state) => {
+                                if (state) {
+                                    localStream.getAudioTracks()[0].enabled = false;
+                                }
+                            });
 
                 let distance_past = 0, distance_current = 0;
 
@@ -837,9 +837,9 @@
                     connect_clicked();
                 }
             }
-            // connect_clicked();
-            recvonly_right.connect();
-            recvonly_right_A1.connect();
+            connect_clicked();
+            // recvonly_right.connect();
+            // recvonly_right_A1.connect();
     </script>
   </body>
 </html>
