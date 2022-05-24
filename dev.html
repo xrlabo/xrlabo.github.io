@@ -255,6 +255,8 @@
 
             let epos_send_count = 0;
 
+            let buttonheader;
+
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -416,6 +418,12 @@
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
                         button.onPointerClickObservable.add(() => {
                             sendjoy = false;
+                            if (document.getElementsByName('change_scene')[0].checked) {
+                                buttonheader.textBlock.text = "A1 Control OFF";
+                            }
+                            else {
+                                buttonheader.textBlock.text = "Segway Control OFF";
+                            }
                             if (videoDecrimentalLoop_intervalID) {
                                 clearInterval(videoDecrimentalLoop_intervalID);
                             }
@@ -434,51 +442,46 @@
 
 
                 var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                    planeheader.position = new BABYLON.Vector3(5, 2.0, 7);
+                    planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
                     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
                     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
                         var panel = new BABYLON.GUI.StackPanel();
                         advancedTextureheader.addControl(panel);
 
-                        var titleheader = new BABYLON.GUI.TextBlock();
-                            titleheader.text = 'Segway Control OFF';
-                            titleheader.height = "300px";
-                            titleheader.width = "1000px"
-                            titleheader.color = "white";
-                            titleheader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                            titleheader.fontSize = "100";
-                            // panel.addControl(titleheader);
-
-                        var buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Control ON/OFF");
+                        buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Segway Control OFF");
+                            buttonheader.alphaSet = true;
+                            buttonheader.alpha = 0.5;
+                            // buttonheader.textBlock.alphaSet = true;
+                            // buttonheader.textBlock.alpha = 1.0;
                             buttonheader.width = "1000px";
                             buttonheader.height = "200px";
                             buttonheader.color = "white";
                             buttonheader.cornerRadius = 100;
                             buttonheader.fontSize = 80;
                             buttonheader.background = "green";
+                            console.log(buttonheader);
                             buttonheader.onPointerClickObservable.add(() => {
                                 if (sendjoy) {
                                     if (header == 0x43) {
-                                        titleheader.text = "Segway Control OFF";
+                                        buttonheader.textBlock.text = "Segway Control OFF";
                                     }
                                     else if (header == 0xa1 || header == 0xaa) {
-                                        titleheader.text = "A1 Control OFF";
+                                        buttonheader.textBlock.text = "A1 Control OFF";
                                     }
                                     sendjoy = false;
                                 }
                                 else {
                                     if (header == 0x43) {
-                                        titleheader.text = "Segway Control ON";
+                                        buttonheader.textBlock.text = "Segway Control ON";
                                     }
                                     else if (header == 0xa1 || header == 0xaa) {
-                                        titleheader.text = "A1 Control ON";
+                                        buttonheader.textBlock.text = "A1 Control ON";
                                     }
                                     sendjoy = true;
                                 }
                             });
                             panel.addControl(buttonheader);
-                            panel.addControl(titleheader);
 
                 let distance_past = 0, distance_current = 0;
 
@@ -519,6 +522,7 @@
                     if (changeVideoFlag) {
                         changeVideoFlag = false;
                         if (document.getElementsByName('change_scene')[0].checked) {
+                            header = 0xa1;
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
@@ -527,6 +531,7 @@
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, false);
                         }
                         else {
+                            header = 0x43;
                             videoDome.texture = videoTexture_segway;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
