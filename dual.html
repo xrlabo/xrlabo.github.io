@@ -339,8 +339,10 @@
                         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     triangle.material = triMat;
 
-                let videoTexture_segway = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
                 let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
+
 
                 videoDome = new BABYLON.VideoDome(
                     'VideoDome',
@@ -696,22 +698,22 @@
                             camera.setTarget(new BABYLON.Vector3(0, 0, 1));
                         }
                         if(state === BABYLON.WebXRState.IN_XR){
-                            // scene.onBeforeCameraRenderObservable.add((xr_camera) => {
-                            //     if (xr_camera.isLeftCamera) {
-                            //         // videoDome.texture = videoTexture_left;
-                            //         epos_send_count++;
-                            //         if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
-                            //             console.log(xrHelper.baseExperience.camera.rotationQuaternion.y);
-                            //             sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
-                            //             epos_send_count = 0;
-                            //         }
-                            //     }
-                            //     else {
-                            //         // videoDome.texture = videoTexture_right;
-                            //     }
-                            //     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                            //     // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
-                            // });
+                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (header == 0x43) {
+                                    if (xr_camera.isLeftCamera) {
+                                        videoDome.texture = videoTexture_segway_left;
+                                        epos_send_count++;
+                                        if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
+                                            console.log(xrHelper.baseExperience.camera.rotationQuaternion.y);
+                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
+                                            epos_send_count = 0;
+                                        }
+                                    }
+                                    else {
+                                        videoDome.texture = videoTexture_segway_right;
+                                    }
+                                }
+                            });
                             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
                             // xrHelper.baseExperience.camera.position.set(0, 0, 0);
                             // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);

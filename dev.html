@@ -310,31 +310,31 @@
 				// Position the sphere up by half of its height.
 				//sphere.position.y = 1;
 
-                const bottom = -3;
-                let length = 3;
-                let a = 1;
-                let b = 0; // a + b = 1
+                // const bottom = -3;
+                // let length = 3;
+                // let a = 1;
+                // let b = 0; // a + b = 1
+                //
+                // const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
+                //     box.position = new BABYLON.Vector3(0, bottom, 5);
+                //     box.scaling = new BABYLON.Vector3(1.0, 1.0, 0);
+                //     const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
+                //         boxMat.alpha = 0.3;
+                //         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                //     box.material = boxMat;
+                //
+                // const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
+                //     triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
+                //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                //     const triMat = new BABYLON.StandardMaterial("triMat", scene);
+                //         triMat.alpha = 0.3;
+                //         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                //     triangle.material = triMat;
 
-                const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
-                    box.position = new BABYLON.Vector3(0, bottom, 5);
-                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 0);
-                    const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
-                        boxMat.alpha = 0.3;
-                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    box.material = boxMat;
 
-                const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
-                    triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
-                    triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
-                    const triMat = new BABYLON.StandardMaterial("triMat", scene);
-                        triMat.alpha = 0.3;
-                        triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    triangle.material = triMat;
-
-                // videoTexture_left = new BABYLON.VideoTexture("left", document.getElementById('remoteVideo_left'), scene, true, true);
-                videoTexture_segway_right = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, true);
-                videoTexture_segway_left = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_left'), scene, true, true);
-                videoTexture_a1 = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
+                let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
+                let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
 
                 videoDome = new BABYLON.VideoDome(
                     'VideoDome',
@@ -352,156 +352,155 @@
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
 
-
-                var plane = BABYLON.Mesh.CreatePlane("plane", 1);
-                    plane.position = new BABYLON.Vector3(0, 0.5, 2);
-                    const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
-                        planeMat.alpha = 1;
-                        planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                        plane.material = planeMat;
-                    // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-
-                    // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                        // var panel = new BABYLON.GUI.StackPanel();
-                        // advancedTexture.addControl(panel);
-
-                        var rect = new BABYLON.GUI.Rectangle('rect');
-                            rect.background = 'green';
-                            rect.alpha = 0.3;
-                            rect.height = '500px';
-                            rect.width = '1000px';
-                            advancedTexture.addControl(rect);
-                            // panel.addControl(rect);
-
-                        var title = new BABYLON.GUI.TextBlock();
-                            // if (document.getElementsByName('change_header')[0].checked) {
-                            //     title.text = "Controlling Segway";
-                            //     // header = 0x43;
-                            // }
-                            // else {
-                            //     title.text = "Controlling Unitree\nA1";
-                            //     // header = 0xa1;
-                            // }
-                            title.height = "500px";
-                            title.width = "1000px"
-                            title.color = "white";
-                            title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                            title.fontSize = "80";
-                            // panel.addControl(title);
-                    advancedTexture.addControl(title);
-
-
-                var planeOpts = {
-            			height: 9/4,
-            			width: 16/4,
-            			sideOrientation: BABYLON.Mesh.DOUBLESIDE
-            	};
-            	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(-5, 1, 7);
-                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/10, 0);
-                	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
-                    	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                    	ANote0VideoMat.roughness = 1;
-                    	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
-                	ANote0Video.material = ANote0VideoMat;
-
-                // console.log(ANote0Video);
-
-                var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
-                    planeb.position = new BABYLON.Vector3(-5, 2.7, 7);
-                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/10, 0);
-                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-
-                    // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                    var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
-
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
-                        button.onPointerClickObservable.add(() => {
-                            sendjoy = false;
-                            if (document.getElementsByName('change_scene')[0].checked) {
-                                buttonheader.textBlock.text = "A1 Control OFF";
-                            }
-                            else {
-                                buttonheader.textBlock.text = "Segway Control OFF";
-                            }
-                            if (videoDecrimentalLoop_intervalID) {
-                                clearInterval(videoDecrimentalLoop_intervalID);
-                            }
-                            if (videoIncrimentalLoop_intervalID) {
-                                clearInterval(videoIncrimentalLoop_intervalID);
-                            }
-                            videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
-                        });
-                        button.width = "1000px";
-                        button.height = "200px";
-                        button.color = "white";
-                        button.cornerRadius = 100;
-                        button.fontSize = 80;
-                        button.background = "green";
-                    advancedTextureb.addControl(button);
-
-
-                var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                    planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
-                    planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
-                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                    var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                        var panel = new BABYLON.GUI.StackPanel();
-                        advancedTextureheader.addControl(panel);
-
-                        buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Segway Control OFF");
-                            buttonheader.alphaSet = true;
-                            buttonheader.alpha = 0.5;
-                            // buttonheader.textBlock.alphaSet = true;
-                            // buttonheader.textBlock.alpha = 1.0;
-                            buttonheader.width = "1000px";
-                            buttonheader.height = "200px";
-                            buttonheader.color = "white";
-                            buttonheader.cornerRadius = 100;
-                            buttonheader.fontSize = 80;
-                            buttonheader.background = "green";
-                            console.log(buttonheader);
-                            buttonheader.onPointerClickObservable.add(() => {
-                                if (sendjoy) {
-                                    if (header == 0x43) {
-                                        buttonheader.textBlock.text = "Segway Control OFF";
-                                    }
-                                    else if (header == 0xa1 || header == 0xaa) {
-                                        buttonheader.textBlock.text = "A1 Control OFF";
-                                    }
-                                    sendjoy = false;
-                                }
-                                else {
-                                    if (header == 0x43) {
-                                        buttonheader.textBlock.text = "Segway Control ON";
-                                    }
-                                    else if (header == 0xa1 || header == 0xaa) {
-                                        buttonheader.textBlock.text = "A1 Control ON";
-                                    }
-                                    sendjoy = true;
-                                }
-                            });
-                            panel.addControl(buttonheader);
+                // var plane = BABYLON.Mesh.CreatePlane("plane", 1);
+                //     plane.position = new BABYLON.Vector3(0, 0.5, 2);
+                //     const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
+                //         planeMat.alpha = 1;
+                //         planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                //         plane.material = planeMat;
+                //     // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                //
+                //     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                //     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                //         // var panel = new BABYLON.GUI.StackPanel();
+                //         // advancedTexture.addControl(panel);
+                //
+                //         var rect = new BABYLON.GUI.Rectangle('rect');
+                //             rect.background = 'green';
+                //             rect.alpha = 0.3;
+                //             rect.height = '500px';
+                //             rect.width = '1000px';
+                //             advancedTexture.addControl(rect);
+                //             // panel.addControl(rect);
+                //
+                //         var title = new BABYLON.GUI.TextBlock();
+                //             // if (document.getElementsByName('change_header')[0].checked) {
+                //             //     title.text = "Controlling Segway";
+                //             //     // header = 0x43;
+                //             // }
+                //             // else {
+                //             //     title.text = "Controlling Unitree\nA1";
+                //             //     // header = 0xa1;
+                //             // }
+                //             title.height = "500px";
+                //             title.width = "1000px"
+                //             title.color = "white";
+                //             title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                //             title.fontSize = "80";
+                //             // panel.addControl(title);
+                //     advancedTexture.addControl(title);
+                //
+                //
+                // var planeOpts = {
+            	// 		height: 9/4,
+            	// 		width: 16/4,
+            	// 		sideOrientation: BABYLON.Mesh.DOUBLESIDE
+            	// };
+            	// var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
+                //     ANote0Video.position = new BABYLON.Vector3(-5, 1, 7);
+                //     ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/10, 0);
+                // 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
+                //     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
+                //     	ANote0VideoMat.roughness = 1;
+                //     	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
+                // 	ANote0Video.material = ANote0VideoMat;
+                //
+                // // console.log(ANote0Video);
+                //
+                // var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
+                //     planeb.position = new BABYLON.Vector3(-5, 2.7, 7);
+                //     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/10, 0);
+                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                //
+                //     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                //     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
+                //
+                //     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to this video");
+                //         button.onPointerClickObservable.add(() => {
+                //             sendjoy = false;
+                //             if (document.getElementsByName('change_scene')[0].checked) {
+                //                 buttonheader.textBlock.text = "A1 Control OFF";
+                //             }
+                //             else {
+                //                 buttonheader.textBlock.text = "Segway Control OFF";
+                //             }
+                //             if (videoDecrimentalLoop_intervalID) {
+                //                 clearInterval(videoDecrimentalLoop_intervalID);
+                //             }
+                //             if (videoIncrimentalLoop_intervalID) {
+                //                 clearInterval(videoIncrimentalLoop_intervalID);
+                //             }
+                //             videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+                //         });
+                //         button.width = "1000px";
+                //         button.height = "200px";
+                //         button.color = "white";
+                //         button.cornerRadius = 100;
+                //         button.fontSize = 80;
+                //         button.background = "green";
+                //     advancedTextureb.addControl(button);
+                //
+                //
+                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
+                //     planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
+                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
+                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
+                //         var panel = new BABYLON.GUI.StackPanel();
+                //         advancedTextureheader.addControl(panel);
+                //
+                //         buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Segway Control OFF");
+                //             buttonheader.alphaSet = true;
+                //             buttonheader.alpha = 0.5;
+                //             // buttonheader.textBlock.alphaSet = true;
+                //             // buttonheader.textBlock.alpha = 1.0;
+                //             buttonheader.width = "1000px";
+                //             buttonheader.height = "200px";
+                //             buttonheader.color = "white";
+                //             buttonheader.cornerRadius = 100;
+                //             buttonheader.fontSize = 80;
+                //             buttonheader.background = "green";
+                //             console.log(buttonheader);
+                //             buttonheader.onPointerClickObservable.add(() => {
+                //                 if (sendjoy) {
+                //                     if (header == 0x43) {
+                //                         buttonheader.textBlock.text = "Segway Control OFF";
+                //                     }
+                //                     else if (header == 0xa1 || header == 0xaa) {
+                //                         buttonheader.textBlock.text = "A1 Control OFF";
+                //                     }
+                //                     sendjoy = false;
+                //                 }
+                //                 else {
+                //                     if (header == 0x43) {
+                //                         buttonheader.textBlock.text = "Segway Control ON";
+                //                     }
+                //                     else if (header == 0xa1 || header == 0xaa) {
+                //                         buttonheader.textBlock.text = "A1 Control ON";
+                //                     }
+                //                     sendjoy = true;
+                //                 }
+                //             });
+                //             panel.addControl(buttonheader);
 
                 let distance_past = 0, distance_current = 0;
 
                 scene.registerBeforeRender(function () {
-                    title.text = segway_info;
-                    if (lin >= 0) {
-                        box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                        triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                        triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
-                    }
-                    else {
-                        box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                        triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                        triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
-                    }
+                    // title.text = segway_info;
+                    // if (lin >= 0) {
+                    //     box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
+                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                    //     triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
+                    //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
+                    // }
+                    // else {
+                    //     box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
+                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                    //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
+                    //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
+                    // }
                     if (camera.inputs.attached.pointers) {
                         if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
                         distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
@@ -665,8 +664,6 @@
                                         videoDome.texture = videoTexture_segway_right;
                                     }
                                 }
-                                // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                                // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
                             });
                             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
                             // xrHelper.baseExperience.camera.position.set(0, 0, 0);
