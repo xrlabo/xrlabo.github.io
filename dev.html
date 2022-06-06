@@ -659,7 +659,7 @@
                                         if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
                                             console.log(Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2);
                                             // sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
-                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2]));
+                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2]));
                                             epos_send_count = 0;
                                         }
                                     }
