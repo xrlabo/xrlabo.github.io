@@ -254,6 +254,10 @@
 
 
             let epos_send_count = 0;
+            let setPos = 0;
+            let setPosA = 0;
+            let HMD_ang = 0;
+            let old_HMD_ang = 0;
 
             let buttonheader;
 
@@ -651,21 +655,36 @@
                         camera.alpha = -Math.PI / 2;
                         camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
+                            setPos = 0;
+                            setPosA = 0;
+                            HMD_ang = 0;
+                            old_HMD_ang = 0;
                             scene.onBeforeCameraRenderObservable.add((xr_camera) => {
-                                if (header == 0x43) {
-                                    if (xr_camera.isLeftCamera) {
-                                        videoDome.texture = videoTexture_segway_left;
-                                        epos_send_count++;
-                                        if (epos_send_count > 10 && sendrecv_right.signalingSwitched) {
-                                            console.log(Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2);
-                                            // sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
-                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2]));
-                                            epos_send_count = 0;
+                                if (xr_camera.isLeftCamera) {
+                                    videoDome.texture = videoTexture_segway_left;
+                                    epos_send_count++;
+                                    if (epos_send_count > 20 && sendrecv_right.signalingSwitched) {
+                                        HMD_ang = -Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2*700;
+                                        if (HMD_ang - old_HMD_ang < -700) {
+                                            setPosA = setPosA + 1400;
                                         }
+                                        else if (HMD_ang - old_HMD_ang > 700) {
+                                            setPosA = setPosA - 1400;
+                                        }
+                                        setPos = HMD_ang + setPosA;
+                                        old_HMD_ang = HMD_ang;
+                                        // sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*xrHelper.baseExperience.camera.rotationQuaternion.y]));
+                                        if (header == 0x43) {
+                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
+                                        }
+                                        console.log('HMD_ang: ' + HMD_ang);
+                                        console.log('setPos: ' + setPos);
+
+                                        epos_send_count = 0;
                                     }
-                                    else {
-                                        videoDome.texture = videoTexture_segway_right;
-                                    }
+                                }
+                                else {
+                                    videoDome.texture = videoTexture_segway_right;
                                 }
                             });
                             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
@@ -677,6 +696,7 @@
                             ang = 0;
                             side = 0;
                             sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             clearInterval(intervalID);
                             intervalID = null;
                             if (camera.inputs.attached.gamepad) {
