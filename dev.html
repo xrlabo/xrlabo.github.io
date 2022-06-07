@@ -320,6 +320,8 @@
                 var goal_y = 0;
                 var goal_z = 0;
 
+                var button_clicked = false;
+
                 const bottom = -3;
                 let length = 3;
                 let a = 1;
@@ -346,9 +348,10 @@
                     // button_goal.rotation = 0.2;
                     // button_goal.scaleY = 1.5;
                     button_goal.background = "green";
-                    button_goal.onPointerUpObservable.add(function() {
-                        let r = (goal_x**2 + goal_z**2)**0.5;
-                        let target_turn = Math.acos(goal_z/r)/Math.PI*180;
+                    button_goal.onPointerDownObservable.add(function() {
+                        button_clicked = true;
+                        let r = ((goal_x/4)**2 + (goal_z/4)**2)**0.5;
+                        let target_turn = Math.acos(goal_z/4/r)/Math.PI*180;
                         if (goal_x > 0) {
                             target_turn = -target_turn;
                         }
@@ -452,7 +455,8 @@
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to A1 video");
-                        button.onPointerClickObservable.add(() => {
+                        button.onPointerDownObservable.add(() => {
+                            button_clicked = true;
                             sendjoy = false;
                             if (videoDecrimentalLoop_intervalID) {
                                 clearInterval(videoDecrimentalLoop_intervalID);
@@ -528,7 +532,9 @@
                             buttontwincam.cornerRadius = 100;
                             buttontwincam.fontSize = 80;
                             buttontwincam.background = "green";
-                            buttontwincam.onPointerClickObservable.add(() => {
+                            buttontwincam.onPointerDownObservable.add(() => {
+                                console.log("button");
+                                button_clicked = true;
                                 switch (twincamMode) {
                                     case 1:
                                         twincamMode = 2;
@@ -622,16 +628,29 @@
                    switch (pointerInfo.type) {
                        case BABYLON.PointerEventTypes.POINTERDOWN:
                            // console.log("POINTER DOWN");
-                           // let lambda = (ground_y - oy)/dy;
-                           // let goal_x = lambda*dx + ox;
-                           // let goal_y = lambda*dy + oy;
-                           // let goal_z = lambda*dz + oz;
-                           // console.log('goal: x ' + goal_x/4 + ' y ' + goal_y/4 + ' z ' + goal_z/4);
-                           // box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
-                           // plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z)
                            break;
                        case BABYLON.PointerEventTypes.POINTERUP:
                            // console.log("POINTER UP");
+                           if (button_clicked) {
+                               button_clicked = false;
+                               break;
+                           }
+                           else {
+                               let lambda = (ground_y - oy)/dy;
+                               goal_x = lambda*dx + ox;
+                               goal_y = lambda*dy + oy;
+                               goal_z = lambda*dz + oz;
+                               box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                               plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
+                               let r = (goal_x**2 + goal_z**2)**0.5;
+                               let roty = -Math.acos(goal_z/r);
+                               if (goal_x > 0) {
+                                   roty = -roty;
+                               }
+                               plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
+                               console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
+                               break;
+                           }
                            break;
                        case BABYLON.PointerEventTypes.POINTERMOVE:
                            // console.log("POINTER MOVE");
@@ -643,26 +662,27 @@
                            // console.log("POINTER PICK");
                            break;
                        case BABYLON.PointerEventTypes.POINTERTAP:
+                       console.log(pointerInfo);
                            // console.log("POINTER TAP");
                            break;
                        case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
-                           console.log("POINTER DOUBLE-TAP");
-                           let lambda = (ground_y - oy)/dy;
-                           goal_x = lambda*dx + ox;
-                           goal_y = lambda*dy + oy;
-                           goal_z = lambda*dz + oz;
-                           box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
-                           plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
-                           let r = (goal_x**2 + goal_z**2)**0.5;
-                           let roty = -Math.acos(goal_z/r);
-                           if (goal_x > 0) {
-                               roty = -roty;
-                           }
-                           plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
-                           goal_x = goal_x/4;
-                           goal_y = goal_y/4;
-                           goal_z = goal_z/4;
-                           console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
+                           // console.log("POINTER DOUBLE-TAP");
+                           // let lambda = (ground_y - oy)/dy;
+                           // goal_x = lambda*dx + ox;
+                           // goal_y = lambda*dy + oy;
+                           // goal_z = lambda*dz + oz;
+                           // box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                           // plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
+                           // let r = (goal_x**2 + goal_z**2)**0.5;
+                           // let roty = -Math.acos(goal_z/r);
+                           // if (goal_x > 0) {
+                           //     roty = -roty;
+                           // }
+                           // plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
+                           // goal_x = goal_x/4;
+                           // goal_y = goal_y/4;
+                           // goal_z = goal_z/4;
+                           // console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
                            break;
                    }
                });
