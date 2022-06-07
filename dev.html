@@ -350,8 +350,8 @@
                     button_goal.background = "green";
                     button_goal.onPointerDownObservable.add(function() {
                         button_clicked = true;
-                        let r = ((goal_x/4)**2 + (goal_z/4)**2)**0.5;
-                        let target_turn = Math.acos(goal_z/4/r)/Math.PI*180;
+                        let r = ((goal_x/6)**2 + (goal_z/6)**2)**0.5;
+                        let target_turn = Math.acos(goal_z/6/r)/Math.PI*180;
                         if (goal_x > 0) {
                             target_turn = -target_turn;
                         }
@@ -624,7 +624,7 @@
                    let ox = pointerInfo.pickInfo.ray.origin.x;
                    let oy = pointerInfo.pickInfo.ray.origin.y;
                    let oz = pointerInfo.pickInfo.ray.origin.z;
-                   let ground_y = -5; //地面の位置y
+                   let ground_y = -6; //地面の位置y
                    switch (pointerInfo.type) {
                        case BABYLON.PointerEventTypes.POINTERDOWN:
                            // console.log("POINTER DOWN");
