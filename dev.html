@@ -348,7 +348,10 @@
                     button_goal.background = "green";
                     button_goal.onPointerUpObservable.add(function() {
                         let r = (goal_x**2 + goal_z**2)**0.5;
-                        let target_turn = Math.asin(-goal_x/r)/Math.PI*180;
+                        let target_turn = Math.acos(goal_z/r)/Math.PI*180;
+                        if (goal_x > 0) {
+                            target_turn = -target_turn;
+                        }
                         console.log('forward position: ' + r + ' (m)');
                         console.log('target_turn:' + target_turn + ' (deg)');
                         sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn]));
@@ -650,6 +653,12 @@
                            goal_z = lambda*dz + oz;
                            box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
                            plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
+                           let r = (goal_x**2 + goal_z**2)**0.5;
+                           let roty = -Math.acos(goal_z/r);
+                           if (goal_x > 0) {
+                               roty = -roty;
+                           }
+                           plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
                            goal_x = goal_x/4;
                            goal_y = goal_y/4;
                            goal_z = goal_z/4;
