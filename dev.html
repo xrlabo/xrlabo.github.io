@@ -351,7 +351,7 @@
                         let target_turn = Math.asin(-goal_x/r)/Math.PI*180;
                         console.log('forward position: ' + r + ' (m)');
                         console.log('target_turn:' + target_turn + ' (deg)');
-                        endrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn]));
+                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn]));
 
                     });
                     advancedTexture_goal.addControl(button_goal);
