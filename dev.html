@@ -16,11 +16,11 @@
 
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
-        <title>4月20日 demo</title>
+        <title>SIGGRAPH Demo</title>
     </head>
 
     <body>
-        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">Connect</font></button>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button>
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic on</font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
@@ -316,6 +316,10 @@
 				// Position the sphere up by half of its height.
 				//sphere.position.y = 1;
 
+                var goal_x = 0;
+                var goal_y = 0;
+                var goal_z = 0;
+
                 const bottom = -3;
                 let length = 3;
                 let a = 1;
@@ -329,6 +333,28 @@
                         boxMat.alpha = 0.3;
                         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     box.material = boxMat;
+
+                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 10);
+                    plane_goal.position = new BABYLON.Vector3(0, -4, 5);
+                var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
+                var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
+                    button_goal.width = 0.2;
+                    button_goal.height = "40px";
+                    button_goal.cornerRadius = 20;
+                    button_goal.color = "Orange";
+                    button_goal.thickness = 4;
+                    // button_goal.rotation = 0.2;
+                    // button_goal.scaleY = 1.5;
+                    button_goal.background = "green";
+                    button_goal.onPointerUpObservable.add(function() {
+                        let r = (goal_x**2 + goal_z**2)**0.5;
+                        let target_turn = Math.asin(-goal_x/r)/Math.PI*180;
+                        console.log('forward position: ' + r + ' (m)');
+                        console.log('target_turn:' + target_turn + ' (deg)');
+                        endrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn]));
+
+                    });
+                    advancedTexture_goal.addControl(button_goal);
                 //
                 // const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
                 //     triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
@@ -592,13 +618,14 @@
                    let ground_y = -5; //地面の位置y
                    switch (pointerInfo.type) {
                        case BABYLON.PointerEventTypes.POINTERDOWN:
-                           console.log("POINTER DOWN");
-                           let lambda = (ground_y - oy)/dy;
-                           let goal_x = lambda*dx + ox;
-                           let goal_y = lambda*dy + oy;
-                           let goal_z = lambda*dz + oz;
-                           console.log('goal: x ' + goal_x/4 + ' y ' + goal_y/4 + ' z ' + goal_z/4);
-                           box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                           // console.log("POINTER DOWN");
+                           // let lambda = (ground_y - oy)/dy;
+                           // let goal_x = lambda*dx + ox;
+                           // let goal_y = lambda*dy + oy;
+                           // let goal_z = lambda*dz + oz;
+                           // console.log('goal: x ' + goal_x/4 + ' y ' + goal_y/4 + ' z ' + goal_z/4);
+                           // box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                           // plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z)
                            break;
                        case BABYLON.PointerEventTypes.POINTERUP:
                            // console.log("POINTER UP");
@@ -616,7 +643,17 @@
                            // console.log("POINTER TAP");
                            break;
                        case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
-                           // console.log("POINTER DOUBLE-TAP");
+                           console.log("POINTER DOUBLE-TAP");
+                           let lambda = (ground_y - oy)/dy;
+                           goal_x = lambda*dx + ox;
+                           goal_y = lambda*dy + oy;
+                           goal_z = lambda*dz + oz;
+                           box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                           plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
+                           goal_x = goal_x/4;
+                           goal_y = goal_y/4;
+                           goal_z = goal_z/4;
+                           console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
                            break;
                    }
                });
@@ -834,6 +871,8 @@
                 // setInterval(soraSendDataChannelLoop, 1000.0/20.0);
                 // soraSendDataChannelLoop();
             }
+
+            connect_clicked();
 
             function mic_on_off_clicked() {
                 if (document.getElementsByName('mic_on_off')[0].checked) {
