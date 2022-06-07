@@ -319,6 +319,7 @@
                 var goal_x = 0;
                 var goal_y = 0;
                 var goal_z = 0;
+                var ground_y = -20; //地面の位置y
 
                 var button_clicked = false;
 
@@ -329,20 +330,20 @@
                 //
                 // const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
                 const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 1, depth: 1}, scene);
-                    box.position = new BABYLON.Vector3(0, -5, 5);
+                    box.position = new BABYLON.Vector3(0, ground_y, 5);
                     box.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
                     const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
                         boxMat.alpha = 0.3;
                         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     box.material = boxMat;
 
-                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 20);
-                    plane_goal.position = new BABYLON.Vector3(0, -4, 5);
+                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 50);
+                    plane_goal.position = new BABYLON.Vector3(0, ground_y+1, 5);
                 var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
                 var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
-                    button_goal.width = 0.2;
+                    button_goal.width = 0.1;
                     button_goal.height = "40px";
-                    button_goal.cornerRadius = 20;
+                    button_goal.cornerRadius = 10;
                     button_goal.color = "Orange";
                     button_goal.thickness = 4;
                     // button_goal.rotation = 0.2;
@@ -350,8 +351,10 @@
                     button_goal.background = "green";
                     button_goal.onPointerDownObservable.add(function() {
                         button_clicked = true;
-                        let r = ((goal_x/6)**2 + (goal_z/6)**2)**0.5;
-                        let target_turn = Math.acos(goal_z/6/r)/Math.PI*180;
+                        let x = goal_x/Math.abs(ground_y);
+                        let z = goal_z/Math.abs(ground_y);
+                        let r = (x**2 + z**2)**0.5;
+                        let target_turn = Math.acos(z/r)/Math.PI*180;
                         if (goal_x > 0) {
                             target_turn = -target_turn;
                         }
@@ -517,13 +520,13 @@
                 //         advancedTextureheader.addControl(buttonheader);
 
                 var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                    planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
-                    planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
+                    planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
+                    planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
                     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
                         buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
                             buttontwincam.alphaSet = true;
-                            buttontwincam.alpha = 0.5;
+                            buttontwincam.alpha = 0.7;
                             // buttontwincam.textBlock.alphaSet = true;
                             // buttontwincam.textBlock.alpha = 1.0;
                             buttontwincam.width = "1000px";
@@ -624,7 +627,7 @@
                    let ox = pointerInfo.pickInfo.ray.origin.x;
                    let oy = pointerInfo.pickInfo.ray.origin.y;
                    let oz = pointerInfo.pickInfo.ray.origin.z;
-                   let ground_y = -6; //地面の位置y
+                   // let ground_y = -20; //地面の位置y
                    switch (pointerInfo.type) {
                        case BABYLON.PointerEventTypes.POINTERDOWN:
                            // console.log("POINTER DOWN");
