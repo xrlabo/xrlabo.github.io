@@ -90,9 +90,22 @@
                 ]
             };
 
+            const options_right_A1 = {
+                multistream : true,
+                video : true,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
             const recvonly_left = sora.recvonly("twincam-left", null, options_left);
             const sendrecv_right = sora.sendrecv("twincam-right", null, options_right);
-            const sendrecv_right_A1 = sora.sendrecv("twincam-right-A1", null, options_right);
+            const recvonly_right_A1 = sora.sendrecv("twincam-right-A1", null, options_right_A1);
 
             let videoStream_id_left = null;
             let videoStream_id_right = null;
@@ -133,7 +146,7 @@
 
             });
 
-            sendrecv_right_A1.on("track", (event) => {
+            recvonly_right_A1.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
@@ -199,16 +212,16 @@
             var header = 0x43, lin = 0, ang = 0, side = 0;
             var remote_time = 0, remote_ang = 0, remote_lin = 0;
 
-            sendrecv_right.on('message', (event) => {
-                if (event.data.byteLength == 12) {
-                    remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
-                    remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
-                    remote_ang = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
-
-                    segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
-                    // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
-                }
-            });
+            // sendrecv_right.on('message', (event) => {
+            //     if (event.data.byteLength == 12) {
+            //         remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
+            //         remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
+            //         remote_ang = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
+            //
+            //         segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
+            //         // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
+            //     }
+            // });
 
             /////////////////////////////////////////////////////////////////////////
 
@@ -337,8 +350,8 @@
                         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     box.material = boxMat;
 
-                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 50);
-                    plane_goal.position = new BABYLON.Vector3(0, ground_y+1, 5);
+                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 80);
+                    plane_goal.position = new BABYLON.Vector3(0, ground_y+2, 5);
                 var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
                 var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
                     button_goal.width = 0.1;
@@ -644,7 +657,7 @@
                                goal_y = lambda*dy + oy;
                                goal_z = lambda*dz + oz;
                                box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
-                               plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 1, goal_z);
+                               plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 2, goal_z);
                                let r = (goal_x**2 + goal_z**2)**0.5;
                                let roty = -Math.acos(goal_z/r);
                                if (goal_x > 0) {
@@ -885,7 +898,7 @@
                         localStream = stream;
                         console.log(stream);
                         sendrecv_right.connect(stream);
-                        sendrecv_right_A1.connect(stream);
+                        recvonly_right_A1.connect();
                         if (document.getElementsByName('mic_on_off')[0].checked) {
                             localStream.getAudioTracks()[0].enabled = true;
                         }
