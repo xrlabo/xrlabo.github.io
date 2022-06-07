@@ -357,7 +357,7 @@
                         }
                         console.log('forward position: ' + r + ' (m)');
                         console.log('target_turn:' + target_turn + ' (deg)');
-                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn]));
+                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
 
                     });
                     advancedTexture_goal.addControl(button_goal);
