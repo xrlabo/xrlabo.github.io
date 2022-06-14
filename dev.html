@@ -566,23 +566,25 @@
                             buttontwincam.onPointerDownObservable.add(() => {
                                 console.log("button");
                                 button_clicked = true;
-                                switch (twincamMode) {
-                                    case 1:
-                                        twincamMode = 2;
-                                        buttontwincam.textBlock.text = "left only";
-                                        videoDome.texture = videoTexture_segway_left;
-                                        break;
-                                    case 2:
-                                        twincamMode = 3;
-                                        buttontwincam.textBlock.text = "right only";
-                                        videoDome.texture = videoTexture_segway_right;
-                                        break;
-                                    case 3:
-                                        buttontwincam.textBlock.text = "left and right";
-                                        twincamMode = 1;
-                                        break;
-                                    default:
+                                if (header == 0x43) {
+                                    switch (twincamMode) {
+                                        case 1:
+                                            twincamMode = 2;
+                                            buttontwincam.textBlock.text = "left only";
+                                            videoDome.texture = videoTexture_segway_left;
+                                            break;
+                                        case 2:
+                                            twincamMode = 3;
+                                            buttontwincam.textBlock.text = "right only";
+                                            videoDome.texture = videoTexture_segway_right;
+                                            break;
+                                        case 3:
+                                            buttontwincam.textBlock.text = "left and right";
+                                            twincamMode = 1;
+                                            break;
+                                        default:
 
+                                    }
                                 }
                             });
                         advancedTextureheader.addControl(buttontwincam);
@@ -922,10 +924,10 @@
                             lin = 0;
                             ang = 0;
                             side = 0;
-                            sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             clearInterval(intervalID);
                             intervalID = null;
+                            sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
