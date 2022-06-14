@@ -301,7 +301,13 @@
                     camera.inputs.attached.mousewheel.detachControl();
                 }
                 scene.onPointerObservable.add(e => {
-                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                    cameraFovDegree -= e.event.wheelDelta * 2**(-5);
+                    if (cameraFovDegree < 2) {
+                        cameraFovDegree = 1;
+                    }
+                    if (cameraFovDegree > 178) {
+                        cameraFovDegree = 179;
+                    }
                     camera.fov = cameraFovDegree * (Math.PI / 180);
                 }, BABYLON.PointerEventTypes.POINTERWHEEL);
 
