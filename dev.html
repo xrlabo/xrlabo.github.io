@@ -668,6 +668,8 @@
                         box.position = new BABYLON.Vector3(x, goal_y + box_height/2.0, z);
                         plane_goal.position = new BABYLON.Vector3(x, goal_y + box_height, z);
                         plane_goal.rotation = new BABYLON.Vector3(0, -theta, 0);
+                        button_goal.textBlock.text = 'Now moving';
+                        button_goal.background = "blue";
                     }
                 });
 
@@ -742,7 +744,6 @@
                            let x = goal_x/Math.abs(ground_y);
                            let z = goal_z/Math.abs(ground_y);
                            let r = (x**2 + z**2)**0.5;
-                           goal_r = r*Math.abs(ground_y);
                            let roty = Math.acos(z/r);
                            if (goal_x > 0) {
                                roty = -roty;
@@ -761,6 +762,7 @@
                                goal_x = -max_r*Math.abs(ground_y)*Math.sin(roty);
                                goal_z = max_r*Math.abs(ground_y)*Math.cos(roty);
                            }
+                           goal_r = (goal_x**2 + goal_z**2)**0.5;
                            box.position = new BABYLON.Vector3(goal_x, goal_y + box_height/2.0, goal_z);
                            plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + box_height, goal_z);
                            plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
