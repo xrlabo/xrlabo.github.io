@@ -41,14 +41,14 @@
 
         <main style="margin: 0; padding: 0;">
             <div class="VelocityStatus" style="float: left; width: 50%; background-color: #ddd;">
-                セグウェイに送信した情報<br>
+                Unitree A1 status <br>
                 <font size="4">
-                    <pre><div id="sgvs"></div></pre>
+                    <pre><div id="a1ss"></div></pre>
                 </font>
                 <br>
             </div>
             <div class="SegwayStatusStamped" style="float: right; width: 50%; background-color: #eee;">
-                セグウェイから受信した情報 <br>
+                Segway RMP status <br>
                 <font size="4">
                     <pre><div id="sgss"></div></pre>
                 </font>
@@ -637,6 +637,7 @@
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
+                            buttontwincam.alpha = 0;
                         }
                         else {
                             header = 0x43;
@@ -645,6 +646,7 @@
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "Change to A1 video";
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
+                            buttontwincam.alpha = 0.7;
                         }
                         videoDome.material._alpha = 0;
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
@@ -689,7 +691,7 @@
                             break;
                         case BABYLON.PointerEventTypes.POINTERUP:
                             console.log("POINTER UP");
-                            if (segway_latch == 3) {
+                            if (segway_latch == 3 && sendjoy && header == 0x43) {
                                 // let lambda = (ground_y - oy)/dy;
                                 // goal_x = lambda*dx + ox;
                                 // goal_y = lambda*dy + oy;
@@ -1029,6 +1031,7 @@
                     videoDome.material._alpha = 1;
                     clearInterval(videoIncrimentalLoop_intervalID);
                     videoIncrimentalLoop_intervalID = null;
+                    sendjoy = true;
                 }
             }
 
