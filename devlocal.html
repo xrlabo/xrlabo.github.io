@@ -1,0 +1,482 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+        </script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>実験ページ</title>
+    </head>
+
+    <body>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">Connect</font></button>
+        <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
+        <!-- <button onclick="disconnect_clicked()">切断</button> -->
+        <!-- <input type="radio" name="change_scene" onclick="change_scene_clicked()" checked style="width: 100px; height: 50px;"><font size="7">scene1</font>　　 -->
+        <!-- <input type="radio" name="change_scene" onclick="change_scene_clicked()" style="width: 100px; height: 50px;"><font size="7">scene2</font><br> -->
+        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" checked style="width: 100px; height: 50px;"><font size="7">segway</font><br> -->
+        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" style="width: 100px; height: 50px;"><font size="7">Unitree A1</font> -->
+
+        <div id="remote-videos">
+
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right" controls autoplay style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+
+        </div>
+
+        <main style="margin: 0; padding: 0;">
+            <div class="leftVideoStatus" style="float: left; width: 50%; background-color: #ddd;">
+                <font size="4">
+                    <pre><div id="lvs"></div></pre>
+                </font>
+                <br>
+            </div>
+            <div class="rightVideoStatus" style="float: right; width: 50%; background-color: #eee;">
+                <font size="4">
+                    <pre><div id="rvs"></div></pre>
+                    <pre><div id="sgss"></div></pre>
+                </font>
+                <br>
+            </div>
+        </main>
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 80%; height: 80%; touch-action: none; margin: auto; position: absolute; top: 1500; bottom: 0; left: 0;right: 0; touch-action: none"></canvas>
+        <script type="text/javascript">
+            let segway_info = '';
+            let remote_time = 0, remote_lin_vel = 0, remote_ang_vel = 0;
+        </script>
+        <script type="text/javascript" src="./getStats.js"></script>
+        <script type="text/javascript" src="./webrtc.js"></script>
+        <script type="text/javascript">
+
+			// canvas DOM 要素を取得する
+			const canvas = document.getElementById('renderCanvas');
+			// Initialize Babylon.js variables.
+			let	sceneToRender;
+            let xrHelper;
+			const createDefaultEngine = function (canvas) {
+                return new BABYLON.Engine(canvas, true, {
+					preserveDrawingBuffer: true,
+					stencil: true
+				});
+            }
+
+            const engine = createDefaultEngine(canvas);
+
+            let header = 0x43, lin = 0, ang = 0, side = 0;
+
+            let intervalID = null;
+
+            let dome_position_x = 0;
+            let dome_position_y = 0;
+            let dome_position_z = 0;
+
+            let dome_direction_x = 0;
+            let dome_direction_y = 0;
+            let dome_direction_z = 0;
+
+
+            let epos_send_count = 0;
+            let camera;
+            let cameraFovDegree = 60;
+
+            let xr_controller;
+
+			//Create scene and create XR experience.
+			const createScene = async function() {
+				//新しいシーンオブジェクトを作成する
+                var scene = new BABYLON.Scene(engine);
+                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+                // scene.detachControl();
+
+                //つねに原点を中心として回転するカメラを作成する
+				camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
+				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
+				// カメラの向きを座標0地点にする
+				// camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+				// カメラの視野角を 95 度に設定
+				const cameraFovRadian = 70 * (Math.PI / 180);
+				camera.fov = cameraFovRadian;
+                console.log(camera);
+
+                // Camera の操作を canvas 上で可能にする
+    			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
+                }
+                if (camera.inputs.attached.pointers) {
+                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                    camera.inputs.attached.pointers.multiTouchPanning = false;
+                    camera.inputs.attached.pointers.pinchInwards = false;
+                    camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
+                }
+                if (camera.inputs.attached.mousewheel) {
+                    camera.inputs.attached.mousewheel.detachControl();
+                }
+                scene.onPointerObservable.add(e => {
+                    cameraFovDegree -= e.event.wheelDelta * 2**(-5);
+                    if (cameraFovDegree < 2) {
+                        cameraFovDegree = 1;
+                    }
+                    if (cameraFovDegree > 178) {
+                        cameraFovDegree = 179;
+                    }
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }, BABYLON.PointerEventTypes.POINTERWHEEL);
+                if (camera.inputs.attached.gamepad) {
+                    camera.inputs.attached.gamepad.detachControl();
+                }
+                console.log(camera);
+
+
+
+                const bottom = -3;
+                let length = 3;
+                let a = 1;
+                let b = 0; // a + b = 1
+
+                const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
+                    box.position = new BABYLON.Vector3(0, bottom, 5);
+                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 0);
+                    const boxMat = new BABYLON.StandardMaterial("boxMat", scene);
+                        boxMat.alpha = 0.3;
+                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                    box.material = boxMat;
+
+                const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
+                    triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
+                    triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                    const triMat = new BABYLON.StandardMaterial("triMat", scene);
+                        triMat.alpha = 0.3;
+                        triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                    triangle.material = triMat;
+
+                videoTexture_left = new BABYLON.VideoTexture("left", document.getElementById('remoteVideo_left'), scene, true, true);
+                videoTexture_right = new BABYLON.VideoTexture("right", document.getElementById('remoteVideo_right'), scene, true, true);
+
+                var videoDome = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_right'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+
+                // videoDome.fovMultiplier = 1;
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+
+
+                var plane = BABYLON.Mesh.CreatePlane("plane", 1);
+                    plane.position = new BABYLON.Vector3(0, 0.5, 2);
+                    const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
+                        planeMat.alpha = 1;
+                        planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                        plane.material = planeMat;
+                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+
+                // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                    // var panel = new BABYLON.GUI.StackPanel();
+                    // advancedTexture.addControl(panel);
+
+                // var rect = new BABYLON.GUI.Rectangle('rect');
+                //     rect.background = 'green';
+                //     rect.alpha = 0.3;
+                //     rect.height = '500px';
+                //     rect.width = '1000px';
+                //     advancedTexture.addControl(rect);
+                //     // panel.addControl(rect);
+                //
+                // var title = new BABYLON.GUI.TextBlock();
+                //     // if (document.getElementsByName('change_header')[0].checked) {
+                //     //     title.text = "Controlling Segway";
+                //     //     // header = 0x43;
+                //     // }
+                //     // else {
+                //     //     title.text = "Controlling Unitree\nA1";
+                //     //     // header = 0xa1;
+                //     // }
+                //     title.height = "500px";
+                //     title.width = "1000px"
+                //     title.color = "white";
+                //     title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                //     title.fontSize = "80";
+                //     // panel.addControl(title);
+                //     advancedTexture.addControl(title);
+
+                scene.registerBeforeRender(function () {
+                    // title.text = segway_info;
+                    if (lin >= 0) {
+                        box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin_vel)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin_vel)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin_vel)/2);
+                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                        triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin_vel)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin_vel)*length)*Math.cos(-Math.PI*ang/6.0));
+                        triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
+                    }
+                    else {
+                        box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin_vel)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin_vel)*length/2)*Math.cos(-Math.PI*ang/6.0));
+                        box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin_vel)/2);
+                        box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
+                        triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin_vel)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin_vel)*length)*Math.cos(-Math.PI*ang/6.0));
+                        triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
+                    }
+                });
+
+                // Create a default environment for the scene.
+				var environment = scene.createDefaultEnvironment();
+                // environment.ground.parent.position.y = 0;
+                // environment.ground.position.y = 0
+
+
+                // Initialize XR experience with default experience helper.
+				xrHelper = await scene.createDefaultXRExperienceAsync({
+                    // floorMeshes: [environment.ground]
+                });
+
+                //===Stick=====================================================================================================
+                //==============================================================================================================
+				if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+
+                    xrHelper.teleportation.rotationAngle = 0;
+
+                    // xrHelper.input.xrCamera.inputs.attached.mouse.detachControl();
+                    // xrHelper.input.xrCamera.cameraRotation = new BABYLON.Vector2(0, 0);
+
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+
+                    // xrHelper.input.xrCamera.inputs.detachElement(true);
+
+                    // xrHelper.input.xrCamera.inputs.remove(xrHelper.input.xrCamera.inputs.attached.mouse);
+
+                    // xrHelper.input.xrCamera.inputs.attached.mouse.touchEnabled = false;
+                    // xrHelper.input.xrCamera.inputs.attached.mouse._allowCameraRotation = false;
+
+                    // xrHelper.input.onControllerRemovedObservable.add(() => {
+                    //
+                    // });
+
+                    // xrHelper.input.xrCamera.inputs.clear();
+
+
+                    xrHelper.input.onControllerAddedObservable.add((controller) => {
+                        xrHelper.teleportation.rotationEnabled = false;
+                        if (intervalID == null) {
+                            intervalID = setInterval(SendDataChannelLoop, 1000.0/20.0);
+                        }
+                        controller.onMotionControllerInitObservable.add((motionController) => {
+                            if (motionController.handness === 'right') {
+                                console.log(controller);
+                                xr_controller = controller;
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    // ang = -axes.x;
+                                    lin = -axes.y;
+                                    // dome_position_z = 2000*axes.y;
+                                    // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                                    // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
+                                });
+                                let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+                                triggerComponent.onButtonStateChangedObservable.add((event) => {
+                                    side = -event._currentValue;
+                                });
+                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                //     if (bbuttonComponent.pressed) {
+                                //         if (header == 0xa1) {
+                                //             header = 0xaa;
+                                //         }
+                                //         else if (header == 0xaa) {
+                                //             header = 0xa1;
+                                //         }
+                                //     }
+                                // });
+                            }
+                            if (motionController.handness === 'left') {
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    ang = -axes.x;
+                                    // dome_direction_x = Math.cos(axes.x*Math.PI/2.0);
+                                    // dome_direction_z = Math.sin(axes.x*Math.PI/2.0)
+                                    // lin = -axes.y;
+                                });
+                                let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+                                triggerComponent.onButtonStateChangedObservable.add((event) => {
+                                    side = event._currentValue;
+                                });
+                            }
+                        });
+                    });
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        if(state === BABYLON.WebXRState.IN_XR){
+                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (xr_camera.isLeftCamera) {
+                                    videoDome.texture = videoTexture_left;
+                                }
+                                else {
+                                    videoDome.texture = videoTexture_right;
+                                }
+                                // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                                // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                            });
+                            // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                            // xrHelper.baseExperience.camera.position.set(0, 0, 0);
+                            // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                        }
+                        else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                            lin = 0;
+                            ang = 0;
+                            side = 0;
+                            if (camera.inputs.attached.gamepad) {
+                                camera.inputs.attached.gamepad.detachControl();
+                            }
+                            clearInterval(intervalID);
+                            intervalID = null;
+                        }
+                    });
+
+				}
+
+                return scene;
+            }
+
+            function SendDataChannelLoop() {
+                if (localrecvonly_cmd.dataChannel.readyState == 'open') {
+                    localrecvonly_cmd.dataChannel.send(new Uint8Array([header, 127*side, 127*ang, 127*lin]));
+                }
+                else {
+                    connect();
+                }
+            }
+
+			// Create scene.
+			scene = createScene();
+			scene.then(function (returnedScene) {
+				sceneToRender = returnedScene;
+			});
+            engine.runRenderLoop(function () {
+				if (sceneToRender) {
+					sceneToRender.render();
+				}
+			});
+
+			// Handle browser resize.
+			window.addEventListener('resize', function () {
+				engine.resize();
+			});
+
+            // joystick
+
+            window.addEventListener("gamepadconnected", function(e) {
+                // gp = navigator.getGamepads()[e.gamepad.index];
+                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                e.gamepad.index, e.gamepad.id,
+                e.gamepad.buttons.length, e.gamepad.axes.length);
+                setInterval(gameLoop, 1000.0/10.0);
+                gameLoop();
+            });
+
+            let start = false;
+            function gameLoop() {
+                let gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+                let gp = gamepads[0];
+                if (gp != null) {
+                    // let side = -gp.axes[2];
+                    let side = gp.buttons[6].value - gp.buttons[7].value;
+                    // console.log(gp.buttons);
+                    let ang = -gp.axes[0];
+                    let lin = -gp.axes[3];
+                    // document.getElementById('leftright').value = 127*ang;
+                    // document.getElementById('leftright_out').innerHTML = (127*ang).toFixed(0);
+                    // document.getElementById('frontrear').value = 127*lin;
+                    // document.getElementById('frontrear_out').innerHTML = (127*lin).toFixed(0);
+                    // document.getElementById('side').value = 127*side;
+                    // document.getElementById('side_out').innerHTML = (127*side).toFixed(0);
+
+                    if (sendrecv_right.signalingSwitched) {
+                        // dataChannel.send(new TextEncoder().encode("jyja" + ang.toFixed(3) + "," + lin.toFixed(3) + "\n"));
+                        // const buffer = new ArrayBuffer(1);
+                        // console.log(buffer);
+                        if (gp.buttons[2].value && header == 0xaa) {
+                            header = 0xa1;
+                            console.log(header);
+                        }
+                        if (gp.buttons[3].value && header == 0xa1) {
+                            header = 0xaa;
+                            console.log(header);
+                        }
+                        if (gp.buttons[1].value) {
+                            start = true;
+                            sendrecv_right.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
+                            return;
+                        }
+                        if (gp.buttons[0].value) {
+                            start = false;
+                            sendrecv_right.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
+                            return;
+                        }
+                        if (start) {
+                            // if (gp.buttons[14].pressed) {
+                            //     side = 127;
+                            // }
+                            // if (gp.buttons[15].pressed) {
+                            //     side = -127;
+                            // }
+                            // ang = (ang << 8) & 0x0000ff00;
+                            // lin = lin & 0x000000ff;
+                            let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
+
+                            dataChannel.send(send_value);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            let localrecvonly_right = new localrecvonly("remoteVideo_right", "ws://192.168.1.149:8081/ws");
+            let localrecvonly_left = new localrecvonly("remoteVideo_left", "ws://192.168.1.31:8081/ws");
+            // let localrecvonly_cmd = new localrecvonly(null, "ws://192.168.1.149:8080/ws");
+            function connect_clicked() {
+                localrecvonly_right.connect();
+                localrecvonly_left.connect();
+                // localrecvonly_cmd.connect();
+            }
+    </script>
+  </body>
+</html>
