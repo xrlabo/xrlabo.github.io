@@ -93,19 +93,12 @@
             const options_right_A1 = {
                 multistream : true,
                 video : true,
-                audio : true,
-                dataChannelSignaling : true,
-                dataChannels : [
-                    {
-                        label : "#sora-devtools",
-                        direction : "sendrecv"
-                    }
-                ]
+                audio : true
             };
 
             const recvonly_left = sora.recvonly("twincam-left", null, options_left);
             const sendrecv_right = sora.sendrecv("twincam-right", null, options_right);
-            const recvonly_right_A1 = sora.sendrecv("twincam-right-A1", null, options_right_A1);
+            const recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_right_A1);
 
             let videoStream_id_left = null;
             let videoStream_id_right = null;
