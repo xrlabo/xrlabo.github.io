@@ -709,7 +709,12 @@
                                 if (point_ground) {
                                    console.log('forward position: ' + r + ' (m)');
                                    console.log('target_turn:' + target_turn + ' (deg)');
-                                   // sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                   if (header == 0x43) {
+                                       sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                   }
+                                   else if (header == 0xa1) {
+                                       sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, z*100, x*100]));
+                                   }
                                    button_goal.textBlock.text = 'Now moving';
                                    button_goal.background = "blue";
                                    segway_start_turn_position = segway_turn_position;
