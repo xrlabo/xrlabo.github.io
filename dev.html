@@ -193,17 +193,26 @@
             let segway_latch = 0;
             let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
             let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
+
+            let a1_auto_moving_status = 0;
+            let a1_position_x = 0, a1_position_z = 0;
             sendrecv_right.on('message', (event) => {
-                if (event.data.byteLength == 19) {
-                    let vel_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0;
-                    let lin_vel = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0;
-                    let ang_vel = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0;
-                    segway_latch = new Uint8Array(event.data)[12];
-                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[13] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[14]])[0] )/100.0;
-                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[15] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[16]])[0] )/100.0;
-                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[17] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[18]])[0] )/100.0;
+                if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
+                    let vel_time = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
+                    let lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
+                    let ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
+                    segway_latch = new Uint8Array(event.data)[13];
+                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
+                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
+                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
 
                     document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + vel_time + '\n並進速度(m/s) ' + lin_vel + '\n旋回速度(deg/s)' + ang_vel;
+                }
+                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 6) {
+                    a1_auto_moving_status = new Uint8Array(event.data)[1];
+                    a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
+                    a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
+                    document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z;
                 }
             });
 
@@ -645,7 +654,7 @@
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
                     }
 
-                    if (segway_latch == 4) {
+                    if (header == 0x43 && segway_latch == 4) {
                         let gx = goal_x*Math.cos(segway_start_turn_position/180.0*Math.PI) - goal_z*Math.sin(segway_start_turn_position/180.0*Math.PI) + segway_start_position_x*Math.abs(ground_y);
                         let gz = goal_x*Math.sin(segway_start_turn_position/180.0*Math.PI) + goal_z*Math.cos(segway_start_turn_position/180.0*Math.PI) + segway_start_position_z*Math.abs(ground_y);
                         let sx = segway_position_x*Math.abs(ground_y);
@@ -654,6 +663,20 @@
                         let z_view = (gx - sx)*Math.sin(-segway_turn_position/180.0*Math.PI) + (gz - sz)*Math.cos(-segway_turn_position/180.0*Math.PI);
                         let r = ((gx - sx)**2 + (gz - sz)**2)**0.5;
                         goal_plane_rotation = -(Math.acos((gz - sz)/r)*(-1)**(-(gx - sx)/r < 0) - (segway_turn_position % 360)/180.0*Math.PI);
+                        box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
+                        plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
+                        plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
+                        button_goal.textBlock.text = 'Now moving';
+                        button_goal.background = "blue";
+                    }
+
+                    if (header == 0xa1 && a1_auto_moving_status == 1) {
+                        let a1x = -a1_position_x*Math.abs(ground_y);
+                        let a1z = a1_position_z*Math.abs(ground_y);
+                        let x_view = (goal_x - a1x);
+                        let z_view = (goal_z - a1z);
+                        let r = ((goal_x - (-a1x))**2 + (goal_z - a1z)**2)**0.5;
+                        goal_plane_rotation = -Math.acos((goal_z - a1z)/r)*(-1)**(-(goal_x - a1x)/r < 0);
                         box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
                         plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
                         plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
@@ -684,7 +707,7 @@
                             break;
                         case BABYLON.PointerEventTypes.POINTERUP:
                             console.log("POINTER UP");
-                            if (segway_latch == 3 && sendjoy && header == 0x43) {
+                            if (sendjoy) {
                                 // let lambda = (ground_y - oy)/dy;
                                 // goal_x = lambda*dx + ox;
                                 // goal_y = lambda*dy + oy;
@@ -707,19 +730,23 @@
                                    target_turn = -target_turn;
                                 }
                                 if (point_ground) {
-                                   console.log('forward position: ' + r + ' (m)');
-                                   console.log('target_turn:' + target_turn + ' (deg)');
-                                   if (header == 0x43) {
-                                       sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
-                                   }
-                                   else if (header == 0xa1) {
-                                       sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, z*100, x*100]));
-                                   }
-                                   button_goal.textBlock.text = 'Now moving';
-                                   button_goal.background = "blue";
-                                   segway_start_turn_position = segway_turn_position;
-                                   segway_start_position_x = segway_position_x;
-                                   segway_start_position_z = segway_position_z;
+                                    if (header == 0x43 && segway_latch == 3) {
+                                        console.log('forward position: ' + r + ' (m)');
+                                        console.log('target_turn:' + target_turn + ' (deg)');
+
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        button_goal.textBlock.text = 'Now moving';
+                                        button_goal.background = "blue";
+                                        segway_start_turn_position = segway_turn_position;
+                                        segway_start_position_x = segway_position_x;
+                                        segway_start_position_z = segway_position_z;
+                                    }
+                                    else if (header == 0xa1 && a1_auto_moving_status == 0) {
+                                        console.log('target x' + x + ' (m) ' + z + ' (m)');
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
+                                        button_goal.textBlock.text = 'Now moving';
+                                        button_goal.background = "blue";
+                                    }
                                 }
 
                                 break;
@@ -727,7 +754,7 @@
                             break;
                         case BABYLON.PointerEventTypes.POINTERMOVE:
                             // console.log("POINTER MOVE");
-                            if (segway_latch == 3) {
+                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
                                 let lambda = (ground_y - oy)/dy;
                                 if (lambda <= 0) {
                                     point_ground = false;
@@ -839,12 +866,15 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     // console.log(ang);
+                                    if (header == 0x43) {
+                                        side = 0;
+                                        lin = -axes.y;
+                                    }
+
                                     side = -axes.x;
                                     if (header == 0xa1) {
-
-                                    }
-                                    else {
-                                        lin = -axes.y;
+                                        ang = -axes.x;
+                                        lin = 0;
                                     }
                                     // dome_position_z = 2000*axes.y;
                                     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
@@ -853,6 +883,13 @@
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
                                     // side = -event._currentValue;
+                                });
+
+                                let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
+                                abuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (abuttonComponent.pressed) {
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                    }
                                 });
                                 let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
                                 bbuttonComponent.onButtonStateChangedObservable.add(() => {
@@ -870,9 +907,11 @@
                                 const xr_ids = motionController.getComponentIds();
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
-                                    ang = -axes.x;
+                                    if (header == 0x43) {
+                                        ang = -axes.x;
+                                    }
                                     if (header == 0xa1) {
-                                        lin = -axes.y;
+                                        // side = -axes.x;
                                     }
                                     // dome_direction_x = Math.cos(axes.x*Math.PI/2.0);
                                     // dome_direction_z = Math.sin(axes.x*Math.PI/2.0)
