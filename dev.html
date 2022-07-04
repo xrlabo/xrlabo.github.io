@@ -34,7 +34,7 @@
 
             <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
-            <video id="remoteVideo_left_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
 
         </div>
@@ -98,6 +98,7 @@
 
             const recvonly_left = sora.recvonly("twincam-left", null, options_left);
             const sendrecv_right = sora.sendrecv("twincam-right", null, options_right);
+            const recvonly_segway_rear = sora.recvonly("segway-rear", null, options_right_A1);
             const recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_right_A1);
 
             let videoStream_id_left = null;
@@ -145,6 +146,27 @@
                     document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                     document.querySelector('#remoteVideo_right_A1').autoplay = true;
                     document.querySelector('#remoteVideo_right_A1').muted = false;
+                    // mediaStream_id_right_A1 = event.streams[0].id;
+                    return;
+                }
+
+                // if (event.track.kind == 'audio') {
+                //     const audio = document.createElement('audio');
+                //     audio.id = "audio-" + event.streams[0].id;
+                //     audio.srcObject = event.streams[0];
+                //     audio.controls = true;
+                //     audio.autoplay = true;
+                //     document.getElementById('remote-videos').appendChild(audio);
+                // }
+
+            });
+
+            recvonly_segway_rear.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    document.querySelector('#remoteVideo_segway_rear').srcObject = event.streams[0];
+                    document.querySelector('#remoteVideo_segway_rear').autoplay = true;
+                    document.querySelector('#remoteVideo_segway_rear').muted = false;
                     // mediaStream_id_right_A1 = event.streams[0].id;
                     return;
                 }
@@ -283,6 +305,8 @@
 
             let twincamMode = 1; //1: left and right, 2: left only, 3: right only
 
+            let arrow_box;
+
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -335,6 +359,18 @@
 
 				// Position the sphere up by half of its height.
 				//sphere.position.y = 1;
+
+                var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
+                    arrow_mat.alpha = 0.3;
+                    arrow_mat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                front_arrow_box = BABYLON.MeshBuilder.CreateBox("arrow_box", {width: 1, height: 1, depth: 6}, scene);
+                    front_arrow_box.position = new BABYLON.Vector3(0, -3, 3);
+                    front_arrow_box.material = arrow_mat;
+                var front_arrow_cylinder = BABYLON.MeshBuilder.CreateCylinder("arrow_cylinder", {height: 0.1, diameter: 4, tessellation: 3}, scene);
+                    front_arrow_cylinder.position = new BABYLON.Vector3(0, -3, 7);
+                    front_arrow_cylinder.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                    front_arrow_cylinder.material = arrow_mat;
+
 
                 var goal_x = 0;
                 var goal_y = 0;
@@ -478,6 +514,40 @@
                     	ANote0VideoMat.roughness = 1;
                     	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
                 	ANote0Video.material = ANote0VideoMat;
+
+
+                planeOpts = {
+           			height: 9/3,
+           			width: 16/3,
+           			sideOrientation: BABYLON.Mesh.DOUBLESIDE
+               	};
+
+                // const myPath = [
+        		//  	new BABYLON.Vector3(0, 0, 0.0),
+        		// 	new BABYLON.Vector3(0, 2, 0),
+            	// ];
+                // let segway_rear_view = BABYLON.MeshBuilder.CreateTube("segway_rear_view", {path: myPath, updatable: true}, scene);  //scene
+
+                // let segway_rear_view = BABYLON.MeshBuilder.CreateCylinder("segway_rear_view", {arc: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
+                // let segway_rear_view = BABYLON.MeshBuilder.CreateSphere("segway_rear_view", {diameterX: 40, diameterY: 40, sideOrientation: BABYLON.Mesh.DOUBLESIDE, segments: 64, slice: 0.5, arc: 0.5}, scene);
+                var segway_rear_view = BABYLON.MeshBuilder.CreatePlane("segway_rear_view", planeOpts, scene);
+                    segway_rear_view.position = new BABYLON.Vector3(0, 0, 10);
+                    segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+                    // segway_rear_view.rotation = new BABYLON.Vector3(Math.PI, Math.PI/2, 0);
+                    // segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI/2, Math.PI/10);
+                    // segway_rear_view.rotation = new BABYLON.Vector3(0, 3*Math.PI/4, 0);
+                	var segway_rear_view_mat = new BABYLON.StandardMaterial("segway_rear_view_mat", scene);
+                    	segway_rear_view_texture = new BABYLON.VideoTexture("segway_rear_video", document.getElementById('remoteVideo_right'), scene, true, false);
+                        segway_rear_view_texture.vScale = 0.4;
+                        segway_rear_view_texture.uScale = 0.4;
+                        segway_rear_view_texture.uOffset = 0.8;
+                        // segway_rear_view_texture.vOffset = 1;
+                        segway_rear_view_mat.diffuseTexture = segway_rear_view_texture;
+                    	segway_rear_view_mat.roughness = 1;
+                        segway_rear_view_mat.alpha = 1;
+                    	segway_rear_view_mat.emissiveColor = new BABYLON.Color3.White();
+                	segway_rear_view.material = segway_rear_view_mat;
+                    console.log(segway_rear_view);
 
                 // console.log(ANote0Video);
 
@@ -1033,6 +1103,7 @@
                          console.error(e);
                     });
                     recvonly_left.connect();
+                    recvonly_segway_rear.connect();
                 }
                 // setInterval(soraSendDataChannelLoop, 1000.0/20.0);
                 // soraSendDataChannelLoop();
