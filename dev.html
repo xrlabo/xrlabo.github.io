@@ -95,7 +95,8 @@
             let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
             let recvonly_segway_rear = sora.recvonly("segway-rear", null, options_video_recvonly);
             let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
-            let recvonly_control = sora.recvonly("robots-control", null, options_control);
+            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
+            let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
 
 
             let videoStream_id_left = null;
@@ -215,7 +216,7 @@
 
             let a1_auto_moving_status = 0;
             let a1_position_x = 0, a1_position_z = 0;
-            recvonly_control.on('message', (event) => {
+            recvonly_robots_control.on('message', (event) => {
                 if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
                     let vel_time = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
                     let lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
@@ -238,7 +239,7 @@
             var header = 0x43, lin = 0, ang = 0, side = 0;
             var remote_time = 0, remote_ang = 0, remote_lin = 0;
 
-            // recvonly_control.on('message', (event) => {
+            // recvonly_robots_control.on('message', (event) => {
             //     if (event.data.byteLength == 12) {
             //         remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
             //         remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
@@ -272,7 +273,8 @@
 
             const engine = createDefaultEngine(canvas);
 
-            let intervalID = null;
+            let soraRobotsDataChannelLoop_intervalID = null;
+            let soraChairDataChannelLoop_intervalID = null;
             let sendjoy = false;
 
             let camera;
@@ -340,27 +342,32 @@
                     camera.inputs.attached.gamepad.detachControl();
                 }
 
-                // scene.activeCamera.beta += 0.8;
+                var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
+                    plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
+                var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
+                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
+                var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
+                    // button_reconnect.alphaSet = true;
+                    button_reconnect.alpha = 0.7;
+                    button_reconnect.width = 0.3;
+                    button_reconnect.height = 0.1;
+                    button_reconnect.cornerRadius = 10;
+                    button_reconnect.color = "white";
+                    button_reconnect.thickness = 4;
+                    button_reconnect.fontSize = 40;
+                    // button_reconnect.rotation = 0.2;
+                    // button_reconnect.scaleY = 1.5;
+                    button_reconnect.background = "green";
+                    button_reconnect.onPointerDownObservable.add(function() {
+                        connect_clicked();
+                    });
+                    advancedTexture_reconnect.addControl(button_reconnect);
 
-				// Create a light and aim it vertically to the sky (0, 1, 0).
-				// let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
-
-				// Set light intensity to a lower value (default is 1).
-				// light.intensity = 0.5;
-
-				// Add one of Babylon's built-in sphere shapes.
-				//let sphere = BABYLON.MeshBuilder.CreateSphere('sphere-1', {
-				//	diameter: 2,
-				//	segments: 32
-				//}, scene);
-
-				// Position the sphere up by half of its height.
-				//sphere.position.y = 1;
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
                     arrow_mat.alpha = 0.3;
                     arrow_mat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                front_arrow_box = BABYLON.MeshBuilder.CreateBox("arrow_box", {width: 1, height: 1, depth: 6}, scene);
+                let front_arrow_box = BABYLON.MeshBuilder.CreateBox("arrow_box", {width: 1, height: 1, depth: 6}, scene);
                     front_arrow_box.position = new BABYLON.Vector3(0, -3, 3);
                     front_arrow_box.material = arrow_mat;
                 var front_arrow_cylinder = BABYLON.MeshBuilder.CreateCylinder("arrow_cylinder", {height: 0.1, diameter: 4, tessellation: 3}, scene);
@@ -425,7 +432,7 @@
                     //     }
                     //     console.log('forward position: ' + r + ' (m)');
                     //     console.log('target_turn:' + target_turn + ' (deg)');
-                    //     recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                     //
                     // });
                     advancedTexture_goal.addControl(button_goal);
@@ -801,7 +808,7 @@
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
 
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                         segway_start_turn_position = segway_turn_position;
@@ -810,7 +817,7 @@
                                     }
                                     else if (header == 0xa1 && a1_auto_moving_status == 0) {
                                         console.log('target x' + x + ' (m) ' + z + ' (m)');
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                     }
@@ -923,9 +930,13 @@
                     xrHelper.teleportation.rotationEnabled = false;
 
                     xrHelper.input.onControllerAddedObservable.add((controller) => {
-                        if (intervalID == null) {
-                            intervalID = setInterval(soraSendDataChannelLoop, 1000.0/20.0);
-                            soraSendDataChannelLoop();
+                        if (soraRobotsDataChannelLoop_intervalID == null) {
+                            soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
+                            soraRobotsDataChannelLoop();
+                        }
+                        if (soraChairDataChannelLoop_intervalID == null) {
+                            soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/20.0);
+                            soraChairDataChannelLoop();
                         }
                         controller.onMotionControllerInitObservable.add((motionController) => {
                             if (motionController.handness === 'right') {
@@ -955,20 +966,20 @@
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                                     }
                                 });
-                                let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
-                                bbuttonComponent.onButtonStateChangedObservable.add(() => {
-                                    if (bbuttonComponent.pressed) {
-                                        if (header == 0xa1) {
-                                            header = 0xaa;
-                                        }
-                                        else if (header == 0xaa) {
-                                            header = 0xa1;
-                                        }
-                                    }
-                                });
+                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                //     if (bbuttonComponent.pressed) {
+                                //         if (header == 0xa1) {
+                                //             header = 0xaa;
+                                //         }
+                                //         else if (header == 0xaa) {
+                                //             header = 0xa1;
+                                //         }
+                                //     }
+                                // });
                             }
                             if (motionController.handness === 'left') {
                                 const xr_ids = motionController.getComponentIds();
@@ -1004,7 +1015,7 @@
                                 if (header == 0x43) {
                                     if (xr_camera.isLeftCamera) {
                                         epos_send_count++;
-                                        if (epos_send_count > 20 && recvonly_control.signalingSwitched) {
+                                        if (epos_send_count > 20 && recvonly_robots_control.signalingSwitched) {
                                             HMD_ang = -Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2*700;
                                             if (HMD_ang - old_HMD_ang < -700) {
                                                 setPosA = setPosA + 1400;
@@ -1014,7 +1025,7 @@
                                             }
                                             setPos = HMD_ang + setPosA;
                                             old_HMD_ang = HMD_ang;
-                                            recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
+                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
 
                                             // console.log('HMD_ang: ' + HMD_ang);
                                             // console.log('setPos: ' + setPos);
@@ -1040,10 +1051,14 @@
                             lin = 0;
                             ang = 0;
                             side = 0;
-                            clearInterval(intervalID);
-                            intervalID = null;
-                            recvonly_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            clearInterval(soraRobotsDataChannelLoop_intervalID);
+                            soraRobotsDataChannelLoop_intervalID = null;
+                            clearInterval(soraChairDataChannelLoop_intervalID);
+                            soraChairDataChannelLoop_intervalID = null;
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
@@ -1099,7 +1114,8 @@
                     recvonly_segway_left.connect();
                     recvonly_segway_rear.connect();
                     recvonly_right_A1.connect();
-                    recvonly_control.connect();
+                    recvonly_robots_control.connect();
+                    recvonly_chair_control.connect();
                 }
             }
 
@@ -1137,9 +1153,30 @@
                 }
             }
 
-            function soraSendDataChannelLoop() {
-                if (recvonly_control.signalingSwitched && sendjoy) {
-                    recvonly_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+            function soraRobotsDataChannelLoop() {
+                if (recvonly_robots_control.signalingSwitched && sendjoy) {
+                    recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                }
+            }
+
+            function soraChairDataChannelLoop() {
+                if (recvonly_chair_control.signalingSwitched && sendjoy) {
+                    if (header == 0x43) {
+                        if ((segway_latch == 3 && Math.abs(lin) > 0.2) || segway_latch == 4 ) {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
+                    if (header == 0xa1) {
+                        if ((a1_auto_moving_status == 0 && Math.abs(ang) > 0.2) || a1_auto_moving_status == 1) {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
                 }
             }
 
@@ -1186,7 +1223,7 @@
                     // document.getElementById('side').value = 127*side;
                     // document.getElementById('side_out').innerHTML = (127*side).toFixed(0);
 
-                    if (recvonly_control.signalingSwitched) {
+                    if (recvonly_robots_control.signalingSwitched) {
                         // dataChannel.send(new TextEncoder().encode("jyja" + ang.toFixed(3) + "," + lin.toFixed(3) + "\n"));
                         // const buffer = new ArrayBuffer(1);
                         // console.log(buffer);
@@ -1200,12 +1237,12 @@
                         }
                         if (gp.buttons[1].value) {
                             start = true;
-                            recvonly_control.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
                             return;
                         }
                         if (gp.buttons[0].value) {
                             start = false;
-                            recvonly_control.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
                             return;
                         }
                         if (start && sendjoy) {
@@ -1219,12 +1256,12 @@
                             // lin = lin & 0x000000ff;
                             let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
                             console.log(ang)
-                            recvonly_control.sendMessage("#sora-devtools", send_value);
+                            recvonly_robots_control.sendMessage("#sora-devtools", send_value);
                             return;
                         }
                     }
                 }
             }
-    </script>
-  </body>
+        </script>
+    </body>
 </html>

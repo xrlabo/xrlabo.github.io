@@ -1,0 +1,68 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>SIGGRAPH Demo Chair</title>
+    </head>
+
+    <body>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button>
+
+        <div class="ChairStatus" style="float: left; width: 50%; background-color: #ddd;">
+            Send to Chair <br>
+            <font size="4">
+                <pre><div id="stcc"></div></pre>
+            </font>
+            <br>
+        </div>
+
+        <script type="text/javascript">
+            let CLOSE_DATA_CHANNEL = false;
+        </script>
+        <script type="text/javascript" src="./sora.js"></script>
+        <script type="text/javascript">
+            var segway_info = '';
+            const debug = true;
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+
+            const options_control = {
+                multistream : true,
+                video : false,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
+            let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+
+            function toHex(v) {
+                return '0x' + (('00' + v.toString(16).toUpperCase()).substr(-2));
+            }
+
+            recvonly_chair_control.on('message', (event) => {
+                document.getElementById("stcc").innerHTML = toHex(new Uint8Array(event.data)[0]) + ' ' + toHex(new Uint8Array(event.data)[1]);
+            });
+
+            recvonly_chair_control.connect();
+        </script>
+  </body>
+</html>
