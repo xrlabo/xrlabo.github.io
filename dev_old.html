@@ -66,19 +66,18 @@
             var segway_info = '';
             const debug = true;
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
-            const options_video_recvonly = {
+            // const sora = Sora.connection("wss://207-148-92-89.stable.sora.sora-labo.shiguredo.app/signaling", debug);
+            // const channelId = "OJIMA-YUKIYA@sora-devtools";
+            // const metadata = {
+            //     "signaling_key":"0mKFzDghLJNL7bmqa99hj4pp13IGaG_o4SHWdHoIKMzffpyZwQmo5dOIVi_9QBZ_"
+            // };
+            const options_left = {
                 multistream : true,
                 video : true,
-                audio : true
+                audio : false
             };
 
-            const options_video_audio_sendrecv = {
-                multistream : true,
-                video : false,
-                audio : true
-            }
-
-            const options_control = {
+            const options_right = {
                 multistream : true,
                 video : false,
                 audio : true,
@@ -91,19 +90,23 @@
                 ]
             };
 
-            let recvonly_segway_left = sora.recvonly("twincam-left", null, options_video_recvonly);
-            let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
-            let recvonly_segway_rear = sora.recvonly("segway-rear", null, options_video_recvonly);
-            let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
-            let recvonly_control = sora.recvonly("robots-control", null, options_control);
+            const options_right_A1 = {
+                multistream : true,
+                video : true,
+                audio : true
+            };
 
+            const recvonly_left = sora.recvonly("twincam-left", null, options_left);
+            const sendrecv_right = sora.sendrecv("twincam-right", null, options_right);
+            const recvonly_segway_rear = sora.recvonly("segway-rear", null, options_right_A1);
+            const recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_right_A1);
 
             let videoStream_id_left = null;
             let videoStream_id_right = null;
             let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
-            recvonly_segway_left.on("track", (event) => {
+            recvonly_left.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
                 document.querySelector('#remoteVideo_left').srcObject = stream;
@@ -111,7 +114,7 @@
                 videoStream_id_left = event.streams[0].id;
             });
 
-            sendrecv_segway_right.on("track", (event) => {
+            sendrecv_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
@@ -199,7 +202,7 @@
                 }
             });
 
-            sendrecv_segway_right.on("removetrack", (event) => {
+            sendrecv_right.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
                     mediaStream_id_right = null;
@@ -215,7 +218,7 @@
 
             let a1_auto_moving_status = 0;
             let a1_position_x = 0, a1_position_z = 0;
-            recvonly_control.on('message', (event) => {
+            sendrecv_right.on('message', (event) => {
                 if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
                     let vel_time = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
                     let lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
@@ -238,7 +241,7 @@
             var header = 0x43, lin = 0, ang = 0, side = 0;
             var remote_time = 0, remote_ang = 0, remote_lin = 0;
 
-            // recvonly_control.on('message', (event) => {
+            // sendrecv_right.on('message', (event) => {
             //     if (event.data.byteLength == 12) {
             //         remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
             //         remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
@@ -425,7 +428,7 @@
                     //     }
                     //     console.log('forward position: ' + r + ' (m)');
                     //     console.log('target_turn:' + target_turn + ' (deg)');
-                    //     recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                    //     sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                     //
                     // });
                     advancedTexture_goal.addControl(button_goal);
@@ -801,7 +804,7 @@
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
 
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                         segway_start_turn_position = segway_turn_position;
@@ -810,7 +813,7 @@
                                     }
                                     else if (header == 0xa1 && a1_auto_moving_status == 0) {
                                         console.log('target x' + x + ' (m) ' + z + ' (m)');
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                     }
@@ -955,7 +958,7 @@
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
-                                        recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                                     }
                                 });
                                 let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
@@ -1004,7 +1007,7 @@
                                 if (header == 0x43) {
                                     if (xr_camera.isLeftCamera) {
                                         epos_send_count++;
-                                        if (epos_send_count > 20 && recvonly_control.signalingSwitched) {
+                                        if (epos_send_count > 20 && sendrecv_right.signalingSwitched) {
                                             HMD_ang = -Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2*700;
                                             if (HMD_ang - old_HMD_ang < -700) {
                                                 setPosA = setPosA + 1400;
@@ -1014,7 +1017,7 @@
                                             }
                                             setPos = HMD_ang + setPosA;
                                             old_HMD_ang = HMD_ang;
-                                            recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
+                                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
 
                                             // console.log('HMD_ang: ' + HMD_ang);
                                             // console.log('setPos: ' + setPos);
@@ -1042,8 +1045,8 @@
                             side = 0;
                             clearInterval(intervalID);
                             intervalID = null;
-                            recvonly_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            recvonly_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            sendrecv_right.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
@@ -1079,27 +1082,31 @@
             let localStream;
 
             function connect_clicked() {
-                if (!sendrecv_segway_right.signalingSwitched) {
+                if (!sendrecv_right.signalingSwitched) {
                     navigator.mediaDevices
                     .getUserMedia({ audio: true, video: false })
                     .then((stream) => {
                         localStream = stream;
                         console.log(stream);
-                        sendrecv_segway_right.connect(stream);
+                        sendrecv_right.connect(stream);
+                        recvonly_right_A1.connect();
                         if (document.getElementsByName('mic_on_off')[0].checked) {
                             localStream.getAudioTracks()[0].enabled = true;
                         }
                         else {
                             localStream.getAudioTracks()[0].enabled = false;
                         }
+                        // document.getElementById('remoteVideo_left').srcObject = stream;
+                        // document.getElementById('remoteVideo_left').muted = true;
                     })
                     .catch((e) => {
                          console.error(e);
                     });
                     recvonly_left.connect();
                     recvonly_segway_rear.connect();
-                    recvonly_right_A1.connect();
                 }
+                // setInterval(soraSendDataChannelLoop, 1000.0/20.0);
+                // soraSendDataChannelLoop();
             }
 
             connect_clicked();
@@ -1137,8 +1144,8 @@
             }
 
             function soraSendDataChannelLoop() {
-                if (recvonly_control.signalingSwitched && sendjoy) {
-                    recvonly_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                if (sendrecv_right.signalingSwitched && sendjoy) {
+                    sendrecv_right.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                 }
             }
 
@@ -1185,7 +1192,7 @@
                     // document.getElementById('side').value = 127*side;
                     // document.getElementById('side_out').innerHTML = (127*side).toFixed(0);
 
-                    if (recvonly_control.signalingSwitched) {
+                    if (sendrecv_right.signalingSwitched) {
                         // dataChannel.send(new TextEncoder().encode("jyja" + ang.toFixed(3) + "," + lin.toFixed(3) + "\n"));
                         // const buffer = new ArrayBuffer(1);
                         // console.log(buffer);
@@ -1199,12 +1206,12 @@
                         }
                         if (gp.buttons[1].value) {
                             start = true;
-                            recvonly_control.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
+                            sendrecv_right.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
                             return;
                         }
                         if (gp.buttons[0].value) {
                             start = false;
-                            recvonly_control.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
+                            sendrecv_right.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
                             return;
                         }
                         if (start && sendjoy) {
@@ -1218,7 +1225,7 @@
                             // lin = lin & 0x000000ff;
                             let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
                             console.log(ang)
-                            recvonly_control.sendMessage("#sora-devtools", send_value);
+                            sendrecv_right.sendMessage("#sora-devtools", send_value);
                             return;
                         }
                     }
