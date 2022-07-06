@@ -714,6 +714,8 @@
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
                             buttontwincam.alpha = 0;
+                            segway_rear_view.material.alpha = 0;
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
                         }
                         else {
                             header = 0x43;
@@ -723,6 +725,8 @@
                             button.textBlock.text = "Change to A1 video";
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
                             buttontwincam.alpha = 0.7;
+                            segway_rear_view.material.alpha = 1;
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
                         }
                         videoDome.material._alpha = 0;
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
