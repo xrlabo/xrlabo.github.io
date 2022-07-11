@@ -40,14 +40,14 @@
         </div>
 
         <main style="margin: 0; padding: 0;">
-            <div class="VelocityStatus" style="float: left; width: 50%; background-color: #ddd;">
+            <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
                 Unitree A1 status <br>
                 <font size="4">
                     <pre><div id="a1ss"></div></pre>
                 </font>
                 <br>
             </div>
-            <div class="SegwayStatusStamped" style="float: right; width: 50%; background-color: #eee;">
+            <div class="SegwayStatusStamped" style="float: right; width: 50%; height: 250px; background-color: #eee;">
                 Segway RMP status <br>
                 <font size="4">
                     <pre><div id="sgss"></div></pre>
@@ -422,18 +422,7 @@
                     // button_goal.scaleY = 1.5;
                     button_goal.background = "green";
                     // button_goal.onPointerDownObservable.add(function() {
-                    //     button_clicked = true;
-                    //     let x = goal_x/Math.abs(ground_y);
-                    //     let z = goal_z/Math.abs(ground_y);
-                    //     let r = (x**2 + z**2)**0.5;
-                    //     let target_turn = Math.acos(z/r)/Math.PI*180;
-                    //     if (goal_x > 0) {
-                    //         target_turn = -target_turn;
-                    //     }
-                    //     console.log('forward position: ' + r + ' (m)');
-                    //     console.log('target_turn:' + target_turn + ' (deg)');
-                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
-                    //
+                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     // });
                     advancedTexture_goal.addControl(button_goal);
                 //

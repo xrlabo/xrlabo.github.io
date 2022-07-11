@@ -26,14 +26,14 @@
         <h1>Press Any Key To Stop Robots</h1>
 
         <main style="margin: 0; padding: 0;">
-            <div class="VelocityStatus" style="float: left; width: 50%; background-color: #ddd;">
+            <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
                 Unitree A1 status <br>
                 <font size="4">
                     <pre><div id="a1ss"></div></pre>
                 </font>
                 <br>
             </div>
-            <div class="SegwayStatusStamped" style="float: right; width: 50%; background-color: #eee;">
+            <div class="SegwayStatusStamped" style="float: right; width: 50%; height: 250px; background-color: #eee;">
                 Segway RMP status <br>
                 <font size="4">
                     <pre><div id="sgss"></div></pre>
@@ -63,7 +63,7 @@
             console.log(event);
             clearTimeout(timer);
             document.body.style.backgroundColor ='#ff3030';
-            timer = setTimeout(bgWhite, 700);
+            timer = setTimeout(bgWhite, 300);
         });
 
         function bgWhite() {

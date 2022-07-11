@@ -57,9 +57,10 @@
             function toHex(v) {
                 return '0x' + (('00' + v.toString(16).toUpperCase()).substr(-2));
             }
-
+            let count = 0;
             recvonly_chair_control.on('message', (event) => {
-                document.getElementById("stcc").innerHTML = toHex(new Uint8Array(event.data)[0]) + ' ' + toHex(new Uint8Array(event.data)[1]);
+                count++;
+                document.getElementById("stcc").innerHTML = 'count: ' + count + ' ' + toHex(new Uint8Array(event.data)[0]) + ' ' + toHex(new Uint8Array(event.data)[1]);
             });
 
             recvonly_chair_control.connect();
