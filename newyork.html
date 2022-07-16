@@ -1,0 +1,469 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>HCI Demo</title>
+    </head>
+
+    <body>
+        <div id="remote-videos">
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+        </div>
+
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<canvas id="renderCanvas" style="width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0; left: 0; right: 0; touch-action: none; display: inline-block;"></canvas>
+        <script type="text/javascript">
+            let CLOSE_DATA_CHANNEL = false;
+        </script>
+        <script type="text/javascript" src="./sora.js"></script>
+        <script type="text/javascript">
+            var segway_info = '';
+            const debug = true;
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            const options_video_recvonly = {
+                multistream : true,
+                video : true,
+                audio : true
+            };
+
+            const options_video_audio_sendrecv = {
+                multistream : true,
+                video : false,
+                audio : true
+            }
+
+            const options_control = {
+                multistream : true,
+                video : false,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
+            let recvonly_left = sora.recvonly("mobile-twincam-left", null, options_video_recvonly);
+            let sendrecv_right = sora.sendrecv("mobile-twincam-right", null, options_video_audio_sendrecv);
+            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
+
+
+            let videoStream_id_left = null;
+            let videoStream_id_right = null;
+            let audioStream_id_right = null;
+
+            recvonly_left.on("track", (event) => {
+                console.log(event);
+                const stream = event.streams[0];
+                document.querySelector('#remoteVideo_left').srcObject = stream;
+                document.querySelector('#remoteVideo_left').autoplay = true;
+                videoStream_id_left = event.streams[0].id;
+            });
+
+            sendrecv_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                    document.querySelector('#remoteVideo_right').autoplay = true;
+                    document.querySelector('#remoteVideo_right').muted = false;
+                    videoStream_id_right = event.streams[0].id;
+                    return;
+                }
+
+                if (event.track.kind == 'audio') {
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    audio.style = "display: none;";
+                    document.getElementById('remote-videos').appendChild(audio);
+                }
+
+            });
+
+            setInterval(observe_video, 5000);
+            function observe_video() {
+                if (document.getElementById(`audio-${videoStream_id_right}`)) {
+                    document.getElementById(`audio-${videoStream_id_right}`).remove();
+                }
+            }
+
+
+
+
+            recvonly_left.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_left) {
+                    document.querySelector(`#remoteVideo_left`).srcObject = null;
+                    videoStream_id_left = null;
+                }
+            });
+
+            sendrecv_right.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_right) {
+                    document.querySelector(`#remoteVideo_right`).srcObject = null;
+                    videoStream_id_right = null;
+                }
+                if (document.getElementById(`audio-${event.target.id}`)) {
+                    document.getElementById(`audio-${event.target.id}`).remove();
+                }
+            });
+
+            header = 0x43;
+
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+			// canvas DOM 要素を取得する
+			let canvas = document.getElementById('renderCanvas');
+
+            canvas.addEventListener("mousewheel", (event) => {
+                event.preventDefault();
+                console.log(event);
+            });
+
+			// Initialize Babylon.js variables.
+			let	sceneToRender;
+            let xrHelper;
+			const createDefaultEngine = function (canvas) {
+                return new BABYLON.Engine(canvas, true, {
+					preserveDrawingBuffer: true,
+					stencil: true
+				});
+            }
+
+            const engine = createDefaultEngine(canvas);
+
+            let soraRobotsDataChannelLoop_intervalID = null;
+            let soraChairDataChannelLoop_intervalID = null;
+            let sendjoy = false;
+
+            let camera;
+            let cameraFovDegree = 60;
+
+            let videoDome;
+            let videoDecrimentalLoop_intervalID = null;
+            let videoIncrimentalLoop_intervalID = null;
+            let changeVideoFlag = false;
+
+            let dome_position_x = 0;
+            let dome_position_y = 0;
+            let dome_position_z = 0;
+
+            let dome_direction_x = 0;
+            let dome_direction_y = 0;
+            let dome_direction_z = 0;
+
+
+            let epos_send_count = 0;
+            let setPos = 0;
+            let setPosA = 0;
+            let HMD_ang = 0;
+            let old_HMD_ang = 0;
+
+            let buttonheader;
+
+            let twincamMode = 1; //1: left and right, 2: left only, 3: right only
+
+            let arrow_box;
+
+			//Create scene and create XR experience.
+			const createScene = async function() {
+				//新しいシーンオブジェクトを作成する
+                var scene = new BABYLON.Scene(engine);
+                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+                // scene.detachControl();
+
+
+                camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                // Camera の操作を canvas 上で可能にする
+    			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
+                }
+                if (camera.inputs.attached.pointers) {
+                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                    camera.inputs.attached.pointers.multiTouchPanning = false;
+                    camera.inputs.attached.pointers.pinchInwards = false;
+                    camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
+                }
+                if (camera.inputs.attached.mousewheel) {
+                    camera.inputs.attached.mousewheel.detachControl();
+                }
+                scene.onPointerObservable.add(e => {
+                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }, BABYLON.PointerEventTypes.POINTERWHEEL);
+                if (camera.inputs.attached.gamepad) {
+                    camera.inputs.attached.gamepad.detachControl();
+                }
+
+                var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 4);
+                    plane_reconnect.position = new BABYLON.Vector3(-2, 2.5, 10);
+                var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
+                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
+                var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
+                    // button_reconnect.alphaSet = true;
+                    button_reconnect.alpha = 0.7;
+                    button_reconnect.width = "1000px";
+                    button_reconnect.height = "200px";
+                    button_reconnect.cornerRadius = 10;
+                    button_reconnect.color = "white";
+                    button_reconnect.thickness = 4;
+                    button_reconnect.fontSize = 80;
+                    // button_reconnect.rotation = 0.2;
+                    // button_reconnect.scaleY = 1.5;
+                    button_reconnect.background = "green";
+                    button_reconnect.onPointerDownObservable.add(function() {
+                        connect_clicked();
+                    });
+                    advancedTexture_reconnect.addControl(button_reconnect);
+
+
+
+
+                let videoTexture_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
+
+                videoDome = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_right'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+
+
+
+                var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
+                    // planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
+                    planeheader.position = new BABYLON.Vector3(3, 2.5, 10);
+                    // planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
+                    planeheader.rotation = new BABYLON.Vector3(0, 0, 0);
+                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                    var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
+                        buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
+                            buttontwincam.alphaSet = true;
+                            buttontwincam.alpha = 0.7;
+                            // buttontwincam.textBlock.alphaSet = true;
+                            // buttontwincam.textBlock.alpha = 1.0;
+                            buttontwincam.width = "1000px";
+                            buttontwincam.height = "200px";
+                            buttontwincam.color = "white";
+                            buttontwincam.cornerRadius = 100;
+                            buttontwincam.fontSize = 80;
+                            buttontwincam.background = "green";
+                            buttontwincam.onPointerDownObservable.add(() => {
+                                button_clicked = true;
+                                if (header == 0x43) {
+                                    switch (twincamMode) {
+                                        case 1:
+                                            twincamMode = 2;
+                                            buttontwincam.textBlock.text = "left only";
+                                            videoDome.texture = videoTexture_left;
+                                            break;
+                                        case 2:
+                                            twincamMode = 3;
+                                            buttontwincam.textBlock.text = "right only";
+                                            videoDome.texture = videoTexture_right;
+                                            break;
+                                        case 3:
+                                            buttontwincam.textBlock.text = "left and right";
+                                            twincamMode = 1;
+                                            break;
+                                        default:
+
+                                    }
+                                }
+                            });
+                        advancedTextureheader.addControl(buttontwincam);
+
+
+                let distance_past = 0, distance_current = 0;
+
+                scene.registerBeforeRender(function () {
+                    if (camera.inputs.attached.pointers) {
+                        if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
+                        distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
+                        if (distance_current > distance_past) {
+                            cameraFovDegree = cameraFovDegree - 1;
+                        }
+                        if (distance_current < distance_past) {
+                            cameraFovDegree = cameraFovDegree + 1;
+                        }
+                        distance_past = distance_current;
+                        if (cameraFovDegree < 0) {
+                            cameraFovDegree = 1;
+                        }
+                        if (cameraFovDegree > 180) {
+                            cameraFovDegree = 179;
+                        }
+                        camera.fov = cameraFovDegree * (Math.PI / 180);
+                    }
+                });
+
+
+                // Create a default environment for the scene.
+				var environment = scene.createDefaultEnvironment();
+                // environment.ground.parent.position.y = 0;
+                // environment.ground.position.y = 0
+
+
+                // Initialize XR experience with default experience helper.
+				xrHelper = await scene.createDefaultXRExperienceAsync({
+                    // floorMeshes: [environment.ground]
+                });
+
+                //===Stick=====================================================================================================
+                //==============================================================================================================
+				if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+                    xrHelper.teleportation.rotationAngle = 0;
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                    xrHelper.teleportation.rotationEnabled = false;
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        if(state === BABYLON.WebXRState.IN_XR){
+                            setPos = 0;
+                            setPosA = 0;
+                            HMD_ang = 0;
+                            old_HMD_ang = 0;
+                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (header == 0x43) {
+                                    if (xr_camera.isLeftCamera) {
+                                        epos_send_count++;
+                                        if (epos_send_count > 20 && recvonly_robots_control.signalingSwitched) {
+                                            HMD_ang = -Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2*700;
+                                            if (HMD_ang - old_HMD_ang < -700) {
+                                                setPosA = setPosA + 1400;
+                                            }
+                                            else if (HMD_ang - old_HMD_ang > 700) {
+                                                setPosA = setPosA - 1400;
+                                            }
+                                            setPos = HMD_ang + setPosA;
+                                            old_HMD_ang = HMD_ang;
+                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
+
+                                            // console.log('HMD_ang: ' + HMD_ang);
+                                            // console.log('setPos: ' + setPos);
+
+                                            epos_send_count = 0;
+                                        }
+                                    }
+                                    if (twincamMode == 1) {
+                                        if (xr_camera.isLeftCamera) {
+                                            videoDome.texture = videoTexture_left;
+                                        }
+                                        else {
+                                            videoDome.texture = videoTexture_right;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                            lin = 0;
+                            ang = 0;
+                            side = 0;
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            if (camera.inputs.attached.gamepad) {
+                                camera.inputs.attached.gamepad.detachControl();
+                            }
+                        }
+                        console.log(state);
+                    });
+
+				}
+
+                return scene;
+            }
+
+			// Create scene.
+			scene = createScene();
+			scene.then(function (returnedScene) {
+				sceneToRender = returnedScene;
+			});
+            engine.runRenderLoop(function () {
+				if (sceneToRender) {
+					sceneToRender.render();
+				}
+			});
+
+
+			// Handle browser resize.
+			window.addEventListener('resize', function () {
+				engine.resize();
+			});
+
+            let localStream;
+
+            function connect_clicked() {
+                if (!sendrecv_right.signalingSwitched) {
+                    navigator.mediaDevices
+                    .getUserMedia({ audio: true, video: false })
+                    .then((stream) => {
+                        localStream = stream;
+                        console.log(stream);
+                        sendrecv_right.connect(stream);
+                        localStream.getAudioTracks()[0].enabled = true;
+                    })
+                    .catch((e) => {
+                         console.error(e);
+                    });
+                    recvonly_left.connect();
+                    recvonly_robots_control.connect();
+                }
+            }
+
+            connect_clicked();
+
+
+            setInterval(observe_CLOSE_DATA_CHANNEL, 10000);
+            function observe_CLOSE_DATA_CHANNEL() {
+                if (CLOSE_DATA_CHANNEL) {
+                    connect_clicked();
+                }
+            }
+
+        </script>
+    </body>
+</html>
