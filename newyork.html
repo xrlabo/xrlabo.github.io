@@ -381,7 +381,8 @@
                                             }
                                             setPos = HMD_ang + setPosA;
                                             old_HMD_ang = HMD_ang;
-                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 127*setPos/2800]));
+                                            let send_value = 32767*setPos/2800;
+                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
 
                                             // console.log('HMD_ang: ' + HMD_ang);
                                             // console.log('setPos: ' + setPos);
