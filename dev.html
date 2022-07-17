@@ -196,14 +196,14 @@
             recvonly_segway_left.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
-                    mediaStream_id_left = null;
+                    videoStream_id_left = null;
                 }
             });
 
             sendrecv_segway_right.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
-                    mediaStream_id_right = null;
+                    videoStream_id_right = null;
                 }
                 if (document.getElementById(`audio-${event.target.id}`)) {
                     document.getElementById(`audio-${event.target.id}`).remove();
