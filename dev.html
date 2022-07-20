@@ -740,12 +740,14 @@
                     }
 
                     if (header == 0xa1 && a1_auto_moving_status == 1) {
+                        let gx = goal_x + segway_start_position_x*Math.abs(ground_y);
+                        let gz = goal_z + segway_start_position_z*Math.abs(ground_y);
                         let a1x = -a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
-                        let x_view = (goal_x - a1x);
-                        let z_view = (goal_z - a1z);
-                        let r = ((goal_x - (-a1x))**2 + (goal_z - a1z)**2)**0.5;
-                        goal_plane_rotation = -Math.acos((goal_z - a1z)/r)*(-1)**(-(goal_x - a1x)/r < 0);
+                        let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
+                        let z_view = (gx - a1x)*Math.sin(-a1_position_rot/180.0*Math.PI) + (gz - a1z)*Math.cos(-a1_position_rot/180.0*Math.PI);
+                        let r = ((gx - (-a1x))**2 + (gz - a1z)**2)**0.5;
+                        goal_plane_rotation = -Math.acos((gz - a1z)/r)*(-1)**(-(gx - a1x)/r < 0);
                         box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
                         plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
                         plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
