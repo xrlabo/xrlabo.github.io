@@ -372,7 +372,22 @@
                                     if (xr_camera.isLeftCamera) {
                                         epos_send_count++;
                                         if (epos_send_count > 20 && recvonly_robots_control.signalingSwitched) {
-                                            HMD_ang = -Math.asin(xr_camera.rotationQuaternion.y)/Math.PI*2*700;
+                                            let q = xr_camera.rotationQuaternion;
+                                            let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
+                                            let abs_sinX = Math.abs(sinX);
+                                            if (abs_sinX < 0.001) {
+                                                sinX = 0;
+                                            }
+                                            let euler_x = Math.asin(-sinX);
+                                            if (isNaN(euler_x) || Math.abs((Math.abs(euler_x) -  Math.PI / 2)) < 0.001) {
+                                                euler_x = Math.sign(-sinX) * (Math.PI / 2);
+                                            }
+                                            let cosX = Math.cos(euler_x);
+                                            let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
+                                            let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
+                                            let euler_y = -Math.atan2(sinY, cosY);
+
+                                            HMD_ang = -euler_y/Math.PI*700;
                                             if (HMD_ang - old_HMD_ang < -700) {
                                                 setPosA = setPosA + 1400;
                                             }
@@ -382,6 +397,7 @@
                                             setPos = HMD_ang + setPosA;
                                             old_HMD_ang = HMD_ang;
                                             let send_value = setPos/2;
+                                            console.log(setPos);
                                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
 
                                             // console.log('HMD_ang: ' + HMD_ang);
@@ -405,7 +421,10 @@
                             lin = 0;
                             ang = 0;
                             side = 0;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
