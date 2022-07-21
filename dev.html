@@ -740,8 +740,8 @@
                     }
 
                     if (header == 0xa1 && a1_auto_moving_status == 1) {
-                        let gx = goal_x + segway_start_position_x*Math.abs(ground_y);
-                        let gz = goal_z + segway_start_position_z*Math.abs(ground_y);
+                        let gx = goal_x + a1_start_position_x*Math.abs(ground_y);
+                        let gz = goal_z + a1_start_position_z*Math.abs(ground_y);
                         let a1x = -a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
                         let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
