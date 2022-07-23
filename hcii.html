@@ -72,10 +72,11 @@
 
             recvonly_left.on("track", (event) => {
                 console.log(event);
-                const stream = event.streams[0];
-                document.querySelector('#remoteVideo_left').srcObject = stream;
-                document.querySelector('#remoteVideo_left').autoplay = true;
-                videoStream_id_left = event.streams[0].id;
+                if (event.track.kind == "video") {
+                    document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                    document.querySelector('#remoteVideo_left').autoplay = true;
+                    videoStream_id_left = event.streams[0].id;
+                }
             });
 
             sendrecv_right.on("track", (event) => {

@@ -229,7 +229,7 @@
 
                     document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + vel_time + '\n並進速度(m/s) ' + lin_vel + '\n旋回速度(deg/s)' + ang_vel;
                 }
-                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 6) {
+                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
                     a1_auto_moving_status = new Uint8Array(event.data)[1];
                     a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
                     a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
@@ -739,20 +739,21 @@
                         button_goal.background = "blue";
                     }
 
-                    if (header == 0xa1 && a1_auto_moving_status == 1) {
+                    if (header == 0xa1 && a1_auto_moving_status != 0) {
                         let gx = goal_x + a1_start_position_x*Math.abs(ground_y);
                         let gz = goal_z + a1_start_position_z*Math.abs(ground_y);
-                        let a1x = -a1_position_x*Math.abs(ground_y);
+                        let a1x = a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
                         let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
                         let z_view = (gx - a1x)*Math.sin(-a1_position_rot/180.0*Math.PI) + (gz - a1z)*Math.cos(-a1_position_rot/180.0*Math.PI);
-                        let r = ((gx - (-a1x))**2 + (gz - a1z)**2)**0.5;
-                        goal_plane_rotation = -Math.acos((gz - a1z)/r)*(-1)**(-(gx - a1x)/r < 0);
+                        let r = ((gx - a1x)**2 + (gz - a1z)**2)**0.5;
+                        goal_plane_rotation = -(Math.acos((gz - a1z)/r)*(-1)**(-(gx - a1x)/r < 0) - (a1_position_rot % 360)/180.0*Math.PI);
                         box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
                         plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
                         plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
                         button_goal.textBlock.text = 'Now moving';
                         button_goal.background = "blue";
+                        console.log('hello');
                     }
                 });
 

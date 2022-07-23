@@ -222,7 +222,8 @@
         let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
 
         let a1_auto_moving_status = 0;
-        let a1_position_x = 0, a1_position_z = 0;
+        let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
+        let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
         recvonly_robots_control.on('message', (event) => {
             if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
                 let vel_time = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
@@ -235,11 +236,12 @@
 
                 document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + vel_time + '\n並進速度(m/s) ' + lin_vel + '\n旋回速度(deg/s)' + ang_vel;
             }
-            if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 6) {
+            if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
                 a1_auto_moving_status = new Uint8Array(event.data)[1];
                 a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
                 a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
-                document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z;
+                a1_position_rot = (new Int16Array([new Uint8Array(event.data)[6] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[7]])[0] )/100.0;
+                document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot;
             }
         });
 
