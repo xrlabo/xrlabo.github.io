@@ -396,6 +396,12 @@
                                                 setPosA = setPosA - 1400;
                                             }
                                             setPos = HMD_ang + setPosA;
+                                            if (setPos > 1400) {
+                                                setPos = 1400;
+                                            }
+                                            else if (setPos < -1400) {
+                                                setPos = -1400;
+                                            }
                                             old_HMD_ang = HMD_ang;
                                             let send_value = setPos/2;
                                             console.log(setPos);
