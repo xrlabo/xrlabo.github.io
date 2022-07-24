@@ -372,7 +372,7 @@
                                 if (header == 0x43) {
                                     if (xr_camera.isLeftCamera) {
                                         epos_send_count++;
-                                        if (epos_send_count > 50 && recvonly_robots_control.signalingSwitched) {
+                                        if (epos_send_count > 30 && recvonly_robots_control.signalingSwitched) {
                                             let q = xr_camera.rotationQuaternion;
                                             let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
                                             let abs_sinX = Math.abs(sinX);
@@ -422,10 +422,6 @@
                             lin = 0;
                             ang = 0;
                             side = 0;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
