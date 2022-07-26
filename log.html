@@ -1210,7 +1210,7 @@
                 if (recvonly_robots_control.signalingSwitched && sendjoy) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                     if (data_log) {
-                        log_buff = Date.now()/1000 + ' ' + 0.3*lin
+                        log_buff = log_buff + Date.now()/1000 + ' ' + 0.3*lin
                     }
                 }
             }
