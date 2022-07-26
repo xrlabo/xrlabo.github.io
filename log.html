@@ -1294,35 +1294,15 @@
                         }
                         if (gp.buttons[1].value) {
                             start = true;
-                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
+                            soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
+                            soraRobotsDataChannelLoop();
                             return;
                         }
                         if (gp.buttons[0].value) {
                             start = false;
-                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
+                            clearInterval(soraRobotsDataChannelLoop_intervalID);
+                            soraRobotsDataChannelLoop_intervalID = null;
                             return;
-                        }
-                        if (start && sendjoy) {
-                            // if (gp.buttons[14].pressed) {
-                            //     side = 127;
-                            // }
-                            // if (gp.buttons[15].pressed) {
-                            //     side = -127;
-                            // }
-                            // ang = (ang << 8) & 0x0000ff00;
-                            // lin = lin & 0x000000ff;
-                            // let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
-                            // console.log(ang)
-                            // recvonly_robots_control.sendMessage("#sora-devtools", send_value);
-                            // return;
-                            if (soraRobotsDataChannelLoop_intervalID == null) {
-                                soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
-                                soraRobotsDataChannelLoop();
-                            }
-                            else {
-                                clearInterval(soraRobotsDataChannelLoop_intervalID);
-                                soraRobotsDataChannelLoop_intervalID = null;
-                            }
                         }
                     }
                 }
