@@ -1293,15 +1293,19 @@
                             console.log(header);
                         }
                         if (gp.buttons[1].value) {
-                            start = true;
-                            soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
-                            soraRobotsDataChannelLoop();
+                            sendjoy = true;
+                            if (soraRobotsDataChannelLoop_intervalID == null) {
+                                soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
+                                soraRobotsDataChannelLoop();
+                            }
                             return;
                         }
                         if (gp.buttons[0].value) {
-                            start = false;
-                            clearInterval(soraRobotsDataChannelLoop_intervalID);
-                            soraRobotsDataChannelLoop_intervalID = null;
+                            sendjoy = false;
+                            if (soraRobotsDataChannelLoop_intervalID != null) {
+                                clearInterval(soraRobotsDataChannelLoop_intervalID);
+                                soraRobotsDataChannelLoop_intervalID = null;
+                            }
                             return;
                         }
                     }
