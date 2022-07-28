@@ -114,7 +114,7 @@
                     videoStream_id_left = event.streams[0].id;
                     mediaRecorder = new MediaRecorder(event.streams[0], options);
                     mediaRecorder.ondataavailable = handleDataAvailable;
-                    mediaRecorder.start();
+                    // mediaRecorder.start();
                 }
             });
 
@@ -1109,7 +1109,7 @@
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
-                            
+
                             if (mediaRecorder) {
                                 mediaRecorder.stop();
                             }
