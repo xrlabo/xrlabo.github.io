@@ -104,13 +104,42 @@
             let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
+            let mediaRecorder = null;
+            let options = { mimeType: "video/webm; codecs=h264" };
             recvonly_segway_left.on("track", (event) => {
-                console.log(event);
-                const stream = event.streams[0];
-                document.querySelector('#remoteVideo_left').srcObject = stream;
-                document.querySelector('#remoteVideo_left').autoplay = true;
-                videoStream_id_left = event.streams[0].id;
+                if (event.track.kind == "video") {
+                    console.log(event);
+                    document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                    document.querySelector('#remoteVideo_left').autoplay = true;
+                    videoStream_id_left = event.streams[0].id;
+                    mediaRecorder = new MediaRecorder(event.streams[0], options);
+                    mediaRecorder.ondataavailable = handleDataAvailable;
+                    mediaRecorder.start();
+                }
             });
+
+            var recordedChunks = [];
+            function handleDataAvailable(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                    console.log(recordedChunks);
+                    download();
+                }
+            }
+            function download() {
+                var blob = new Blob(recordedChunks, {
+                    type: "video/mp4"
+                });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "twincam-left_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
 
             sendrecv_segway_right.on("track", (event) => {
                 console.log(event);
@@ -197,6 +226,7 @@
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
+                    mediaRecorder = null;
                 }
             });
 
@@ -1056,6 +1086,10 @@
                                     }
                                 }
                             });
+
+                            if (mediaRecorder) {
+                                mediaRecorder.start();
+                            }
                             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
                             // xrHelper.baseExperience.camera.position.set(0, 0, 0);
                             // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
@@ -1074,6 +1108,10 @@
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
+                            }
+                            
+                            if (mediaRecorder) {
+                                mediaRecorder.stop();
                             }
                         }
                         console.log(state);
