@@ -104,14 +104,41 @@
             let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
+            let mediaRecorder_twincam_left = null;
+            let options = { mimeType: "video/webm; codecs=h264" };
             recvonly_segway_left.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
                 document.querySelector('#remoteVideo_left').srcObject = stream;
                 document.querySelector('#remoteVideo_left').autoplay = true;
                 videoStream_id_left = event.streams[0].id;
+                mediaRecorder_twincam_left = new MediaRecorder(event.streams[0], options);
+                mediaRecorder_twincam_left.ondataavailable = handleDataAvailable_twincam_left;
             });
 
+            let recordedChunks_twincam_left = [];
+            function handleDataAvailable_twincam_left(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_left.push(event.data);
+                    download_twincam_left();
+                }
+            }
+            function download_twincam_left() {
+                let blob = new Blob(recordedChunks_twincam_left, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "segway_twincam-left_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            let mediaRecorder_twincam_right = null;
             sendrecv_segway_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
@@ -119,6 +146,8 @@
                     document.querySelector('#remoteVideo_right').autoplay = true;
                     document.querySelector('#remoteVideo_right').muted = false;
                     videoStream_id_right = event.streams[0].id;
+                    mediaRecorder_twincam_right = new MediaRecorder(event.streams[0], options);
+                    mediaRecorder_twincam_right.ondataavailable = handleDataAvailable_twincam_right;
                     return;
                 }
 
@@ -137,27 +166,62 @@
                 }
 
             });
+            let recordedChunks_twincam_right = [];
+            function handleDataAvailable_twincam_right(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_right.push(event.data);
+                    download_twincam_left();
+                }
+            }
+            function download_twincam_right() {
+                let blob = new Blob(recordedChunks_twincam_right, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "segway_twincam-right_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
 
+            let mediaRecorder_twincam_right_A1 = null;
             recvonly_right_A1.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                     document.querySelector('#remoteVideo_right_A1').autoplay = true;
                     document.querySelector('#remoteVideo_right_A1').muted = false;
-                    // mediaStream_id_right_A1 = event.streams[0].id;
+                    mediaRecorder_twincam_right_A1 = new MediaRecorder(event.streams[0], options);
+                    mediaRecorder_twincam_right_A1.ondataavailable = handleDataAvailable_twincam_right_A1;
                     return;
                 }
-
-                // if (event.track.kind == 'audio') {
-                //     const audio = document.createElement('audio');
-                //     audio.id = "audio-" + event.streams[0].id;
-                //     audio.srcObject = event.streams[0];
-                //     audio.controls = true;
-                //     audio.autoplay = true;
-                //     document.getElementById('remote-videos').appendChild(audio);
-                // }
-
             });
+
+            let recordedChunks_twincam_right_A1 = [];
+            function handleDataAvailable_twincam_right_A1(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_right_A1.push(event.data);
+                    download_twincam_right_A1();
+                }
+            }
+            function download_twincam_right_A1() {
+                let blob = new Blob(recordedChunks_twincam_right_A1, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "A1_THETA_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
 
             recvonly_segway_rear.on("track", (event) => {
                 console.log(event);
@@ -1097,6 +1161,22 @@
                                     }
                                 }
                             });
+
+                            if (mediaRecorder_twincam_right) {
+                                if (mediaRecorder_twincam_right.state == 'inactive') {
+                                    mediaRecorder_twincam_right.start();
+                                }
+                            }
+                            if (mediaRecorder_twincam_left) {
+                                if (mediaRecorder_twincam_left.state == 'inactive') {
+                                    mediaRecorder_twincam_left.start();
+                                }
+                            }
+                            if (mediaRecorder_twincam_right_A1) {
+                                if (mediaRecorder_twincam_right_A1.state == 'inactive') {
+                                    mediaRecorder_twincam_right_A1.start();
+                                }
+                            }
                             // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
                             // xrHelper.baseExperience.camera.position.set(0, 0, 0);
                             // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
@@ -1115,6 +1195,22 @@
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
+                            }
+
+                            if (mediaRecorder_twincam_right) {
+                                if (mediaRecorder_twincam_right.state == 'recording') {
+                                    mediaRecorder_twincam_right.stop();
+                                }
+                            }
+                            if (mediaRecorder_twincam_left) {
+                                if (mediaRecorder_twincam_left.state == 'recording') {
+                                    mediaRecorder_twincam_left.stop();
+                                }
+                            }
+                            if (mediaRecorder_twincam_right_A1) {
+                                if (mediaRecorder_twincam_right_A1.state == 'recording') {
+                                    mediaRecorder_twincam_right_A1.stop();
+                                }
                             }
                         }
                         console.log(state);
