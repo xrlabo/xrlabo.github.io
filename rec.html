@@ -25,17 +25,15 @@
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic on</font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
-        <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;">　　
-        <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;">
-        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" checked style="width: 100px; height: 50px;"><font size="7">segway</font> -->
-        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" style="width: 100px; height: 50px;"><font size="7">Unitree A1</font> -->
+        <input type="radio" name="rec" onclick="recstart_clicked()" style="width: 100px; height: 50px;"><font size="7">rec start</font>
+        <input type="radio" name="rec" onclick="reccomplete_clicked()" checked style="width: 100px; height: 50px;"><font size="7">rec complete</font>
 
         <div id="remote-videos">
 
-            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
-            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
-            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
-            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_left" muted="false" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right" muted="false" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" muted="false" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right_A1" muted="false" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
 
         </div>
 
@@ -104,22 +102,56 @@
             let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
+            let mediaRecorder_twincam_left = null;
+            let options = { mimeType: "video/webm\; codecs=h264" };
             recvonly_segway_left.on("track", (event) => {
-                console.log(event);
-                const stream = event.streams[0];
-                document.querySelector('#remoteVideo_left').srcObject = stream;
-                document.querySelector('#remoteVideo_left').autoplay = true;
-                videoStream_id_left = event.streams[0].id;
+                if (event.track.kind == "video") {
+                    setTimeout(()=> {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_left').autoplay = true;
+                        document.querySelector('#remoteVideo_left').muted = false;
+                        videoStream_id_left = event.streams[0].id;
+                        mediaRecorder_twincam_left = new MediaRecorder(event.streams[0], options);
+                        mediaRecorder_twincam_left.ondataavailable = handleDataAvailable_twincam_left;
+                    }, 1000);
+                }
             });
 
+            let recordedChunks_twincam_left = [];
+            function handleDataAvailable_twincam_left(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_left.push(event.data);
+                    download_twincam_left();
+                }
+            }
+            function download_twincam_left() {
+                let blob = new Blob(recordedChunks_twincam_left, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "segway_twincam-left_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
 
+            let mediaRecorder_twincam_right = null;
             sendrecv_segway_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
-                    document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
-                    document.querySelector('#remoteVideo_right').autoplay = true;
-                    document.querySelector('#remoteVideo_right').muted = false;
-                    videoStream_id_right = event.streams[0].id;
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right').autoplay = true;
+                        document.querySelector('#remoteVideo_right').muted = false;
+                        videoStream_id_right = event.streams[0].id;
+                        mediaRecorder_twincam_right = new MediaRecorder(event.streams[0], options);
+                        mediaRecorder_twincam_right.ondataavailable = handleDataAvailable_twincam_right;
+                    }, 2000);
                     return;
                 }
 
@@ -139,15 +171,101 @@
 
             });
 
+            let recordedChunks_twincam_right = [];
+            function handleDataAvailable_twincam_right(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_right.push(event.data);
+                    download_twincam_right();
+                }
+            }
+            function download_twincam_right() {
+                let blob = new Blob(recordedChunks_twincam_right, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "segway_twincam-right_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            let mediaRecorder_twincam_right_A1 = null;
             recvonly_right_A1.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
-                    document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
-                    document.querySelector('#remoteVideo_right_A1').autoplay = true;
-                    document.querySelector('#remoteVideo_right_A1').muted = false;
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right_A1').autoplay = true;
+                        document.querySelector('#remoteVideo_right_A1').muted = false;
+                        mediaRecorder_twincam_right_A1 = new MediaRecorder(event.streams[0], options);
+                        mediaRecorder_twincam_right_A1.ondataavailable = handleDataAvailable_twincam_right_A1;
+                    }, 3000);
                     return;
                 }
             });
+
+            let recordedChunks_twincam_right_A1 = [];
+            function handleDataAvailable_twincam_right_A1(event) {
+                console.log("data-available");
+                if (event.data.size > 0) {
+                    recordedChunks_twincam_right_A1.push(event.data);
+                    download_twincam_right_A1();
+                }
+            }
+            function download_twincam_right_A1() {
+                let blob = new Blob(recordedChunks_twincam_right_A1, {
+                    type: "video/mp4"
+                });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = "A1_THETA_" + new Date() + ".mp4";
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            function recstart_clicked() {
+                if (mediaRecorder_twincam_right) {
+                    if (mediaRecorder_twincam_right.state == 'inactive') {
+                        mediaRecorder_twincam_right.start();
+                    }
+                }
+                if (mediaRecorder_twincam_left) {
+                    if (mediaRecorder_twincam_left.state == 'inactive') {
+                        mediaRecorder_twincam_left.start();
+                    }
+                }
+                if (mediaRecorder_twincam_right_A1) {
+                    if (mediaRecorder_twincam_right_A1.state == 'inactive') {
+                        mediaRecorder_twincam_right_A1.start();
+                    }
+                }
+            }
+
+            function reccomplete_clicked() {
+                if (mediaRecorder_twincam_right) {
+                    if (mediaRecorder_twincam_right.state == 'recording') {
+                        mediaRecorder_twincam_right.stop();
+                    }
+                }
+                if (mediaRecorder_twincam_left) {
+                    if (mediaRecorder_twincam_left.state == 'recording') {
+                        mediaRecorder_twincam_left.stop();
+                    }
+                }
+                if (mediaRecorder_twincam_right_A1) {
+                    if (mediaRecorder_twincam_right_A1.state == 'recording') {
+                        mediaRecorder_twincam_right_A1.stop();
+                    }
+                }
+            }
+
 
             recvonly_segway_rear.on("track", (event) => {
                 console.log(event);
@@ -155,19 +273,8 @@
                     document.querySelector('#remoteVideo_segway_rear').srcObject = event.streams[0];
                     document.querySelector('#remoteVideo_segway_rear').autoplay = true;
                     document.querySelector('#remoteVideo_segway_rear').muted = false;
-                    // mediaStream_id_right_A1 = event.streams[0].id;
                     return;
                 }
-
-                // if (event.track.kind == 'audio') {
-                //     const audio = document.createElement('audio');
-                //     audio.id = "audio-" + event.streams[0].id;
-                //     audio.srcObject = event.streams[0];
-                //     audio.controls = true;
-                //     audio.autoplay = true;
-                //     document.getElementById('remote-videos').appendChild(audio);
-                // }
-
             });
 
             setInterval(observe_video, 10000);
@@ -187,6 +294,7 @@
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
+                    mediaRecorder = null;
                 }
             });
 
@@ -203,22 +311,21 @@
             let segway_latch = 0;
             let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
             let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
-            let segway_time_since_epoch, segway_lin_vel;
 
             let a1_auto_moving_status = 0;
             let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
             let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
             recvonly_robots_control.on('message', (event) => {
                 if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
-                    segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
-                    segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
+                    let vel_time = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
+                    let lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
                     let ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
                     segway_latch = new Uint8Array(event.data)[13];
                     segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
                     segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
                     segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
 
-                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + ang_vel;
+                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + vel_time + '\n並進速度(m/s) ' + lin_vel + '\n旋回速度(deg/s)' + ang_vel;
                 }
                 if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
                     a1_auto_moving_status = new Uint8Array(event.data)[1];
@@ -298,9 +405,6 @@
             let twincamMode = 1; //1: left and right, 2: left only, 3: right only
 
             let arrow_box;
-
-            let data_log = false;
-            let log_buff = '';
 
 			//Create scene and create XR experience.
 			const createScene = async function() {
@@ -567,43 +671,6 @@
                         button.fontSize = 80;
                         button.background = "green";
                     advancedTextureb.addControl(button);
-
-                var planelog = BABYLON.Mesh.CreatePlane("planelog", 4);
-                    planelog.position = new BABYLON.Vector3(5, 4, 9);
-                    planelog.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-
-                    // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                    var advancedTexturelog = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planelog);
-
-                    var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
-                        buttonlog.onPointerDownObservable.add(() => {
-                            if (!data_log) {
-                                log_buff = '';
-                                data_log = true;
-                                recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
-                                buttonlog.textBlock.text = "stop log";
-                            }
-                            else {
-                                data_log = false;
-                                recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
-
-                                buttonlog.textBlock.text = "start log";
-                                var blob =new Blob([log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                                var link =document.createElement('a');
-                                link.href = URL.createObjectURL(blob);
-                                link.download = new Date() + "log.txt";
-                                link.click();
-                            }
-                        });
-                        buttonlog.alpha = 0.7;
-                        buttonlog.width = "1000px";
-                        buttonlog.height = "200px";
-                        buttonlog.color = "white";
-                        buttonlog.cornerRadius = 100;
-                        buttonlog.fontSize = 80;
-                        buttonlog.background = "green";
-                    advancedTexturelog.addControl(buttonlog);
 
 
                 sendjoy = true;
@@ -1107,7 +1174,6 @@
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
-                            
                         }
                         console.log(state);
                     });
@@ -1202,9 +1268,6 @@
             function soraRobotsDataChannelLoop() {
                 if (recvonly_robots_control.signalingSwitched && sendjoy) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                    if (data_log) {
-                        log_buff = log_buff + (Date.now()/1000 - 1658000000) + ' ' + 0.5*lin + ' ' + segway_time_since_epoch + ' ' + segway_lin_vel + '\n';
-                    }
                 }
             }
 
@@ -1285,19 +1348,27 @@
                             console.log(header);
                         }
                         if (gp.buttons[1].value) {
-                            sendjoy = true;
-                            if (soraRobotsDataChannelLoop_intervalID == null) {
-                                soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
-                                soraRobotsDataChannelLoop();
-                            }
+                            start = true;
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x11111111]));
                             return;
                         }
                         if (gp.buttons[0].value) {
-                            sendjoy = false;
-                            if (soraRobotsDataChannelLoop_intervalID != null) {
-                                clearInterval(soraRobotsDataChannelLoop_intervalID);
-                                soraRobotsDataChannelLoop_intervalID = null;
-                            }
+                            start = false;
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Int32Array([0x99999999]));
+                            return;
+                        }
+                        if (start && sendjoy) {
+                            // if (gp.buttons[14].pressed) {
+                            //     side = 127;
+                            // }
+                            // if (gp.buttons[15].pressed) {
+                            //     side = -127;
+                            // }
+                            // ang = (ang << 8) & 0x0000ff00;
+                            // lin = lin & 0x000000ff;
+                            let send_value = new Uint8Array([header, 127*side, 127*ang, 127*lin]);
+                            console.log(ang)
+                            recvonly_robots_control.sendMessage("#sora-devtools", send_value);
                             return;
                         }
                     }
