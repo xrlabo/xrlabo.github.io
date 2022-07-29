@@ -375,8 +375,7 @@
                 var goal_x = 0;
                 var goal_y = 0;
                 var goal_z = 0;
-                var goal_r = 0;
-                var goal_theta = 0;
+
                 var ground_y = -500; //地面の位置y
                 var box_height = 200;
 
@@ -771,8 +770,8 @@
                     }
 
                     if (header == 0xa1 && a1_auto_moving_status != 0) {
-                        let gx = goal_x + a1_start_position_x*Math.abs(ground_y);
-                        let gz = goal_z + a1_start_position_z*Math.abs(ground_y);
+                        let gx = goal_x;
+                        let gz = goal_z + 200;
                         let a1x = a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
                         let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
@@ -784,7 +783,6 @@
                         plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
                         button_goal.textBlock.text = 'Now moving';
                         button_goal.background = "blue";
-                        console.log('hello');
                     }
                 });
 
@@ -810,7 +808,7 @@
                             break;
                         case BABYLON.PointerEventTypes.POINTERUP:
                             console.log("POINTER UP");
-                            if (sendjoy) {
+                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
                                 // let lambda = (ground_y - oy)/dy;
                                 // goal_x = lambda*dx + ox;
                                 // goal_y = lambda*dy + oy;
@@ -825,15 +823,56 @@
                                 // plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
                                 // console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
 
-                                let x = goal_x/Math.abs(ground_y);
-                                let z = goal_z/Math.abs(ground_y);
+                                let lambda = (ground_y - oy)/dy;
+                                if (lambda <= 0) {
+                                    point_ground = false;
+                                    button_goal.alpha = 0;
+                                    box.material.alpha = 0;
+                                    break;
+                                }
+                                let gx = lambda*dx + ox;
+                                let gy = lambda*dy + oy;
+                                let gz = lambda*dz + oz;
+                                let gr = (gx**2 + gz**2)**0.5;
+                                let roty = Math.acos(gz/gr);
+                                if (gx > 0) {
+                                   roty = -roty;
+                                }
+                                if (gr/Math.abs(ground_y) > 3) {
+                                   point_ground = false;
+                                   button_goal.alpha = 0;
+                                   box.material.alpha = 0;
+                                   break;
+                                }
+                                point_ground = true;
+                                if (gr/Math.abs(ground_y) > max_r) {
+                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
+                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
+                                }
+                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
+                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
+                                plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
+                                button_goal.textBlock.text = 'Move here';
+                                button_goal.background = "green";
+                                button_goal.alpha = 1;
+                                box.material.alpha = 0.5;
+                                console.log("gx " + gx + " gy " + gy + " gz - 200 " + (gz - 200));
+
+                                let x = gx/Math.abs(ground_y);
+                                let z;
+                                if (header == 0xa1) {
+                                    z = (gz - 200)/Math.abs(ground_y);
+                                }
+                                else {
+                                    z = gz/Math.abs(ground_y);
+                                }
                                 let r = (x**2 + z**2)**0.5;
                                 let target_turn = Math.acos(z/r)/Math.PI*180;
-                                if (goal_x > 0) {
+                                if (gx > 0) {
                                    target_turn = -target_turn;
                                 }
                                 if (point_ground) {
-                                    if (header == 0x43 && segway_latch == 3) {
+                                    if (header == 0x43) {
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
 
@@ -844,15 +883,22 @@
                                         segway_start_position_x = segway_position_x;
                                         segway_start_position_z = segway_position_z;
                                     }
-                                    else if (header == 0xa1 && a1_auto_moving_status == 0) {
+                                    else if (header == 0xa1) {
                                         console.log('target x' + x + ' (m) ' + z + ' (m)');
                                         recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                     }
+                                    goal_x = gx;
+                                    goal_y = gy;
+                                    if (header == 0xa1) {
+                                        goal_z = gz - 200;
+                                    }
+                                    else {
+                                        goal_z = gz
+                                    }
+                                    console.log("gloal x " + goal_x + " y " + goal_y + " z " + goal_z);
                                 }
-
-                                break;
                             }
                             break;
                         case BABYLON.PointerEventTypes.POINTERMOVE:
@@ -865,39 +911,34 @@
                                     box.material.alpha = 0;
                                     break;
                                 }
-                                goal_x = lambda*dx + ox;
-                                goal_y = lambda*dy + oy;
-                                goal_z = lambda*dz + oz;
-                                let x = goal_x/Math.abs(ground_y);
-                                let z = goal_z/Math.abs(ground_y);
-                                let r = (x**2 + z**2)**0.5;
-                                let roty = Math.acos(z/r);
-                                if (goal_x > 0) {
+                                let gx = lambda*dx + ox;
+                                let gy = lambda*dy + oy;
+                                let gz = lambda*dz + oz;
+                                let gr = (gx**2 + gz**2)**0.5;
+                                let roty = Math.acos(gz/gr);
+                                if (gx > 0) {
                                    roty = -roty;
                                 }
-                                goal_theta = roty;
-                                if (r > 3) {
+                                if (gr/Math.abs(ground_y) > 3) {
                                    point_ground = false;
                                    button_goal.alpha = 0;
                                    box.material.alpha = 0;
                                    break;
                                 }
                                 point_ground = true;
-                                if (r > max_r) {
-                                   goal_x = -max_r*Math.abs(ground_y)*Math.sin(roty);
-                                   goal_z = max_r*Math.abs(ground_y)*Math.cos(roty);
+                                if (gr/Math.abs(ground_y) > max_r) {
+                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
+                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
                                 }
-                                goal_r = (goal_x**2 + goal_z**2)**0.5;
-                                box.position = new BABYLON.Vector3(goal_x, goal_y + box_height/2.0, goal_z);
-                                plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + box_height, goal_z);
+                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
+                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
                                 plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
                                 button_goal.textBlock.text = 'Move here';
                                 button_goal.background = "green";
                                 button_goal.alpha = 1;
                                 box.material.alpha = 0.5;
+                                console.log("gx " + gx + " gy " + gy + " gz " + gz);
                             }
-                            // console.log('dx ' + dx + ' dy ' + dy + ' dz ' + dz);
-                            // console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
                             break;
                         case BABYLON.PointerEventTypes.POINTERWHEEL:
                             console.log("POINTER WHEEL");
@@ -1107,7 +1148,7 @@
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
-                            
+
                         }
                         console.log(state);
                     });
