@@ -59,6 +59,18 @@
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
 		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
         <script type="text/javascript">
+            let timer;
+            document.addEventListener('keydown', (event) => {
+                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                console.log(event);
+                clearTimeout(timer);
+                document.body.style.backgroundColor ='#ff3030';
+                timer = setTimeout(bgWhite, 300);
+            });
+
+            function bgWhite() {
+                document.body.style.backgroundColor ='#ffffff';
+            }
             let CLOSE_DATA_CHANNEL = false;
         </script>
         <script type="text/javascript" src="./sora.js"></script>
@@ -504,38 +516,38 @@
                 	ANote0Video.material = ANote0VideoMat;
 
 
-                planeOpts = {
-           			height: 9/3,
-           			width: 16/3,
-           			sideOrientation: BABYLON.Mesh.DOUBLESIDE
-               	};
-
-                // const myPath = [
-        		//  	new BABYLON.Vector3(0, 0, 0.0),
-        		// 	new BABYLON.Vector3(0, 2, 0),
-            	// ];
-                // let segway_rear_view = BABYLON.MeshBuilder.CreateTube("segway_rear_view", {path: myPath, updatable: true}, scene);  //scene
-
-                // let segway_rear_view = BABYLON.MeshBuilder.CreateCylinder("segway_rear_view", {arc: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
-                // let segway_rear_view = BABYLON.MeshBuilder.CreateSphere("segway_rear_view", {diameterX: 40, diameterY: 40, sideOrientation: BABYLON.Mesh.DOUBLESIDE, segments: 64, slice: 0.5, arc: 0.5}, scene);
-                var segway_rear_view = BABYLON.MeshBuilder.CreatePlane("segway_rear_view", planeOpts, scene);
-                    segway_rear_view.position = new BABYLON.Vector3(0, 0, 10);
-                    segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-                    // segway_rear_view.rotation = new BABYLON.Vector3(Math.PI, Math.PI/2, 0);
-                    // segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI/2, Math.PI/10);
-                    // segway_rear_view.rotation = new BABYLON.Vector3(0, 3*Math.PI/4, 0);
-                	var segway_rear_view_mat = new BABYLON.StandardMaterial("segway_rear_view_mat", scene);
-                    	segway_rear_view_texture = new BABYLON.VideoTexture("segway_rear_video", document.getElementById('remoteVideo_right'), scene, true, false);
-                        segway_rear_view_texture.vScale = 0.4;
-                        segway_rear_view_texture.uScale = 0.4;
-                        segway_rear_view_texture.uOffset = 0.8;
-                        // segway_rear_view_texture.vOffset = 1;
-                        segway_rear_view_mat.diffuseTexture = segway_rear_view_texture;
-                    	segway_rear_view_mat.roughness = 1;
-                        segway_rear_view_mat.alpha = 1;
-                    	segway_rear_view_mat.emissiveColor = new BABYLON.Color3.White();
-                	segway_rear_view.material = segway_rear_view_mat;
-                    console.log(segway_rear_view);
+                // planeOpts = {
+           		// 	height: 9/3,
+           		// 	width: 16/3,
+           		// 	sideOrientation: BABYLON.Mesh.DOUBLESIDE
+               	// };
+                //
+                // // const myPath = [
+        		// //  	new BABYLON.Vector3(0, 0, 0.0),
+        		// // 	new BABYLON.Vector3(0, 2, 0),
+            	// // ];
+                // // let segway_rear_view = BABYLON.MeshBuilder.CreateTube("segway_rear_view", {path: myPath, updatable: true}, scene);  //scene
+                //
+                // // let segway_rear_view = BABYLON.MeshBuilder.CreateCylinder("segway_rear_view", {arc: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
+                // // let segway_rear_view = BABYLON.MeshBuilder.CreateSphere("segway_rear_view", {diameterX: 40, diameterY: 40, sideOrientation: BABYLON.Mesh.DOUBLESIDE, segments: 64, slice: 0.5, arc: 0.5}, scene);
+                // var segway_rear_view = BABYLON.MeshBuilder.CreatePlane("segway_rear_view", planeOpts, scene);
+                //     segway_rear_view.position = new BABYLON.Vector3(0, 0, 10);
+                //     segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+                //     // segway_rear_view.rotation = new BABYLON.Vector3(Math.PI, Math.PI/2, 0);
+                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI/2, Math.PI/10);
+                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, 3*Math.PI/4, 0);
+                // 	var segway_rear_view_mat = new BABYLON.StandardMaterial("segway_rear_view_mat", scene);
+                //     	segway_rear_view_texture = new BABYLON.VideoTexture("segway_rear_video", document.getElementById('remoteVideo_right'), scene, true, false);
+                //         segway_rear_view_texture.vScale = 0.4;
+                //         segway_rear_view_texture.uScale = 0.4;
+                //         segway_rear_view_texture.uOffset = 0.8;
+                //         // segway_rear_view_texture.vOffset = 1;
+                //         segway_rear_view_mat.diffuseTexture = segway_rear_view_texture;
+                //     	segway_rear_view_mat.roughness = 1;
+                //         segway_rear_view_mat.alpha = 1;
+                //     	segway_rear_view_mat.emissiveColor = new BABYLON.Color3.White();
+                // 	segway_rear_view.material = segway_rear_view_mat;
+                //     console.log(segway_rear_view);
 
                 // console.log(ANote0Video);
 
