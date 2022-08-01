@@ -747,7 +747,7 @@
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
                             buttontwincam.alpha = 0;
-                            segway_rear_view.material.alpha = 0;
+                            // segway_rear_view.material.alpha = 0;
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
                         }
                         else {
@@ -783,6 +783,7 @@
 
                     if (header == 0xa1 && a1_auto_moving_status != 0) {
                         let gx = goal_x;
+                        // let gz = goal_z + 200;
                         let gz = goal_z + 200;
                         let a1x = a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
@@ -872,12 +873,12 @@
 
                                 let x = gx/Math.abs(ground_y);
                                 let z;
-                                if (header == 0xa1) {
-                                    z = (gz - 200)/Math.abs(ground_y);
-                                }
-                                else {
+                                // if (header == 0xa1) {
+                                //     z = (gz - 200)/Math.abs(ground_y);
+                                // }
+                                // else {
                                     z = gz/Math.abs(ground_y);
-                                }
+                                // }
                                 let r = (x**2 + z**2)**0.5;
                                 let target_turn = Math.acos(z/r)/Math.PI*180;
                                 if (gx > 0) {
@@ -899,7 +900,7 @@
                                         // console.log('target x' + x + ' (m) ' + z + ' (m)');
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, (r - 0.4)*10, target_turn/2.0]));
                                         // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
