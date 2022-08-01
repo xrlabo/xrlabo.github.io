@@ -896,8 +896,11 @@
                                         segway_start_position_z = segway_position_z;
                                     }
                                     else if (header == 0xa1) {
-                                        console.log('target x' + x + ' (m) ' + z + ' (m)');
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
+                                        // console.log('target x' + x + ' (m) ' + z + ' (m)');
+                                        console.log('forward position: ' + r + ' (m)');
+                                        console.log('target_turn:' + target_turn + ' (deg)');
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                        // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                     }
