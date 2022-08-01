@@ -900,7 +900,13 @@
                                         // console.log('target x' + x + ' (m) ' + z + ' (m)');
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, (r - 0.4)*10, target_turn/2.0]));
+                                        if (r < 0.4) {
+                                            r = 0;
+                                        }
+                                        else {
+                                            r = r - 0.4;
+                                        }
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
                                         // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
