@@ -1036,7 +1036,7 @@
                             soraRobotsDataChannelLoop();
                         }
                         if (soraChairDataChannelLoop_intervalID == null) {
-                            soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/20.0);
+                            soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/10.0);
                             soraChairDataChannelLoop();
                         }
                         controller.onMotionControllerInitObservable.add((motionController) => {
