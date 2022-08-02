@@ -792,8 +792,8 @@
                         let gx = goal_x;
                         // let gz = goal_z + 200;
                         let gz = goal_z;
-                        let a1x = a1_position_x*Math.abs(ground_y);
-                        let a1z = a1_position_z*Math.abs(ground_y);
+                        let a1x = a1_position_x*Math.abs(ground_y)*2;
+                        let a1z = a1_position_z*Math.abs(ground_y)*2;
                         let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
                         let z_view = (gx - a1x)*Math.sin(-a1_position_rot/180.0*Math.PI) + (gz - a1z)*Math.cos(-a1_position_rot/180.0*Math.PI);
                         let r = ((gx - a1x)**2 + (gz - a1z)**2)**0.5;
