@@ -1291,7 +1291,7 @@
                         }
                     }
                     if (header == 0xa1) {
-                        if ((a1_auto_moving_status == 0 && Math.abs(ang) > 0.2) || a1_auto_moving_status == 1) {
+                        if ((a1_auto_moving_status == 0 && Math.abs(ang) > 0.2) || a1_auto_moving_status != 0) {
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
                         }
                         else {
