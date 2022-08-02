@@ -1015,7 +1015,7 @@
                                             let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
                                             let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
                                             let euler_y = Math.atan2(sinY, cosY);
-                                            HMD_ang = -euler_y/Math.PI*700;
+                                            HMD_ang = euler_y/Math.PI*700;
                                             if (HMD_ang - old_HMD_ang < -700) {
                                                 setPosA = setPosA + 1400;
                                             }

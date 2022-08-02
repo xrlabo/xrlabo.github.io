@@ -784,7 +784,7 @@
                     if (header == 0xa1 && a1_auto_moving_status != 0) {
                         let gx = goal_x;
                         // let gz = goal_z + 200;
-                        let gz = goal_z + 200;
+                        let gz = goal_z;
                         let a1x = a1_position_x*Math.abs(ground_y);
                         let a1z = a1_position_z*Math.abs(ground_y);
                         let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
@@ -1123,7 +1123,7 @@
                                             let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
                                             let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
                                             let euler_y = Math.atan2(sinY, cosY);
-                                            HMD_ang = -euler_y/Math.PI*700;
+                                            HMD_ang = euler_y/Math.PI*700;
                                             if (HMD_ang - old_HMD_ang < -700) {
                                                 setPosA = setPosA + 1400;
                                             }
