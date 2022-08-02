@@ -592,36 +592,36 @@
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                    var advancedTexturelog = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planelog);
-
-                    var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
-                        buttonlog.onPointerDownObservable.add(() => {
-                            if (!data_log) {
-                                log_buff = '';
-                                data_log = true;
-                                recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
-                                buttonlog.textBlock.text = "stop log";
-                            }
-                            else {
-                                data_log = false;
-                                recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
-
-                                buttonlog.textBlock.text = "start log";
-                                var blob =new Blob([log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                                var link =document.createElement('a');
-                                link.href = URL.createObjectURL(blob);
-                                link.download = new Date() + "log.txt";
-                                link.click();
-                            }
-                        });
-                        buttonlog.alpha = 0.7;
-                        buttonlog.width = "1000px";
-                        buttonlog.height = "200px";
-                        buttonlog.color = "white";
-                        buttonlog.cornerRadius = 100;
-                        buttonlog.fontSize = 80;
-                        buttonlog.background = "green";
-                    advancedTexturelog.addControl(buttonlog);
+                    // var advancedTexturelog = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planelog);
+                    //
+                    // var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
+                    //     buttonlog.onPointerDownObservable.add(() => {
+                    //         if (!data_log) {
+                    //             log_buff = '';
+                    //             data_log = true;
+                    //             recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
+                    //             buttonlog.textBlock.text = "stop log";
+                    //         }
+                    //         else {
+                    //             data_log = false;
+                    //             recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
+                    //
+                    //             buttonlog.textBlock.text = "start log";
+                    //             var blob =new Blob([log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    //             var link =document.createElement('a');
+                    //             link.href = URL.createObjectURL(blob);
+                    //             link.download = new Date() + "log.txt";
+                    //             link.click();
+                    //         }
+                    //     });
+                    //     buttonlog.alpha = 0.7;
+                    //     buttonlog.width = "1000px";
+                    //     buttonlog.height = "200px";
+                    //     buttonlog.color = "white";
+                    //     buttonlog.cornerRadius = 100;
+                    //     buttonlog.fontSize = 80;
+                    //     buttonlog.background = "green";
+                    // advancedTexturelog.addControl(buttonlog);
 
 
                 sendjoy = true;
