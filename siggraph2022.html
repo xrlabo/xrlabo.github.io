@@ -32,7 +32,9 @@
 
         <div id="remote-videos">
 
-            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
+                <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
+            </video>
             <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
@@ -73,6 +75,7 @@
             }
             let CLOSE_DATA_CHANNEL = false;
         </script>
+        <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
             var segway_info = '';
@@ -124,6 +127,11 @@
                     document.querySelector('#remoteVideo_left').autoplay = true;
                     document.querySelector('#remoteVideo_left').muted = false;
                     videoStream_id_left = event.streams[0].id;
+                    getStats(recvonly_segway_left.pc, function(result) {
+                        // previewGetStatsResult(this.pc, result);
+                        console.log(result);
+                        console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.recv.framerateMean);
+                    }, 500);
                 }, 1000);
             });
 
@@ -160,9 +168,15 @@
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
+                        console.log(event);
                         document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                         document.querySelector('#remoteVideo_right_A1').autoplay = true;
                         document.querySelector('#remoteVideo_right_A1').muted = false;
+                        getStats(recvonly_right_A1.pc, function(result) {
+                            // previewGetStatsResult(this.pc, result);
+                            console.log(result);
+                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.send.framerateMean);
+                        }, 500);
                     }, 4000);
                     return;
                 }
