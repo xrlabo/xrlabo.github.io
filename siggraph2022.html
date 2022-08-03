@@ -109,7 +109,7 @@
             let recvonly_segway_left = sora.recvonly("twincam-left", null, options_video_recvonly);
             let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
             let recvonly_segway_rear = sora.recvonly("segway-rear", null, options_video_recvonly);
-            let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
+            let sendrecv_A1_right = sora.recvonly("twincam-right-A1", null, options_video_audio_sendrecv);
             let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
 
@@ -164,7 +164,7 @@
 
             });
 
-            recvonly_right_A1.on("track", (event) => {
+            sendrecv_A1_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
@@ -172,7 +172,7 @@
                         document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                         document.querySelector('#remoteVideo_right_A1').autoplay = true;
                         document.querySelector('#remoteVideo_right_A1').muted = false;
-                        getStats(recvonly_right_A1.pc, function(result) {
+                        getStats(sendrecv_A1_right.pc, function(result) {
                             // previewGetStatsResult(this.pc, result);
                             console.log(result);
                             console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.send.framerateMean);
@@ -1233,6 +1233,7 @@
                         localStream = stream;
                         console.log(stream);
                         sendrecv_segway_right.connect(stream);
+                        sendrecv_A1_right.connect(stream);
                         if (document.getElementsByName('mic_on_off')[0].checked) {
                             localStream.getAudioTracks()[0].enabled = true;
                         }
@@ -1245,7 +1246,6 @@
                     });
                     recvonly_segway_left.connect();
                     recvonly_segway_rear.connect();
-                    recvonly_right_A1.connect();
                     recvonly_robots_control.connect();
                     recvonly_chair_control.connect();
                 }
