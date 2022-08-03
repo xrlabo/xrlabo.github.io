@@ -237,12 +237,16 @@
             let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
             let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
             let segway_time_since_epoch, segway_lin_vel;
+            let segway_message_stamp = 0;
 
             let a1_auto_moving_status = 0;
             let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
             let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
+            let a1_message_stamp = 0;
+
             recvonly_robots_control.on('message', (event) => {
                 if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
+                    segway_message_stamp++;
                     segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
                     segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
                     let ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
@@ -250,10 +254,10 @@
                     segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
                     segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
                     segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
-
                     document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + ang_vel;
                 }
                 if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
+                    a1_message_stamp++;
                     a1_auto_moving_status = new Uint8Array(event.data)[1];
                     a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
                     a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
@@ -1061,12 +1065,12 @@
                                     // console.log(ang);
                                     if (header == 0x43) {
                                         side = 0;
-                                        lin = -axes.y;
+                                        // lin = -axes.y;
                                     }
 
                                     side = -axes.x;
                                     if (header == 0xa1) {
-                                        ang = -axes.x;
+                                        // ang = -axes.x;
                                         lin = 0;
                                     }
                                     // dome_position_z = 2000*axes.y;
@@ -1101,7 +1105,7 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     if (header == 0x43) {
-                                        ang = -axes.x;
+                                        // ang = -axes.x;
                                     }
                                     if (header == 0xa1) {
                                         // side = -axes.x;
@@ -1294,11 +1298,26 @@
                 }
             }
 
+            let old_segway_message_stamp = 0;
+            let old_a1_message_stamp = 0;
+            let quit_count = 0;
+
             function soraChairDataChannelLoop() {
                 if (recvonly_chair_control.signalingSwitched && sendjoy) {
                     if (header == 0x43) {
                         if ((segway_latch == 3 && Math.abs(lin) > 0.2) || segway_latch == 4 ) {
-                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                            if (segway_message_stamp > old_segway_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_segway_message_stamp = segway_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count > 30) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                segway_latch = 3;
+                            }
                         }
                         else {
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
@@ -1306,7 +1325,18 @@
                     }
                     if (header == 0xa1) {
                         if ((a1_auto_moving_status == 0 && Math.abs(ang) > 0.2) || a1_auto_moving_status != 0) {
-                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                            if (a1_message_stamp > old_a1_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_a1_message_stamp = a1_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count > 30) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                a1_auto_moving_status = 0;
+                            }
                         }
                         else {
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
