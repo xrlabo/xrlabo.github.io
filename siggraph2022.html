@@ -878,7 +878,7 @@
                                    box.material.alpha = 0;
                                    break;
                                 }
-                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 4) {
+                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 5) {
                                    point_ground = false;
                                    button_goal.alpha = 0;
                                    box.material.alpha = 0;
@@ -922,11 +922,11 @@
                                         r = r/2.0;
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
-                                        if (r < 0.4) {
+                                        if (r < 0.3) {
                                             r = 0;
                                         }
                                         else {
-                                            r = r - 0.4;
+                                            r = r - 0.3;
                                         }
                                         recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
                                         // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
