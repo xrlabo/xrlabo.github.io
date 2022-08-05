@@ -121,18 +121,20 @@
 
             recvonly_segway_left.on("track", (event) => {
                 console.log(event);
-                setTimeout(()=> {
-                    console.log(event);
-                    document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
-                    document.querySelector('#remoteVideo_left').autoplay = true;
-                    document.querySelector('#remoteVideo_left').muted = false;
-                    videoStream_id_left = event.streams[0].id;
-                    getStats(recvonly_segway_left.pc, function(result) {
-                        // previewGetStatsResult(this.pc, result);
-                        console.log(result);
-                        console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.recv.framerateMean);
-                    }, 500);
-                }, 1000);
+                if (event.track.kind == "video") {
+                    setTimeout(()=> {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_left').autoplay = true;
+                        document.querySelector('#remoteVideo_left').muted = false;
+                        videoStream_id_left = event.streams[0].id;
+                        getStats(recvonly_segway_left.pc, function(result) {
+                            // previewGetStatsResult(this.pc, result);
+                            console.log(result);
+                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.recv.framerateMean);
+                        }, 500);
+                    }, 1000);
+                }
             });
 
 
@@ -1230,29 +1232,27 @@
             let localStream;
 
             function connect_clicked() {
-                if (!sendrecv_segway_right.signalingSwitched) {
-                    navigator.mediaDevices
-                    .getUserMedia({ audio: true, video: false })
-                    .then((stream) => {
-                        localStream = stream;
-                        console.log(stream);
-                        sendrecv_segway_right.connect(stream);
-                        sendrecv_A1_right.connect(stream);
-                        if (document.getElementsByName('mic_on_off')[0].checked) {
-                            localStream.getAudioTracks()[0].enabled = true;
-                        }
-                        else {
-                            localStream.getAudioTracks()[0].enabled = false;
-                        }
-                    })
-                    .catch((e) => {
-                         console.error(e);
-                    });
-                    recvonly_segway_left.connect();
-                    recvonly_segway_rear.connect();
-                    recvonly_robots_control.connect();
-                    recvonly_chair_control.connect();
-                }
+                navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then((stream) => {
+                    localStream = stream;
+                    console.log(stream);
+                    sendrecv_segway_right.connect(stream);
+                    sendrecv_A1_right.connect(stream);
+                    if (document.getElementsByName('mic_on_off')[0].checked) {
+                        localStream.getAudioTracks()[0].enabled = true;
+                    }
+                    else {
+                        localStream.getAudioTracks()[0].enabled = false;
+                    }
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+                recvonly_segway_left.connect();
+                recvonly_segway_rear.connect();
+                recvonly_robots_control.connect();
+                recvonly_chair_control.connect();
             }
 
             connect_clicked();
