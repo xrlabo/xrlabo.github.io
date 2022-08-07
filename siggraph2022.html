@@ -27,8 +27,8 @@
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
         <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;">　　
         <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;">
-        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" checked style="width: 100px; height: 50px;"><font size="7">segway</font> -->
-        <!-- <input type="radio" name="change_header" onclick="change_header_clicked()" style="width: 100px; height: 50px;"><font size="7">Unitree A1</font> -->
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
 
         <div id="remote-videos">
 
@@ -78,6 +78,22 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
+            var count_change_space = 0;
+            function start_stop_log_clicked() {
+                if (document.getElementsByName('start_stop_log')[0].checked) {
+                    // document.getElementsByName('start_stop_log')[0].checked = true;
+                    count_change_space = 0;
+                }
+                else if (document.getElementsByName('start_stop_log')[1].checked) {
+                    // document.getElementsByName('start_stop_log')[1].checked = true;
+                    var blob =new Blob([count_change_space], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var link =document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = new Date() + "_count_change_space.txt";
+                    link.click();
+                }
+            }
+
             var segway_info = '';
             const debug = true;
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
@@ -588,6 +604,7 @@
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to A1 video");
                         button.onPointerDownObservable.add(() => {
+                            count_change_space++;
                             button_clicked = true;
                             sendjoy = false;
                             if (videoDecrimentalLoop_intervalID) {
