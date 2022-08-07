@@ -863,7 +863,7 @@
                     let oy = 0;
                     let oz = 0;
 
-                    let max_r = 2; //(m)
+                    let max_r = 4; //(m)
                     // let ground_y = -20; //地面の位置y
                     switch (pointerInfo.type) {
                         case BABYLON.PointerEventTypes.POINTERDOWN:
@@ -987,13 +987,13 @@
                                 if (gx > 0) {
                                    roty = -roty;
                                 }
-                                if (header == 0x43 && gr/Math.abs(ground_y) > 3) {
+                                if (header == 0x43 && gr/Math.abs(ground_y) > 6) {
                                    point_ground = false;
                                    button_goal.alpha = 0;
                                    box.material.alpha = 0;
                                    break;
                                 }
-                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 8) {
+                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 6) {
                                    point_ground = false;
                                    button_goal.alpha = 0;
                                    box.material.alpha = 0;
