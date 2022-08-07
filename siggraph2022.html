@@ -79,6 +79,7 @@
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
             var count_change_space = 0;
+            var count_change_space_lines = '';
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
@@ -86,7 +87,7 @@
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob =new Blob([count_change_space], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var blob =new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
                     var link =document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = new Date() + "_count_change_space.txt";
@@ -604,7 +605,12 @@
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to A1 video");
                         button.onPointerDownObservable.add(() => {
-                            count_change_space++;
+                            if (header == 0x43) {
+                                count_change_space_lines += new Date() + 'segway to a1\n';
+                            }
+                            if (header == 0xa1) {
+                                count_change_space_lines += new Date() + 'a1 to segway\n';
+                            }
                             button_clicked = true;
                             sendjoy = false;
                             if (videoDecrimentalLoop_intervalID) {
