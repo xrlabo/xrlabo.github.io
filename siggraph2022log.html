@@ -1144,7 +1144,7 @@
                                     if (controller_log_count >= controller_log_interval) {
                                         if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & ' + ' ' + 'joy axes x ' + axes.x + ' y ' + axes.y;
+                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & ' + ' ' + 'joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                     }
