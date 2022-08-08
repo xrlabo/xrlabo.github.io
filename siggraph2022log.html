@@ -101,6 +101,12 @@
                 link.href = URL.createObjectURL(blob);
                 link.download = new Date() + "_user_experience_log.txt";
                 link.click();
+
+                blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = new Date() + "velocitylog.txt";
+                link.click();
             }
 
             var segway_info = '';
@@ -1067,7 +1073,7 @@
                     }
                 });
 
-                controller_log_interval = 1;
+                controller_log_interval = 20;
                 controller_log_count = 0;
 
                 // Create a default environment for the scene.
