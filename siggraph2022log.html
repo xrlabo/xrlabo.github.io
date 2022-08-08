@@ -979,10 +979,7 @@
                                         recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
-                                        segway_start_turn_position = segway_turn_position;       var link =document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "log.txt";
-
+                                        segway_start_turn_position = segway_turn_position;
                                         segway_start_position_x = segway_position_x;
                                         segway_start_position_z = segway_position_z;
                                     }
@@ -1153,12 +1150,12 @@
                                     if (controller_log_count >= controller_log_interval) {
                                         if (header == 0x43 && segway_latch == 3) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & ' + ' joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                         else if (header == 0xa1 && a1_auto_moving_status == 0) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & ' + ' joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                     }
