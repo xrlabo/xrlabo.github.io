@@ -1090,13 +1090,14 @@
                                     // console.log(ang);
                                     if (header == 0x43) {
                                         side = 0;
-                                        // lin = -axes.y;
+                                        lin = -axes.y;
+                                        ang = -axes.x;
                                     }
 
                                     side = -axes.x;
                                     if (header == 0xa1) {
-                                        // ang = -axes.x;
-                                        lin = 0;
+                                        ang = -axes.x;
+                                        lin = -axes.y;
                                     }
                                     // dome_position_z = 2000*axes.y;
                                     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
