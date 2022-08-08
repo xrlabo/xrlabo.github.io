@@ -914,6 +914,12 @@
                                    break;
                                 }
                                 point_ground = true;
+                                if (header == 0x43) {
+                                    max_r = 3
+                                }
+                                if (header == 0xa1) {
+                                    max_r = 4
+                                }
                                 if (gr/Math.abs(ground_y) > max_r) {
                                    gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
                                    gz = max_r*Math.abs(ground_y)*Math.cos(roty);
@@ -998,6 +1004,12 @@
                                    button_goal.alpha = 0;
                                    box.material.alpha = 0;
                                    break;
+                                }
+                                if (header == 0x43) {
+                                    max_r = 3
+                                }
+                                if (header == 0xa1) {
+                                    max_r = 4
                                 }
                                 point_ground = true;
                                 if (gr/Math.abs(ground_y) > max_r) {
