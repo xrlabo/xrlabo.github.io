@@ -365,7 +365,7 @@
 
             let buttonheader;
 
-            let twincamMode = 1; //1: left and right, 2: left only, 3: right only
+            let twincamMode = 2; //1: left and right, 2: left only, 3: right only
 
             let arrow_box;
 
@@ -506,7 +506,7 @@
 
                 videoDome = new BABYLON.VideoDome(
                     'VideoDome',
-                    document.getElementById('remoteVideo_right'),
+                    document.getElementById('remoteVideo_left'),
                     {
                         resolution: 64,
                         // clickToPlay: true,
@@ -721,7 +721,7 @@
                     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
                     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                        buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
+                        buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left only");
                             buttontwincam.alphaSet = true;
                             buttontwincam.alpha = 0.7;
                             // buttontwincam.textBlock.alphaSet = true;
