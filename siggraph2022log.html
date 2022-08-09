@@ -808,8 +808,8 @@
                         changeVideoFlag = false;
                         if (header == 0x43) {
                             header = 0xa1;
-                            localStream_for_segway.getAudioTracks()[0].enabled = false;
-                            localStream_for_A1.getAudioTracks()[0].enabled = true;
+                            // localStream_for_segway.getAudioTracks()[0].enabled = false;
+                            // localStream_for_A1.getAudioTracks()[0].enabled = true;
                             count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
                             button.textBlock.text = "Change to Segway";
                             videoDome.texture = videoTexture_a1;
@@ -822,8 +822,8 @@
                         }
                         else {
                             header = 0x43;
-                            localStream_for_segway.getAudioTracks()[0].enabled = true;
-                            localStream_for_A1.getAudioTracks()[0].enabled = false;
+                            // localStream_for_segway.getAudioTracks()[0].enabled = true;
+                            // localStream_for_A1.getAudioTracks()[0].enabled = false;
                             count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
                             videoDome.texture = videoTexture_segway_right;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
@@ -1327,7 +1327,8 @@
 				engine.resize();
 			});
 
-            let localStream_for_A1, localStream_for_segway;
+            // let localStream_for_A1, localStream_for_segway;
+            let localStream;
 
             function connect_clicked() {
                 navigator.mediaDevices
@@ -1336,12 +1337,12 @@
                     localStream_for_A1 = stream;
                     localStream_for_segway = stream;
                     console.log(stream);
-                    sendrecv_segway_right.connect(localStream_for_segway);
-                    sendrecv_segway_left.connect(localStream_for_segway);
-                    sendrecv_A1_right.connect(localStream_for_A1);
+                    sendrecv_segway_right.connect(localStream);
+                    sendrecv_segway_left.connect(localStream);
+                    sendrecv_A1_right.connect(localStream);
 
-                    localStream_for_segway.getAudioTracks()[0].enabled = true;
-                    localStream_for_A1.getAudioTracks()[0].enabled = false;
+                    localStream.getAudioTracks()[0].enabled = true;
+                    localStream.getAudioTracks()[0].enabled = false;
 
                     // if (document.getElementsByName('mic_on_off')[0].checked) {
                     //     localStream_for_A1.getAudioTracks()[0].enabled = true;
