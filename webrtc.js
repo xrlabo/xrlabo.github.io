@@ -1,5 +1,6 @@
 const localrecvonly = class {
     constructor(remoteVideo_id_str, wsUrl) {
+        this.remoteVideo_id = remoteVideo_id_str;
         this.remoteVideo = document.getElementById(remoteVideo_id_str);
         this.peerConnection = null;
         this.dataChannel = null;
@@ -120,16 +121,16 @@ const localrecvonly = class {
                 peer.ontrack = (event) => {
                     console.log('-- peer.ontrack()');
                     mediaStream.addTrack(event.track);
-                    getStats(this.peerConnection, (result) => {
-                        if (this.remoteVideo) {
-                            if (this.remoteVideo.id == "remoteVideo_right") {
-                                document.getElementById('rvs').innerHTML = 'frame width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms';
-                            }
-                            if (this.remoteVideo.id == "remoteVideo_left") {
-                                document.getElementById('lvs').innerHTML = 'frame width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms';
-                            }
-                        }
-                    }, 500);
+                    // getStats(this.peerConnection, (result) => {
+                    //     if (this.remoteVideo) {
+                    //         if (this.remoteVideo.id == "remoteVideo_right") {
+                    //             document.getElementById('rvs').innerHTML = 'frame width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms';
+                    //         }
+                    //         if (this.remoteVideo.id == "remoteVideo_left") {
+                    //             document.getElementById('lvs').innerHTML = 'frame width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms';
+                    //         }
+                    //     }
+                    // }, 500);
                 };
             }
         }
@@ -164,12 +165,28 @@ const localrecvonly = class {
         peer.addTransceiver('audio', {direction: 'recvonly'});
 
         this.dataChannel.onmessage = function (event) {
-            if (event.data.byteLength == 12) {
-                remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
-                remote_lin_vel = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
-                remote_ang_vel = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
-                document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time.toFixed(2) + '\n並進速度(m/s) ' + remote_lin_vel.toFixed(2) + '\n旋回速度(deg/s)' + remote_ang_vel.toFixed(2);
-                segway_info = remote_lin_vel.toFixed(2) + '(m/s)\n' + remote_ang_vel.toFixed(2) + '(deg/s)';
+            if (this.remoteVideo_id == 'segway_control_dummy_video') {
+                if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
+                    segway_message_stamp++;
+                    segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
+                    segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
+                    segway_ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
+                    segway_latch = new Uint8Array(event.data)[13];
+                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
+                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
+                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
+                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + segway_ang_vel;
+                }
+            }
+            if (this.remoteVideo_id == 'a1_control_dummy_video') {
+                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
+                    a1_message_stamp++;
+                    a1_auto_moving_status = new Uint8Array(event.data)[1];
+                    a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
+                    a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
+                    a1_position_rot = (new Int16Array([new Uint8Array(event.data)[6] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[7]])[0] )/100.0;
+                    document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot;
+                }
             }
         };
         return peer;
