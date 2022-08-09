@@ -27,8 +27,8 @@
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
         <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;">　　
         <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;">
-        <!-- <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font> -->
-        <!-- <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font> -->
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
 
         <div id="remote-videos">
 
@@ -83,14 +83,21 @@
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
-                    count_change_space = 0;
+                    count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
+                    vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob =new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
-                    var link =document.createElement('a');
+                    var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = new Date() + "_user_experience_log.txt";
+                    link.click();
+
+                    blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = new Date() + "velocitylog.txt";
                     link.click();
                 }
             }
