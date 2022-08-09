@@ -1334,8 +1334,7 @@
                 navigator.mediaDevices
                 .getUserMedia({ audio: true, video: false })
                 .then((stream) => {
-                    localStream_for_A1 = stream;
-                    localStream_for_segway = stream;
+                    localStream = stream;
                     console.log(stream);
                     sendrecv_segway_right.connect(localStream);
                     sendrecv_segway_left.connect(localStream);
