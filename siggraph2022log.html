@@ -1411,7 +1411,7 @@
             function soraChairDataChannelLoop() {
                 if (recvonly_chair_control.signalingSwitched && sendjoy) {
                     if (header == 0x43) {
-                        if ((segway_latch == 3 && Math.abs(lin) > 0.2) || segway_latch == 4 ) {
+                        if ((segway_latch == 3 && (Math.abs(lin) > 0.2 || Math.abs(ang) > 0.2)) || segway_latch == 4 ) {
                             if (segway_message_stamp > old_segway_message_stamp) {
                                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
                                 old_segway_message_stamp = segway_message_stamp;
