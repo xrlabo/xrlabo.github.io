@@ -400,13 +400,13 @@
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
                 }
-                scene.onPointerObservable.add(e => {
-                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
-                    camera.fov = cameraFovDegree * (Math.PI / 180);
-                }, BABYLON.PointerEventTypes.POINTERWHEEL);
-                if (camera.inputs.attached.gamepad) {
-                    camera.inputs.attached.gamepad.detachControl();
-                }
+                // scene.onPointerObservable.add(e => {
+                //     cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                //     camera.fov = cameraFovDegree * (Math.PI / 180);
+                // }, BABYLON.PointerEventTypes.POINTERWHEEL);
+                // if (camera.inputs.attached.gamepad) {
+                //     camera.inputs.attached.gamepad.detachControl();
+                // }
 
                 var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
                     plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
@@ -779,24 +779,24 @@
                     //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
                     //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
                     // }
-                    if (camera.inputs.attached.pointers) {
-                        if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
-                        distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
-                        if (distance_current > distance_past) {
-                            cameraFovDegree = cameraFovDegree - 1;
-                        }
-                        if (distance_current < distance_past) {
-                            cameraFovDegree = cameraFovDegree + 1;
-                        }
-                        distance_past = distance_current;
-                        if (cameraFovDegree < 0) {
-                            cameraFovDegree = 1;
-                        }
-                        if (cameraFovDegree > 180) {
-                            cameraFovDegree = 179;
-                        }
-                        camera.fov = cameraFovDegree * (Math.PI / 180);
-                    }
+                    // if (camera.inputs.attached.pointers) {
+                    //     if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
+                    //     distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
+                    //     if (distance_current > distance_past) {
+                    //         cameraFovDegree = cameraFovDegree - 1;
+                    //     }
+                    //     if (distance_current < distance_past) {
+                    //         cameraFovDegree = cameraFovDegree + 1;
+                    //     }
+                    //     distance_past = distance_current;
+                    //     if (cameraFovDegree < 0) {
+                    //         cameraFovDegree = 1;
+                    //     }
+                    //     if (cameraFovDegree > 180) {
+                    //         cameraFovDegree = 179;
+                    //     }
+                    //     camera.fov = cameraFovDegree * (Math.PI / 180);
+                    // }
                     if (changeVideoFlag) {
                         changeVideoFlag = false;
                         if (header == 0x43) {
