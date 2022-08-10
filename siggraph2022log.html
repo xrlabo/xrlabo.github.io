@@ -20,13 +20,13 @@
     </head>
 
     <body>
-        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font>
         <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
-        <input type="radio" name="change_scene" checked style="width: 100px; height: 50px; display: none;">　　
-        <input type="radio" name="change_scene" style="width: 100px; height: 50px; display: none;">
+        <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font>
+        <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br>
         <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
         <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
 
@@ -379,6 +379,16 @@
             let data_log = false;
             let vel_vel_log_buff = '';
 
+            function change_video_clicked() {
+                if (videoDecrimentalLoop_intervalID) {
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                }
+                if (videoIncrimentalLoop_intervalID) {
+                    clearInterval(videoIncrimentalLoop_intervalID);
+                }
+                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+            }
+
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -456,7 +466,6 @@
                 var ground_y = -500; //地面の位置y
                 var box_height = 200;
 
-                var button_clicked = false;
 
                 const bottom = -3;
                 let length = 3;
@@ -626,8 +635,15 @@
 
                     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to dog robot");
                         button.onPointerDownObservable.add(() => {
-                            button_clicked = true;
-                            sendjoy = false;
+                            if (document.getElementsByName('change_video')[0].checked) {
+                                document.getElementsByName('change_video')[0].checked = false;
+                                document.getElementsByName('change_video')[1].checked = true;
+                            }
+                            else if (document.getElementsByName('change_video')[1].checked) {
+                                document.getElementsByName('change_video')[0].checked = true;
+                                document.getElementsByName('change_video')[1].checked = false;
+                            }
+
                             if (videoDecrimentalLoop_intervalID) {
                                 clearInterval(videoDecrimentalLoop_intervalID);
                             }
@@ -741,7 +757,6 @@
                 //             buttontwincam.background = "green";
                 //             buttontwincam.onPointerDownObservable.add(() => {
                 //                 console.log("button");
-                //                 button_clicked = true;
                 //                 if (header == 0x43) {
                 //                     switch (twincamMode) {
                 //                         case 1:
@@ -808,6 +823,10 @@
                         changeVideoFlag = false;
                         if (header == 0x43) {
                             header = 0xa1;
+
+                            document.getElementsByName('change_video')[0].checked = false;
+                            document.getElementsByName('change_video')[1].checked = true;
+
                             // localStream_for_segway.getAudioTracks()[0].enabled = false;
                             // localStream_for_A1.getAudioTracks()[0].enabled = true;
                             count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
@@ -822,6 +841,10 @@
                         }
                         else {
                             header = 0x43;
+
+                            document.getElementsByName('change_video')[0].checked = true;
+                            document.getElementsByName('change_video')[1].checked = false;
+
                             // localStream_for_segway.getAudioTracks()[0].enabled = true;
                             // localStream_for_A1.getAudioTracks()[0].enabled = false;
                             count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
