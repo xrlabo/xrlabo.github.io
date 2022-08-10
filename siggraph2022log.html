@@ -415,26 +415,26 @@
                 //     camera.inputs.attached.gamepad.detachControl();
                 // }
 
-                var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
-                    plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
-                var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
-                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
-                var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
-                    // button_reconnect.alphaSet = true;
-                    button_reconnect.alpha = 0.7;
-                    button_reconnect.width = 0.3;
-                    button_reconnect.height = 0.1;
-                    button_reconnect.cornerRadius = 10;
-                    button_reconnect.color = "white";
-                    button_reconnect.thickness = 4;
-                    button_reconnect.fontSize = 40;
-                    // button_reconnect.rotation = 0.2;
-                    // button_reconnect.scaleY = 1.5;
-                    button_reconnect.background = "green";
-                    button_reconnect.onPointerDownObservable.add(function() {
-                        connect_clicked();
-                    });
-                    advancedTexture_reconnect.addControl(button_reconnect);
+                // var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
+                //     plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
+                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
+                // // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
+                // var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
+                //     // button_reconnect.alphaSet = true;
+                //     button_reconnect.alpha = 0.7;
+                //     button_reconnect.width = 0.3;
+                //     button_reconnect.height = 0.1;
+                //     button_reconnect.cornerRadius = 10;
+                //     button_reconnect.color = "white";
+                //     button_reconnect.thickness = 4;
+                //     button_reconnect.fontSize = 40;
+                //     // button_reconnect.rotation = 0.2;
+                //     // button_reconnect.scaleY = 1.5;
+                //     button_reconnect.background = "green";
+                //     button_reconnect.onPointerDownObservable.add(function() {
+                //         connect_clicked();
+                //     });
+                //     advancedTexture_reconnect.addControl(button_reconnect);
 
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
@@ -566,19 +566,19 @@
                 //     advancedTexture.addControl(title);
                 //
                 //
-                var planeOpts = {
-            			height: 9/4,
-            			width: 16/4,
-            			sideOrientation: BABYLON.Mesh.DOUBLESIDE
-            	};
-            	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(-5, 1, 9);
-                    ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
-                    	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                    	ANote0VideoMat.roughness = 1;
-                    	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
-                	ANote0Video.material = ANote0VideoMat;
+                // var planeOpts = {
+            	// 		height: 9/4,
+            	// 		width: 16/4,
+            	// 		sideOrientation: BABYLON.Mesh.DOUBLESIDE
+            	// };
+            	// var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
+                //     ANote0Video.position = new BABYLON.Vector3(-5, 1, 9);
+                //     ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                // 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
+                //     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
+                //     	ANote0VideoMat.roughness = 1;
+                //     	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
+                // 	ANote0Video.material = ANote0VideoMat;
 
 
                 // planeOpts = {
@@ -616,8 +616,8 @@
 
                 // console.log(ANote0Video);
 
-                var planeb = BABYLON.Mesh.CreatePlane("planeb", 4);
-                    planeb.position = new BABYLON.Vector3(-5, 2.7, 9);
+                var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
+                    planeb.position = new BABYLON.Vector3(-5, 1, 9);
                     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
@@ -723,47 +723,47 @@
                 //             });
                 //         advancedTextureheader.addControl(buttonheader);
 
-                var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                    planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
-                    planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                    var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                        buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
-                            buttontwincam.alphaSet = true;
-                            buttontwincam.alpha = 0.7;
-                            // buttontwincam.textBlock.alphaSet = true;
-                            // buttontwincam.textBlock.alpha = 1.0;
-                            buttontwincam.width = "1000px";
-                            buttontwincam.height = "200px";
-                            buttontwincam.color = "white";
-                            buttontwincam.cornerRadius = 100;
-                            buttontwincam.fontSize = 80;
-                            buttontwincam.background = "green";
-                            buttontwincam.onPointerDownObservable.add(() => {
-                                console.log("button");
-                                button_clicked = true;
-                                if (header == 0x43) {
-                                    switch (twincamMode) {
-                                        case 1:
-                                            twincamMode = 2;
-                                            buttontwincam.textBlock.text = "left only";
-                                            videoDome.texture = videoTexture_segway_left;
-                                            break;
-                                        case 2:
-                                            twincamMode = 3;
-                                            buttontwincam.textBlock.text = "right only";
-                                            videoDome.texture = videoTexture_segway_right;
-                                            break;
-                                        case 3:
-                                            buttontwincam.textBlock.text = "left and right";
-                                            twincamMode = 1;
-                                            break;
-                                        default:
-
-                                    }
-                                }
-                            });
-                        advancedTextureheader.addControl(buttontwincam);
+                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
+                //     planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
+                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
+                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
+                //         buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
+                //             buttontwincam.alphaSet = true;
+                //             buttontwincam.alpha = 0.7;
+                //             // buttontwincam.textBlock.alphaSet = true;
+                //             // buttontwincam.textBlock.alpha = 1.0;
+                //             buttontwincam.width = "1000px";
+                //             buttontwincam.height = "200px";
+                //             buttontwincam.color = "white";
+                //             buttontwincam.cornerRadius = 100;
+                //             buttontwincam.fontSize = 80;
+                //             buttontwincam.background = "green";
+                //             buttontwincam.onPointerDownObservable.add(() => {
+                //                 console.log("button");
+                //                 button_clicked = true;
+                //                 if (header == 0x43) {
+                //                     switch (twincamMode) {
+                //                         case 1:
+                //                             twincamMode = 2;
+                //                             buttontwincam.textBlock.text = "left only";
+                //                             videoDome.texture = videoTexture_segway_left;
+                //                             break;
+                //                         case 2:
+                //                             twincamMode = 3;
+                //                             buttontwincam.textBlock.text = "right only";
+                //                             videoDome.texture = videoTexture_segway_right;
+                //                             break;
+                //                         case 3:
+                //                             buttontwincam.textBlock.text = "left and right";
+                //                             twincamMode = 1;
+                //                             break;
+                //                         default:
+                //
+                //                     }
+                //                 }
+                //             });
+                //         advancedTextureheader.addControl(buttontwincam);
 
 
                 let distance_past = 0, distance_current = 0;
@@ -815,8 +815,8 @@
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
-                            buttontwincam.alpha = 0;
+                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
+                            // buttontwincam.alpha = 0;
                             // segway_rear_view.material.alpha = 0;
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
                         }
@@ -829,8 +829,8 @@
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "Change to dog robot";
-                            ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                            buttontwincam.alpha = 0.7;
+                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
+                            // buttontwincam.alpha = 0.7;
                             // segway_rear_view.material.alpha = 1;
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
                         }
