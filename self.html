@@ -372,7 +372,7 @@
 
             let buttonheader;
 
-            let twincamMode = 1; //1: left and right, 2: left only, 3: right only
+            let twincamMode = 2; //1: left and right, 2: left only, 3: right only
 
             let arrow_box;
 
@@ -625,15 +625,15 @@
 
                 // console.log(ANote0Video);
 
-                var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
-                    planeb.position = new BABYLON.Vector3(-5, 1, 9);
+                var planeb = BABYLON.Mesh.CreatePlane("planeb", 1);
+                    planeb.position = new BABYLON.Vector3(-1, 0.25, 2);
                     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to dog robot");
+                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
                         button.onPointerDownObservable.add(() => {
                             if (document.getElementsByName('change_video')[0].checked) {
                                 document.getElementsByName('change_video')[0].checked = false;
@@ -830,7 +830,7 @@
                             // localStream_for_segway.getAudioTracks()[0].enabled = false;
                             // localStream_for_A1.getAudioTracks()[0].enabled = true;
                             count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
-                            button.textBlock.text = "Change to Segway";
+                            button.textBlock.text = "Segwayに変更";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
@@ -851,7 +851,7 @@
                             videoDome.texture = videoTexture_segway_right;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            button.textBlock.text = "Change to dog robot";
+                            button.textBlock.text = "犬に変更";
                             // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
                             // buttontwincam.alpha = 0.7;
                             // segway_rear_view.material.alpha = 1;
@@ -1316,11 +1316,10 @@
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
 
                             recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
-                            save_log();
                         }
                         console.log(state);
                     });
