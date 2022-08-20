@@ -22,9 +22,13 @@
     <body>
         <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font>
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br> -->
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" checked style="width: 100px; height: 50px;"><font size="7">self change</font>
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" style="width: 100px; height: 50px;"><font size="7">half</font><br>
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" style="width: 100px; height: 50px;"><font size="7">alternative</font><br>
+
         <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font>
         <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br>
         <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
@@ -78,14 +82,173 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
+            let expe_mode = 1; // 1: self change, 2: half, 3: alternative
+            function expe_mode_clicked() {
+                if (videoSelfChangeLoop_intervalID) {
+                    clearInterval(videoSelfChangeLoop_intervalID);
+                }
+                if (videoHalfChangeLoop_intervalID) {
+                    clearInterval(videoHalfChangeLoop_intervalID);
+                }
+                if (videoAlterChangeLoop_intervalID) {
+                    clearInterval(videoAlterChangeLoop_intervalID);
+                }
+
+                if (document.getElementsByName('expe_mode')[0].checked) {
+                    expe_mode = 1;
+                    if (header == 0x43) {
+                        videoDome_segway.material.alpha = 1;
+                        videoDome_a1.material.alpha = 0;
+                    }
+                    else if (header == 0xa1) {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                    }
+                    button.alpha = 1;
+                }
+                else if (document.getElementsByName('expe_mode')[1].checked) {
+                    expe_mode = 2;
+                    if (header == 0x43) {
+                        videoDome_segway.material.alpha = 0.7;
+                        videoDome_a1.material.alpha = 0.3;
+                    }
+                    else if (header == 0xa1) {
+                        videoDome_segway.material.alpha = 0.3;
+                        videoDome_a1.material.alpha = 0.7;
+                    }
+                    button.alpha = 1;
+                }
+                else if (document.getElementsByName('expe_mode')[2].checked) {
+                    expe_mode = 3;
+                    videoDome_segway.material.alpha = 1;
+                    videoDome_a1.material.alpha = 0;
+                    button.alpha = 0;
+                    videoAlterChangeSubLoop_intervalID = setInterval(videoAlterChangeLoop, 5000);
+                }
+            }
+
+            let videoSelfChangeLoop_intervalID = null;
+            function videoSelfChangeLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                        header = 0xa1;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        document.getElementsByName('change_video')[0].checked = false;
+                        document.getElementsByName('change_video')[1].checked = true;
+                        button.textBlock.text = "Segwayに変更";
+                        clearInterval(videoSelfChangeLoop_intervalID);
+                        videoSelfChangeLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0;
+                        videoDome_segway.material.alpha = 1;
+                        header = 0x43;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        document.getElementsByName('change_video')[0].checked = true;
+                        document.getElementsByName('change_video')[1].checked = false;
+                        button.textBlock.text = "犬に変更";
+                        clearInterval(videoSelfChangeLoop_intervalID);
+                        videoSelfChangeLoop_intervalID = null;
+                    }
+                }
+            }
+
+            let videoHalfChangeLoop_intervalID = null;
+            function videoHalfChangeLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0.3) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0.3;
+                        videoDome_a1.material.alpha = 0.7;
+                        header = 0xa1;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        document.getElementsByName('change_video')[0].checked = false;
+                        document.getElementsByName('change_video')[1].checked = true;
+                        button.textBlock.text = "Segwayに変更";
+                        clearInterval(videoHalfChangeLoop_intervalID);
+                        videoHalfChangeLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0.3) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0.3;
+                        videoDome_segway.material.alpha = 0.7;
+                        header = 0x43;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        document.getElementsByName('change_video')[0].checked = true;
+                        document.getElementsByName('change_video')[1].checked = false;
+                        button.textBlock.text = "犬に変更";
+                        clearInterval(videoHalfChangeLoop_intervalID);
+                        videoHalfChangeLoop_intervalID = null;
+                    }
+                }
+            }
+
+            let videoAlterChangeLoop_intervalID = null;
+            let videoAlterChangeSubLoop_intervalID = null;
+            function videoAlterChangeLoop() {
+                videoAlterChangeSubLoop_intervalID = setInterval(videoAlterChangeSubLoop, 1000.0/10.0);
+            }
+
+            function videoAlterChangeSubLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                        header = 0xa1;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        document.getElementsByName('change_video')[0].checked = false;
+                        document.getElementsByName('change_video')[1].checked = true;
+                        clearInterval(videoAlterChangeSubLoop_intervalID);
+                        videoAlterChangeSubLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0;
+                        videoDome_segway.material.alpha = 1;
+                        header = 0x43;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        document.getElementsByName('change_video')[0].checked = false;
+                        document.getElementsByName('change_video')[1].checked = true;
+                        clearInterval(videoAlterChangeSubLoop_intervalID);
+                        videoAlterChangeSubLoop_intervalID = null;
+                    }
+                }
+            }
+
             let user_log_buff = '';
-            let segway_log_buff = '';
-            let a1_log_buff = '';
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
                     user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
-                    segway_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time, angular velocity (deg/s), forward velocity (m/s)]';
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
@@ -93,12 +256,6 @@
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = new Date() + "_user_log.txt";
-                    link.click();
-
-                    blob = new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                    link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "_segway_log.txt";
                     link.click();
                 }
             }
@@ -336,15 +493,12 @@
 
             let soraRobotsDataChannelLoop_intervalID = null;
             let soraChairDataChannelLoop_intervalID = null;
-            let sendjoy = false;
 
             let camera;
             let cameraFovDegree = 60;
 
             let videoDome_segway, videoDome_a1;
-            let videoDecrimentalLoop_intervalID = null;
-            let videoIncrimentalLoop_intervalID = null;
-            let changeVideoFlag = false;
+            let button;
 
             let dome_position_x = 0;
             let dome_position_y = 0;
@@ -367,16 +521,9 @@
 
             let arrow_box;
 
-            let button;
 
             function change_video_clicked() {
-                if (videoDecrimentalLoop_intervalID) {
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                }
-                if (videoIncrimentalLoop_intervalID) {
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                }
-                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+                videoSelfChangeLoop_intervalID = setInterval(videoSelfChangeLoop, 1000.0/10.0);
             }
 
 			//Create scene and create XR experience.
@@ -407,34 +554,6 @@
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
                 }
-                // scene.onPointerObservable.add(e => {
-                //     cameraFovDegree += e.event.wheelDelta * 2**(-5);
-                //     camera.fov = cameraFovDegree * (Math.PI / 180);
-                // }, BABYLON.PointerEventTypes.POINTERWHEEL);
-                // if (camera.inputs.attached.gamepad) {
-                //     camera.inputs.attached.gamepad.detachControl();
-                // }
-
-                // var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
-                //     plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
-                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
-                // // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
-                // var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
-                //     // button_reconnect.alphaSet = true;
-                //     button_reconnect.alpha = 0.7;
-                //     button_reconnect.width = 0.3;
-                //     button_reconnect.height = 0.1;
-                //     button_reconnect.cornerRadius = 10;
-                //     button_reconnect.color = "white";
-                //     button_reconnect.thickness = 4;
-                //     button_reconnect.fontSize = 40;
-                //     // button_reconnect.rotation = 0.2;
-                //     // button_reconnect.scaleY = 1.5;
-                //     button_reconnect.background = "green";
-                //     button_reconnect.onPointerDownObservable.add(function() {
-                //         connect_clicked();
-                //     });
-                //     advancedTexture_reconnect.addControl(button_reconnect);
 
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
@@ -461,8 +580,7 @@
                 let length = 3;
                 let a = 1;
                 let b = 0; // a + b = 1
-                //
-                // const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
+
                 var box = BABYLON.MeshBuilder.CreateBox("box", {width: 10, height: box_height, depth: 10}, scene);
                     box.position = new BABYLON.Vector3(0, ground_y + box_height/2.0, 100);
                     box.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
@@ -471,13 +589,6 @@
                         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     box.material = boxMat;
 
-                // const ground_cylinder = BABYLON.MeshBuilder.CreateCylinder("ground_cylinder", {height: 0.1, diameter: 1000, tessellation: 100}, scene);
-                //     ground_cylinder.position = new BABYLON.Vector3(0, ground_y, 0);
-                //     ground_cylinder.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
-                //     const ground_cylinder_Mat = new BABYLON.StandardMaterial("ground_cylinder_Mat", scene);
-                //         ground_cylinder_Mat.alpha = 0.3;
-                //         ground_cylinder_Mat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //     ground_cylinder.material = ground_cylinder_Mat;
 
                 var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 2000);
                     plane_goal.position = new BABYLON.Vector3(0, ground_y + box_height, 100);
@@ -496,14 +607,6 @@
                     //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     // });
                     advancedTexture_goal.addControl(button_goal);
-                //
-                // const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
-                //     triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
-                //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
-                //     const triMat = new BABYLON.StandardMaterial("triMat", scene);
-                //         triMat.alpha = 0.3;
-                //         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //     triangle.material = triMat;
 
 
                 let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
@@ -524,8 +627,8 @@
                 );
                 videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
-                videoDome_segway.material.alpha = 0.7;
-                videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+                videoDome_segway.material.alpha = 1;
+                // videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
                 videoDome_a1 = new BABYLON.VideoDome(
                     'VideoDome',
@@ -541,125 +644,22 @@
                 );
                 videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                 videoDome_a1.setDirection(new BABYLON.Vector3(0, 0, 0));
-                videoDome_a1.material.alpha = 0.3;
-                videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+                videoDome_a1.material.alpha = 0;
+                // videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
 
-                // var plane = BABYLON.Mesh.CreatePlane("plane", 1);
-                //     plane.position = new BABYLON.Vector3(0, 0.5, 2);
-                //     const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
-                //         planeMat.alpha = 1;
-                //         planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //         plane.material = planeMat;
-                //     // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //
-                //     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                //     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                //         // var panel = new BABYLON.GUI.StackPanel();
-                //         // advancedTexture.addControl(panel);
-                //
-                //         var rect = new BABYLON.GUI.Rectangle('rect');
-                //             rect.background = 'green';
-                //             rect.alpha = 0.3;
-                //             rect.height = '500px';
-                //             rect.width = '1000px';
-                //             advancedTexture.addControl(rect);
-                //             // panel.addControl(rect);
-                //
-                //         var title = new BABYLON.GUI.TextBlock();
-                //             // if (document.getElementsByName('change_header')[0].checked) {
-                //             //     title.text = "Controlling Segway";
-                //             //     // header = 0x43;
-                //             // }
-                //             // else {
-                //             //     title.text = "Controlling Unitree\nA1";
-                //             //     // header = 0xa1;
-                //             // }
-                //             title.height = "500px";
-                //             title.width = "1000px"
-                //             title.color = "white";
-                //             title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                //             title.fontSize = "80";
-                //             // panel.addControl(title);
-                //     advancedTexture.addControl(title);
-                //
-                //
-                // var planeOpts = {
-            	// 		height: 9/4,
-            	// 		width: 16/4,
-            	// 		sideOrientation: BABYLON.Mesh.DOUBLESIDE
-            	// };
-            	// var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                //     ANote0Video.position = new BABYLON.Vector3(-5, 1, 9);
-                //     ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                // 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
-                //     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                //     	ANote0VideoMat.roughness = 1;
-                //     	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
-                // 	ANote0Video.material = ANote0VideoMat;
-
-
-                // planeOpts = {
-           		// 	height: 9/3,
-           		// 	width: 16/3,
-           		// 	sideOrientation: BABYLON.Mesh.DOUBLESIDE
-               	// };
-                //
-                // // const myPath = [
-        		// //  	new BABYLON.Vector3(0, 0, 0.0),
-        		// // 	new BABYLON.Vector3(0, 2, 0),
-            	// // ];
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateTube("segway_rear_view", {path: myPath, updatable: true}, scene);  //scene
-                //
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateCylinder("segway_rear_view", {arc: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateSphere("segway_rear_view", {diameterX: 40, diameterY: 40, sideOrientation: BABYLON.Mesh.DOUBLESIDE, segments: 64, slice: 0.5, arc: 0.5}, scene);
-                // var segway_rear_view = BABYLON.MeshBuilder.CreatePlane("segway_rear_view", planeOpts, scene);
-                //     segway_rear_view.position = new BABYLON.Vector3(0, 0, 10);
-                //     segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(Math.PI, Math.PI/2, 0);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI/2, Math.PI/10);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, 3*Math.PI/4, 0);
-                // 	var segway_rear_view_mat = new BABYLON.StandardMaterial("segway_rear_view_mat", scene);
-                //     	segway_rear_view_texture = new BABYLON.VideoTexture("segway_rear_video", document.getElementById('remoteVideo_right'), scene, true, false);
-                //         segway_rear_view_texture.vScale = 0.4;
-                //         segway_rear_view_texture.uScale = 0.4;
-                //         segway_rear_view_texture.uOffset = 0.8;
-                //         // segway_rear_view_texture.vOffset = 1;
-                //         segway_rear_view_mat.diffuseTexture = segway_rear_view_texture;
-                //     	segway_rear_view_mat.roughness = 1;
-                //         segway_rear_view_mat.alpha = 1;
-                //     	segway_rear_view_mat.emissiveColor = new BABYLON.Color3.White();
-                // 	segway_rear_view.material = segway_rear_view_mat;
-                //     console.log(segway_rear_view);
-
-                // console.log(ANote0Video);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 1);
                     planeb.position = new BABYLON.Vector3(-1, 0.25, 2);
                     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-
-                    // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
                     button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
                         button.onPointerDownObservable.add(() => {
-                            if (document.getElementsByName('change_video')[0].checked) {
-                                document.getElementsByName('change_video')[0].checked = false;
-                                document.getElementsByName('change_video')[1].checked = true;
-                            }
-                            else if (document.getElementsByName('change_video')[1].checked) {
-                                document.getElementsByName('change_video')[0].checked = true;
-                                document.getElementsByName('change_video')[1].checked = false;
+                            if (expe_mode == 1) {
+                                videoSelfChangeLoop_intervalID = setInterval(videoSelfChangeLoop, 1000.0/10.0);
                             }
 
-                            if (videoDecrimentalLoop_intervalID) {
-                                clearInterval(videoDecrimentalLoop_intervalID);
-                            }
-                            if (videoIncrimentalLoop_intervalID) {
-                                clearInterval(videoIncrimentalLoop_intervalID);
-                            }
-                            videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";
                         button.height = "200px";
@@ -667,208 +667,11 @@
                         button.cornerRadius = 100;
                         button.fontSize = 80;
                         button.background = "green";
-                        button.alpha = 1;
                     advancedTextureb.addControl(button);
-
-                ////LOG^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                // var planelog = BABYLON.Mesh.CreatePlane("planelog", 4);
-                //     planelog.position = new BABYLON.Vector3(5, 4, 9);
-                //     planelog.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // planelog.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //
-                //     var advancedTexturelog = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planelog);
-                //
-                //     var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
-                //         buttonlog.onPointerDownObservable.add(() => {
-                //             if (!data_log) {
-                //                 segway_log_buff = '';
-                //                 data_log = true;
-                //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
-                //                 buttonlog.textBlock.text = "stop log";
-                //             }
-                //             else {
-                //                 data_log = false;
-                //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
-                //
-                //                 buttonlog.textBlock.text = "start log";
-                //                 var blob =new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                //                 var link =document.createElement('a');
-                //                 link.href = URL.createObjectURL(blob);
-                //                 link.download = new Date() + "log.txt";
-                //                 link.click();
-                //             }
-                //         });
-                //         buttonlog.alpha = 0.7;
-                //         buttonlog.width = "1000px";
-                //         buttonlog.height = "200px";
-                //         buttonlog.color = "white";
-                //         buttonlog.cornerRadius = 100;
-                //         buttonlog.fontSize = 80;
-                //         buttonlog.background = "green";
-                //     advancedTexturelog.addControl(buttonlog);
-                ////LOG_________________________________________________________________________________________________\
-
-                sendjoy = true;
-
-                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                //     planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
-                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
-                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                //         buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Segway Control OFF");
-                //             buttonheader.alphaSet = true;
-                //             buttonheader.alpha = 0.5;
-                //             // buttonheader.textBlock.alphaSet = true;
-                //             // buttonheader.textBlock.alpha = 1.0;
-                //             buttonheader.width = "1000px";
-                //             buttonheader.height = "200px";
-                //             buttonheader.color = "white";
-                //             buttonheader.cornerRadius = 100;
-                //             buttonheader.fontSize = 80;
-                //             buttonheader.background = "green";
-                //             console.log(buttonheader);
-                //             buttonheader.onPointerClickObservable.add(() => {
-                //                 if (sendjoy) {
-                //                     if (header == 0x43) {
-                //                         buttonheader.textBlock.text = "Segway Control OFF";
-                //                     }
-                //                     else if (header == 0xa1 || header == 0xaa) {
-                //                         buttonheader.textBlock.text = "A1 Control OFF";
-                //                     }
-                //                     sendjoy = false;
-                //                 }
-                //                 else {
-                //                     if (header == 0x43) {
-                //                         buttonheader.textBlock.text = "Segway Control ON";
-                //                     }
-                //                     else if (header == 0xa1 || header == 0xaa) {
-                //                         buttonheader.textBlock.text = "A1 Control ON";
-                //                     }
-                //                     sendjoy = true;
-                //                 }
-                //             });
-                //         advancedTextureheader.addControl(buttonheader);
-
-                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                //     planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
-                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                //         buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
-                //             buttontwincam.alphaSet = true;
-                //             buttontwincam.alpha = 0.7;
-                //             // buttontwincam.textBlock.alphaSet = true;
-                //             // buttontwincam.textBlock.alpha = 1.0;
-                //             buttontwincam.width = "1000px";
-                //             buttontwincam.height = "200px";
-                //             buttontwincam.color = "white";
-                //             buttontwincam.cornerRadius = 100;
-                //             buttontwincam.fontSize = 80;
-                //             buttontwincam.background = "green";
-                //             buttontwincam.onPointerDownObservable.add(() => {
-                //                 console.log("button");
-                //                 if (header == 0x43) {
-                //                     switch (twincamMode) {
-                //                         case 1:
-                //                             twincamMode = 2;
-                //                             buttontwincam.textBlock.text = "left only";
-                //                             videoDome_segway.texture = videoTexture_segway_left;
-                //                             break;
-                //                         case 2:
-                //                             twincamMode = 3;
-                //                             buttontwincam.textBlock.text = "right only";
-                //                             videoDome_segway.texture = videoTexture_segway_right;
-                //                             break;
-                //                         case 3:
-                //                             buttontwincam.textBlock.text = "left and right";
-                //                             twincamMode = 1;
-                //                             break;
-                //                         default:
-                //
-                //                     }
-                //                 }
-                //             });
-                //         advancedTextureheader.addControl(buttontwincam);
-
-
-                let distance_past = 0, distance_current = 0;
 
                 let old_a1_auto_moving_status = 0, old_segway_latch = 3;
 
                 scene.registerBeforeRender(function () {
-                    // title.text = segway_info;
-                    // if (lin >= 0) {
-                    //     box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                    //     triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                    //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
-                    // }
-                    // else {
-                    //     box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                    //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                    //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
-                    // }
-                    // if (camera.inputs.attached.pointers) {
-                    //     if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
-                    //     distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
-                    //     if (distance_current > distance_past) {
-                    //         cameraFovDegree = cameraFovDegree - 1;
-                    //     }
-                    //     if (distance_current < distance_past) {
-                    //         cameraFovDegree = cameraFovDegree + 1;
-                    //     }
-                    //     distance_past = distance_current;
-                    //     if (cameraFovDegree < 0) {
-                    //         cameraFovDegree = 1;
-                    //     }
-                    //     if (cameraFovDegree > 180) {
-                    //         cameraFovDegree = 179;
-                    //     }
-                    //     camera.fov = cameraFovDegree * (Math.PI / 180);
-                    // }
-                    if (changeVideoFlag) {
-                        changeVideoFlag = false;
-                        if (header == 0x43) {
-                            header = 0xa1;
-
-                            document.getElementsByName('change_video')[0].checked = false;
-                            document.getElementsByName('change_video')[1].checked = true;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = false;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = true;
-                            user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
-                            button.textBlock.text = "Segwayに変更";
-                            // videoDome_segway.texture = videoTexture_a1;
-                            // videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            // videoDome_segway.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
-                            // buttontwincam.alpha = 0;
-                            // segway_rear_view.material.alpha = 0;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
-                        }
-                        else {
-                            header = 0x43;
-
-                            document.getElementsByName('change_video')[0].checked = true;
-                            document.getElementsByName('change_video')[1].checked = false;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = true;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = false;
-                            user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
-                            // videoDome_segway.texture = videoTexture_segway_right;
-                            // videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            // videoDome_segway.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            button.textBlock.text = "犬に変更";
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                            // buttontwincam.alpha = 0.7;
-                            // segway_rear_view.material.alpha = 1;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
-                        }
-                        videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
-                    }
 
                     if (header == 0x43 && segway_latch == 4) {
                         let gx = goal_x*Math.cos(segway_start_turn_position/180.0*Math.PI) - goal_z*Math.sin(segway_start_turn_position/180.0*Math.PI) + segway_start_position_x*Math.abs(ground_y);
@@ -1116,6 +919,7 @@
                     }
                 });
 
+
                 controller_log_count = 0;
 
                 // Create a default environment for the scene.
@@ -1203,8 +1007,8 @@
                                     }
 
                                     // dome_position_z = 2000*axes.y;
-                                    // videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                                    // videoDome_segway.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
+                                    // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                                    // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
@@ -1291,6 +1095,7 @@
                                         old_HMD_ang = HMD_ang;
                                         let send_value = setPos;
                                         if (twincam_setPos_count > 15 && recvonly_robots_control.signalingSwitched) {
+                                            console.log(setPos);
                                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
                                             twincam_setPos_count = 0;
                                         }
@@ -1397,58 +1202,9 @@
                 }
             }
 
-            function videoDecrimentalLoop() {
-                if (header == 0x43) {
-                    if (videoDome_segway.material.alpha > 0.3) {
-                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
-                    }
-                    else {
-                        videoDome_segway.material.alpha = 0.3;
-                        changeVideoFlag = true;
-                        clearInterval(videoDecrimentalLoop_intervalID);
-                        videoDecrimentalLoop_intervalID = null;
-                    }
-                }
-                else if (header == 0xa1) {
-                    if (videoDome_a1.material.alpha > 0.3) {
-                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
-                    }
-                    else {
-                        videoDome_a1.material._alpha = 0.3;
-                        changeVideoFlag = true;
-                        clearInterval(videoDecrimentalLoop_intervalID);
-                        videoDecrimentalLoop_intervalID = null;
-                    }
-                }
-            }
-
-            function videoIncrimentalLoop() {
-                if (header == 0x43) {
-                    if (videoDome_segway.material.alpha < 0.7) {
-                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
-                    }
-                    else {
-                        videoDome_segway.material.alpha = 0.7;
-                        clearInterval(videoIncrimentalLoop_intervalID);
-                        videoIncrimentalLoop_intervalID = null;
-                        sendjoy = true;
-                    }
-                }
-                else if (header == 0xa1) {
-                    if (videoDome_a1.material.alpha < 0.7) {
-                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
-                    }
-                    else {
-                        videoDome_a1.material.alpha = 0.7;
-                        clearInterval(videoIncrimentalLoop_intervalID);
-                        videoIncrimentalLoop_intervalID = null;
-                        sendjoy = true;
-                    }
-                }
-            }
 
             function soraRobotsDataChannelLoop() {
-                if (recvonly_robots_control.signalingSwitched && sendjoy) {
+                if (recvonly_robots_control.signalingSwitched) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                     if (header == 0x43 && segway_latch == 3) {
                         segway_log_buff = segway_log_buff + (Date.now()/1000 - 1658000000) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
@@ -1461,7 +1217,7 @@
             let quit_count = 0;
 
             function soraChairDataChannelLoop() {
-                if (recvonly_chair_control.signalingSwitched && sendjoy) {
+                if (recvonly_chair_control.signalingSwitched) {
                     if (header == 0x43) {
                         if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
                             if (segway_message_stamp > old_segway_message_stamp) {
@@ -1559,7 +1315,6 @@
                             console.log(header);
                         }
                         if (gp.buttons[1].value) {
-                            sendjoy = true;
                             if (soraRobotsDataChannelLoop_intervalID == null) {
                                 soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
                                 soraRobotsDataChannelLoop();
@@ -1567,7 +1322,6 @@
                             return;
                         }
                         if (gp.buttons[0].value) {
-                            sendjoy = false;
                             if (soraRobotsDataChannelLoop_intervalID != null) {
                                 clearInterval(soraRobotsDataChannelLoop_intervalID);
                                 soraRobotsDataChannelLoop_intervalID = null;
