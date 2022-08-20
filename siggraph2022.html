@@ -1272,6 +1272,9 @@
                                         let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
                                         let euler_y = -Math.atan2(sinY, cosY);
                                         HMD_ang = -euler_y/Math.PI*700;
+                                        if (Math.abs(HMD_ang) < 350) {
+                                            setPosA = 0;
+                                        }
                                         if (HMD_ang - old_HMD_ang < -700) {
                                             setPosA +=  1400;
                                         }
@@ -1281,7 +1284,7 @@
                                         setPos = HMD_ang + setPosA;
                                         old_HMD_ang = HMD_ang;
                                         let send_value = setPos;
-                                        if (twincam_setPos_count > 20 && recvonly_robots_control.signalingSwitched) {
+                                        if (twincam_setPos_count > 15 && recvonly_robots_control.signalingSwitched) {
                                             console.log(setPos);
                                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
                                             twincam_setPos_count = 0;
