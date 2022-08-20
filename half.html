@@ -78,42 +78,29 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
-            var count_change_space = 0;
-            var count_change_space_lines = '';
+            let user_log_buff = '';
+            let segway_log_buff = '';
+            let a1_log_buff = '';
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
-                    count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
-                    vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
+                    user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
+                    segway_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time, angular velocity (deg/s), forward velocity (m/s)]';
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var blob = new Blob([user_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "_user_experience_log.txt";
+                    link.download = new Date() + "_user_log.txt";
                     link.click();
 
-                    blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    blob = new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                     link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "velocitylog.txt";
+                    link.download = new Date() + "_segway_log.txt";
                     link.click();
                 }
-            }
-
-            function save_log() {
-                var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
-                var link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "_user_experience_log.txt";
-                link.click();
-
-                blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "velocitylog.txt";
-                link.click();
             }
 
             var segway_info = '';
@@ -372,12 +359,9 @@
 
             let buttonheader;
 
-            let twincamMode = 3; //1: left and right, 2: left only, 3: right only
+            let twincamMode = 2; //1: left and right, 2: left only, 3: right only
 
             let arrow_box;
-
-            let data_log = false;
-            let vel_vel_log_buff = '';
 
             let button;
 
@@ -536,7 +520,7 @@
                 );
                 videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
-                videoDome_segway.material.alpha = 0.8;
+                videoDome_segway.material.alpha = 0.7;
                 videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
                 videoDome_a1 = new BABYLON.VideoDome(
@@ -553,7 +537,7 @@
                 );
                 videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                 videoDome_a1.setDirection(new BABYLON.Vector3(0, 0, 0));
-                videoDome_a1.material.alpha = 0.2;
+                videoDome_a1.material.alpha = 0.3;
                 videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
 
@@ -693,7 +677,7 @@
                 //     var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
                 //         buttonlog.onPointerDownObservable.add(() => {
                 //             if (!data_log) {
-                //                 vel_log_buff = '';
+                //                 segway_log_buff = '';
                 //                 data_log = true;
                 //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
                 //                 buttonlog.textBlock.text = "stop log";
@@ -703,7 +687,7 @@
                 //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
                 //
                 //                 buttonlog.textBlock.text = "start log";
-                //                 var blob =new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                //                 var blob =new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                 //                 var link =document.createElement('a');
                 //                 link.href = URL.createObjectURL(blob);
                 //                 link.download = new Date() + "log.txt";
@@ -851,7 +835,7 @@
 
                             // localStream_for_segway.getAudioTracks()[0].enabled = false;
                             // localStream_for_A1.getAudioTracks()[0].enabled = true;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                            user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
                             button.textBlock.text = "Segwayに変更";
                             // videoDome_segway.texture = videoTexture_a1;
                             // videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
@@ -869,7 +853,7 @@
 
                             // localStream_for_segway.getAudioTracks()[0].enabled = true;
                             // localStream_for_A1.getAudioTracks()[0].enabled = false;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                            user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
                             // videoDome_segway.texture = videoTexture_segway_right;
                             // videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             // videoDome_segway.setDirection(new BABYLON.Vector3(0, 0, 0));
@@ -900,17 +884,17 @@
 
 
                     if (segway_latch == 4 && old_segway_latch == 3) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and segway auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and segway auto moving\n';
                     }
                     if (segway_latch == 3 && old_segway_latch == 4) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway complete auto moving\n';
                     }
 
                     if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and a1 auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and a1 auto moving\n';
                     }
                     if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 complete auto moving\n';
                     }
 
                     old_segway_latch = segway_latch;
@@ -1128,7 +1112,6 @@
                     }
                 });
 
-                controller_log_interval = 5000;
                 controller_log_count = 0;
 
                 // Create a default environment for the scene.
@@ -1202,15 +1185,15 @@
 
                                     controller_log_count++;
 
-                                    if (controller_log_count >= controller_log_interval) {
+                                    if (controller_log_count >= 500) {
                                         if (header == 0x43 && segway_latch == 3) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                         else if (header == 0xa1 && a1_auto_moving_status == 0) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                     }
@@ -1268,8 +1251,8 @@
                         camera.alpha = -Math.PI / 2;
                         camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
-                            count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
-                            vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
+                            user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
+                            segway_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
                             setPos = 0;
                             setPosA = 0;
                             HMD_ang = 0;
@@ -1414,22 +1397,22 @@
 
             function videoDecrimentalLoop() {
                 if (header == 0x43) {
-                    if (videoDome_segway.material.alpha > 0.2) {
-                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.2;
+                    if (videoDome_segway.material.alpha > 0.3) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
                     }
                     else {
-                        videoDome_segway.material.alpha = 0.2;
+                        videoDome_segway.material.alpha = 0.3;
                         changeVideoFlag = true;
                         clearInterval(videoDecrimentalLoop_intervalID);
                         videoDecrimentalLoop_intervalID = null;
                     }
                 }
                 else if (header == 0xa1) {
-                    if (videoDome_a1.material.alpha > 0.2) {
-                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.2;
+                    if (videoDome_a1.material.alpha > 0.3) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
                     }
                     else {
-                        videoDome_a1.material._alpha = 0.2;
+                        videoDome_a1.material._alpha = 0.3;
                         changeVideoFlag = true;
                         clearInterval(videoDecrimentalLoop_intervalID);
                         videoDecrimentalLoop_intervalID = null;
@@ -1439,22 +1422,22 @@
 
             function videoIncrimentalLoop() {
                 if (header == 0x43) {
-                    if (videoDome_segway.material.alpha < 0.8) {
+                    if (videoDome_segway.material.alpha < 0.7) {
                         videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
                     }
                     else {
-                        videoDome_segway.material.alpha = 0.8;
+                        videoDome_segway.material.alpha = 0.7;
                         clearInterval(videoIncrimentalLoop_intervalID);
                         videoIncrimentalLoop_intervalID = null;
                         sendjoy = true;
                     }
                 }
                 else if (header == 0xa1) {
-                    if (videoDome_a1.material.alpha < 0.8) {
+                    if (videoDome_a1.material.alpha < 0.7) {
                         videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
                     }
                     else {
-                        videoDome_a1.material.alpha = 0.8;
+                        videoDome_a1.material.alpha = 0.7;
                         clearInterval(videoIncrimentalLoop_intervalID);
                         videoIncrimentalLoop_intervalID = null;
                         sendjoy = true;
@@ -1466,7 +1449,7 @@
                 if (recvonly_robots_control.signalingSwitched && sendjoy) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                     if (header == 0x43 && segway_latch == 3) {
-                        vel_log_buff = vel_log_buff + (Date.now()/1000 - 1658000000) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
+                        segway_log_buff = segway_log_buff + (Date.now()/1000 - 1658000000) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
                     }
                 }
             }

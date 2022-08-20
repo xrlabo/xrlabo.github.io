@@ -78,42 +78,29 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
-            var count_change_space = 0;
-            var count_change_space_lines = '';
+            let user_log_buff = '';
+            let segway_log_buff = '';
+            let a1_log_buff = '';
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
-                    count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
-                    vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
+                    user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
+                    segway_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time, angular velocity (deg/s), forward velocity (m/s)]';
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var blob = new Blob([user_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "_user_experience_log.txt";
+                    link.download = new Date() + "_user_log.txt";
                     link.click();
 
-                    blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    blob = new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                     link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "velocitylog.txt";
+                    link.download = new Date() + "_segway_log.txt";
                     link.click();
                 }
-            }
-
-            function save_log() {
-                var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
-                var link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "_user_experience_log.txt";
-                link.click();
-
-                blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "velocitylog.txt";
-                link.click();
             }
 
             var segway_info = '';
@@ -350,9 +337,9 @@
             let camera;
             let cameraFovDegree = 60;
 
-            let videoDome;
-            let videoDecrimentalLoop_intervalID = null;
-            let videoIncrimentalLoop_intervalID = null;
+            let videoDome_segway, videoDome_a1;
+            let videoChangeLoop_intervalID = null;
+            let button;
             let changeVideoFlag = false;
 
             let dome_position_x = 0;
@@ -376,17 +363,9 @@
 
             let arrow_box;
 
-            let data_log = false;
-            let vel_vel_log_buff = '';
 
             function change_video_clicked() {
-                if (videoDecrimentalLoop_intervalID) {
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                }
-                if (videoIncrimentalLoop_intervalID) {
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                }
-                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+                videoChangeLoop_intervalID = setInterval(videoChangeLoop, 1000.0/10.0);
             }
 
 			//Create scene and create XR experience.
@@ -520,7 +499,7 @@
                 let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
                 let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
 
-                videoDome = new BABYLON.VideoDome(
+                videoDome_segway = new BABYLON.VideoDome(
                     'VideoDome',
                     document.getElementById('remoteVideo_left'),
                     {
@@ -532,9 +511,27 @@
                     },
                     scene
                 );
+                videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_segway.material.alpha = 1;
+                // videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
-                videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_a1 = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_right_A1'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+                videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.setDirection(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.material.alpha = 0;
+                // videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
                 // var plane = BABYLON.Mesh.CreatePlane("plane", 1);
                 //     plane.position = new BABYLON.Vector3(0, 0.5, 2);
@@ -633,24 +630,9 @@
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
+                    button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
                         button.onPointerDownObservable.add(() => {
-                            if (document.getElementsByName('change_video')[0].checked) {
-                                document.getElementsByName('change_video')[0].checked = false;
-                                document.getElementsByName('change_video')[1].checked = true;
-                            }
-                            else if (document.getElementsByName('change_video')[1].checked) {
-                                document.getElementsByName('change_video')[0].checked = true;
-                                document.getElementsByName('change_video')[1].checked = false;
-                            }
-
-                            if (videoDecrimentalLoop_intervalID) {
-                                clearInterval(videoDecrimentalLoop_intervalID);
-                            }
-                            if (videoIncrimentalLoop_intervalID) {
-                                clearInterval(videoIncrimentalLoop_intervalID);
-                            }
-                            videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+                            videoChangeLoop_intervalID = setInterval(videoChangeLoop, 1000.0/10.0);
                         });
                         button.width = "1000px";
                         button.height = "200px";
@@ -671,7 +653,7 @@
                 //     var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
                 //         buttonlog.onPointerDownObservable.add(() => {
                 //             if (!data_log) {
-                //                 vel_log_buff = '';
+                //                 segway_log_buff = '';
                 //                 data_log = true;
                 //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
                 //                 buttonlog.textBlock.text = "stop log";
@@ -681,7 +663,7 @@
                 //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
                 //
                 //                 buttonlog.textBlock.text = "start log";
-                //                 var blob =new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                //                 var blob =new Blob([segway_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                 //                 var link =document.createElement('a');
                 //                 link.href = URL.createObjectURL(blob);
                 //                 link.download = new Date() + "log.txt";
@@ -819,47 +801,6 @@
                     //     }
                     //     camera.fov = cameraFovDegree * (Math.PI / 180);
                     // }
-                    if (changeVideoFlag) {
-                        changeVideoFlag = false;
-                        if (header == 0x43) {
-                            header = 0xa1;
-
-                            document.getElementsByName('change_video')[0].checked = false;
-                            document.getElementsByName('change_video')[1].checked = true;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = false;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = true;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
-                            button.textBlock.text = "Segwayに変更";
-                            videoDome.texture = videoTexture_a1;
-                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
-                            // buttontwincam.alpha = 0;
-                            // segway_rear_view.material.alpha = 0;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
-                        }
-                        else {
-                            header = 0x43;
-
-                            document.getElementsByName('change_video')[0].checked = true;
-                            document.getElementsByName('change_video')[1].checked = false;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = true;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = false;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
-                            videoDome.texture = videoTexture_segway_right;
-                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            button.textBlock.text = "犬に変更";
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                            // buttontwincam.alpha = 0.7;
-                            // segway_rear_view.material.alpha = 1;
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
-                        }
-                        videoDome.material._alpha = 0;
-                        videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
-                    }
 
                     if (header == 0x43 && segway_latch == 4) {
                         let gx = goal_x*Math.cos(segway_start_turn_position/180.0*Math.PI) - goal_z*Math.sin(segway_start_turn_position/180.0*Math.PI) + segway_start_position_x*Math.abs(ground_y);
@@ -879,17 +820,17 @@
 
 
                     if (segway_latch == 4 && old_segway_latch == 3) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and segway auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and segway auto moving\n';
                     }
                     if (segway_latch == 3 && old_segway_latch == 4) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway complete auto moving\n';
                     }
 
                     if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and a1 auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & point out and a1 auto moving\n';
                     }
                     if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 complete auto moving\n';
                     }
 
                     old_segway_latch = segway_latch;
@@ -1107,7 +1048,7 @@
                     }
                 });
 
-                controller_log_interval = 5000;
+
                 controller_log_count = 0;
 
                 // Create a default environment for the scene.
@@ -1181,15 +1122,15 @@
 
                                     controller_log_count++;
 
-                                    if (controller_log_count >= controller_log_interval) {
+                                    if (controller_log_count >= 500) {
                                         if (header == 0x43 && segway_latch == 3) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                         else if (header == 0xa1 && a1_auto_moving_status == 0) {
                                             if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
+                                                user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
                                             }
                                         }
                                     }
@@ -1247,8 +1188,6 @@
                         camera.alpha = -Math.PI / 2;
                         camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
-                            count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
-                            vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
                             setPos = 0;
                             setPosA = 0;
                             HMD_ang = 0;
@@ -1292,10 +1231,10 @@
                                     }
                                     if (twincamMode == 1) {
                                         if (xr_camera.isLeftCamera) {
-                                            videoDome.texture = videoTexture_segway_left;
+                                            videoDome_segway.texture = videoTexture_segway_left;
                                         }
                                         else {
-                                            videoDome.texture = videoTexture_segway_right;
+                                            videoDome_segway.texture = videoTexture_segway_right;
                                         }
                                     }
                                 }
@@ -1392,26 +1331,40 @@
                 }
             }
 
-            function videoDecrimentalLoop() {
-                if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.2
+            function videoChangeLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                        header = 0xa1;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        document.getElementsByName('change_video')[0].checked = false;
+                        document.getElementsByName('change_video')[1].checked = true;
+                        button.textBlock.text = "Segwayに変更";
+                        clearInterval(videoChangeLoop_intervalID);
+                        videoChangeLoop_intervalID = null;
+                    }
                 }
-                else {
-                    changeVideoFlag = true;
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                    videoDecrimentalLoop_intervalID = null;
-                }
-            }
-
-            function videoIncrimentalLoop() {
-                if (videoDome.material._alpha < 1) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.1
-                }
-                else {
-                    videoDome.material._alpha = 1;
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                    videoIncrimentalLoop_intervalID = null;
-                    sendjoy = true;
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0;
+                        videoDome_segway.material.alpha = 1;
+                        header = 0x43;
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        document.getElementsByName('change_video')[0].checked = true;
+                        document.getElementsByName('change_video')[1].checked = false;
+                        button.textBlock.text = "犬に変更";
+                        clearInterval(videoChangeLoop_intervalID);
+                        videoChangeLoop_intervalID = null;
+                    }
                 }
             }
 
@@ -1419,7 +1372,7 @@
                 if (recvonly_robots_control.signalingSwitched && sendjoy) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                     if (header == 0x43 && segway_latch == 3) {
-                        vel_log_buff = vel_log_buff + (Date.now()/1000 - 1658000000) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
+                        segway_log_buff = segway_log_buff + (Date.now()/1000 - 1658000000) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
                     }
                 }
             }
