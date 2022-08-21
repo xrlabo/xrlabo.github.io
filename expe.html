@@ -252,7 +252,15 @@
                     var blob = new Blob([user_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "_user_log.txt";
+                    if (expe_mode == 1) {
+                        link.download = new Date() + "_self_user_log.txt";
+                    }
+                    else if (expe_mode == 2) {
+                        link.download = new Date() + "_half_user_log.txt";
+                    }
+                    else if (expe_mode == 3) {
+                        link.download = new Date() + "_alter_user_log.txt";
+                    }
                     link.click();
                 }
             }
