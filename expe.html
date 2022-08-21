@@ -147,7 +147,7 @@
                         videoDome_segway.material.alpha = 0;
                         videoDome_a1.material.alpha = 1;
                         header = 0xa1;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway to a1\n';
                         button.textBlock.text = "Segwayに変更";
                         clearInterval(videoSelfChangeLoop_intervalID);
                         videoSelfChangeLoop_intervalID = null;
@@ -162,7 +162,7 @@
                         videoDome_a1.material.alpha = 0;
                         videoDome_segway.material.alpha = 1;
                         header = 0x43;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 to segway\n';
                         button.textBlock.text = "犬に変更";
                         clearInterval(videoSelfChangeLoop_intervalID);
                         videoSelfChangeLoop_intervalID = null;
@@ -181,7 +181,7 @@
                         videoDome_segway.material.alpha = 0.3;
                         videoDome_a1.material.alpha = 0.7;
                         header = 0xa1;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway to a1\n';
                         button.textBlock.text = "Segwayに変更";
                         clearInterval(videoHalfChangeLoop_intervalID);
                         videoHalfChangeLoop_intervalID = null;
@@ -196,7 +196,7 @@
                         videoDome_a1.material.alpha = 0.3;
                         videoDome_segway.material.alpha = 0.7;
                         header = 0x43;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 to segway\n';
                         button.textBlock.text = "犬に変更";
                         clearInterval(videoHalfChangeLoop_intervalID);
                         videoHalfChangeLoop_intervalID = null;
@@ -220,7 +220,7 @@
                         videoDome_segway.material.alpha = 0;
                         videoDome_a1.material.alpha = 1;
                         header = 0xa1;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway to a1\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway to a1\n';
                         clearInterval(videoAlterChangeSubLoop_intervalID);
                         videoAlterChangeSubLoop_intervalID = null;
                     }
@@ -234,7 +234,7 @@
                         videoDome_a1.material.alpha = 0;
                         videoDome_segway.material.alpha = 1;
                         header = 0x43;
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 to segway\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 to segway\n';
                         clearInterval(videoAlterChangeSubLoop_intervalID);
                         videoAlterChangeSubLoop_intervalID = null;
                     }
@@ -245,7 +245,7 @@
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
-                    user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1658000000) + '\n';
+                    user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
@@ -452,10 +452,10 @@
                     document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot + '\ntime since epoch (s) ' + a1_time_since_epoch + '\nforwardSpeed (m/s) ' + a1_forwardSpeed + '\nrotateSpeed (m/s) ' + a1_rotateSpeed;
                 }
                 if (header == 0x43) {
-                    user_log_buff = user_log_buff + (Date.now()/1000 - 1658000000) + ' ' + segway_time_since_epoch + ' ' + segway_lin_vel + ' ' + segway_ang_vel + '\n';
+                    user_log_buff = user_log_buff + (Date.now()/1000 - 1661053890) + ' ' + segway_time_since_epoch + ' ' + segway_lin_vel + ' ' + segway_ang_vel + '\n';
                 }
                 else if (header == 0xa1) {
-                    user_log_buff = user_log_buff + (Date.now()/1000 - 1658000000) + ' ' + a1_time_since_epoch + ' ' + a1_forwardSpeed + ' ' + a1_rotateSpeed + '\n';
+                    user_log_buff = user_log_buff + (Date.now()/1000 - 1661053890) + ' ' + a1_time_since_epoch + ' ' + a1_forwardSpeed + ' ' + a1_rotateSpeed + '\n';
                 }
             });
 
@@ -684,17 +684,17 @@
 
 
                     if (segway_latch == 4 && old_segway_latch == 3) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & user point out and segway auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & user point out and segway auto moving\n';
                     }
                     if (segway_latch == 3 && old_segway_latch == 4) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & segway complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway complete auto moving\n';
                     }
 
                     if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & user point out and a1 auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & user point out and a1 auto moving\n';
                     }
                     if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1658000000) + ' & a1 complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 complete auto moving\n';
                     }
 
                     old_segway_latch = segway_latch;
