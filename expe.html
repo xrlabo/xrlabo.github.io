@@ -245,7 +245,15 @@
             function start_stop_log_clicked() {
                 if (document.getElementsByName('start_stop_log')[0].checked) {
                     // document.getElementsByName('start_stop_log')[0].checked = true;
-                    user_log_buff = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                    if (expe_mode == 1) {
+                        user_log_buff = 'Self Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                    }
+                    else if (expe_mode == 2) {
+                        user_log_buff = 'Half Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                    }
+                    else if (expe_mode == 3) {
+                        user_log_buff = 'Alternative Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                    }
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
                     // document.getElementsByName('start_stop_log')[1].checked = true;
