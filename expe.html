@@ -112,12 +112,12 @@
                 else if (document.getElementsByName('expe_mode')[1].checked) {
                     expe_mode = 2;
                     if (header == 0x43) {
-                        videoDome_segway.material.alpha = 0.7;
-                        videoDome_a1.material.alpha = 0.3;
+                        videoDome_segway.material.alpha = 0.8;
+                        videoDome_a1.material.alpha = 0.2;
                     }
                     else if (header == 0xa1) {
-                        videoDome_segway.material.alpha = 0.3;
-                        videoDome_a1.material.alpha = 0.7;
+                        videoDome_segway.material.alpha = 0.2;
+                        videoDome_a1.material.alpha = 0.8;
                     }
                     videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
                     videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
@@ -173,13 +173,13 @@
             let videoHalfChangeLoop_intervalID = null;
             function videoHalfChangeLoop() {
                 if (header == 0x43) {
-                    if (videoDome_segway.material.alpha > 0.3) {
+                    if (videoDome_segway.material.alpha > 0.2) {
                         videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
                         videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
                     }
                     else {
-                        videoDome_segway.material.alpha = 0.3;
-                        videoDome_a1.material.alpha = 0.7;
+                        videoDome_segway.material.alpha = 0.2;
+                        videoDome_a1.material.alpha = 0.8;
                         header = 0xa1;
                         user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway to a1\n';
                         button.textBlock.text = "Segwayに変更";
@@ -188,13 +188,13 @@
                     }
                 }
                 else if (header == 0xa1) {
-                    if (videoDome_a1.material.alpha > 0.3) {
+                    if (videoDome_a1.material.alpha > 0.2) {
                         videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
                         videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
                     }
                     else {
-                        videoDome_a1.material.alpha = 0.3;
-                        videoDome_segway.material.alpha = 0.7;
+                        videoDome_a1.material.alpha = 0.2;
+                        videoDome_segway.material.alpha = 0.8;
                         header = 0x43;
                         user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 to segway\n';
                         button.textBlock.text = "犬に変更";
