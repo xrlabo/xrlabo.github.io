@@ -20,7 +20,7 @@
     </head>
 
     <body>
-        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
+        <button onclick="resettime_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">Reset time</font></button><br>
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
         <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font> -->
         <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br> -->
@@ -364,6 +364,11 @@
                     document.getElementById(`audio-${event.target.id}`).remove();
                 }
             });
+
+            function resettime_clicked() {
+                let ltime = new Uint32Array([Date.now()/1000 - 1660000000])[0];
+                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x96, ltime >> 24, ltime >> 16, ltime >> 8, ltime]));
+            }
 
             /////////////////////////////////////////////////////////////////////////
 
