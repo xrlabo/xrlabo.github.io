@@ -116,11 +116,14 @@ const localrecvonly = class {
                 };
             }
             else {
-                let mediaStream = new MediaStream();
-                playVideo(this.remoteVideo, mediaStream);
                 peer.ontrack = (event) => {
+                    console.log(event);
                     console.log('-- peer.ontrack()');
-                    mediaStream.addTrack(event.track);
+                    if (event.track.kind == 'video') {
+                        this.remoteVideo.srcObject = event.streams[0];
+                        this.remoteVideo.autoplay = true;
+                        this.remoteVideo.muted = false;
+                    }
                     // getStats(this.peerConnection, (result) => {
                     //     if (this.remoteVideo) {
                     //         if (this.remoteVideo.id == "remoteVideo_right") {
@@ -274,8 +277,10 @@ const localrecvonly = class {
 
 function playVideo(element, stream) {
     if (element) {
+        element.loop = false;
         element.srcObject = stream;
         element.muted = false;
+        element.autoplay = true;
     }
 }
 
