@@ -394,7 +394,6 @@
                         changeVideoFlag = false;
                         if (header == 0x43) {
                             header = 0xa1;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway to a1\n';
                             button.textBlock.text = "Change to Segway";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
@@ -436,17 +435,17 @@
 
 
                     if (segway_latch == 4 && old_segway_latch == 3) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and segway auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and segway auto moving\n';
                     }
                     if (segway_latch == 3 && old_segway_latch == 4) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway complete auto moving\n';
                     }
 
                     if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and a1 auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and a1 auto moving\n';
                     }
                     if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 complete auto moving\n';
                     }
 
                     old_segway_latch = segway_latch;
