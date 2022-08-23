@@ -368,6 +368,7 @@
             function resettime_clicked() {
                 let ltime = new Uint32Array([Date.now()/1000 - 1660000000])[0];
                 segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x96, ltime >> 24, ltime >> 16, ltime >> 8, ltime]));
+                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x96, ltime >> 24, ltime >> 16, ltime >> 8, ltime]));
             }
 
             /////////////////////////////////////////////////////////////////////////
