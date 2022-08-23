@@ -120,13 +120,13 @@
                         a1_drive_count = 0;
                     }
                     if (expe_mode == 1) {
-                        user_log_buff = 'Self Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                        user_log_buff = 'Self Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
                     }
                     else if (expe_mode == 2) {
-                        user_log_buff = 'Half Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                        user_log_buff = 'Half Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
                     }
                     else if (expe_mode == 3) {
-                        user_log_buff = 'Alternative Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661053890) + '\n';
+                        user_log_buff = 'Alternative Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
                     }
                 }
                 else if (document.getElementsByName('start_stop_log')[1].checked) {
@@ -404,7 +404,7 @@
                         }
                         else {
                             header = 0x43;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 to segway\n';
+                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 to segway\n';
                             videoDome.texture = videoTexture_segway_right;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
@@ -435,17 +435,17 @@
 
 
                     if (segway_latch == 4 && old_segway_latch == 3) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and segway auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and segway auto moving\n';
                     }
                     if (segway_latch == 3 && old_segway_latch == 4) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & segway complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway complete auto moving\n';
                     }
 
                     if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & point out and a1 auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and a1 auto moving\n';
                     }
                     if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661053890) + ' & a1 complete auto moving\n';
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 complete auto moving\n';
                     }
 
                     old_segway_latch = segway_latch;
