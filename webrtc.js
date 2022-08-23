@@ -192,6 +192,12 @@ const localrecvonly = class {
                     document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot + '\ntime since epoch (s) ' + a1_time_since_epoch + '\nforwardSpeed (m/s) ' + a1_forwardSpeed + '\nrotateSpeed (deg/s) ' + a1_rotateSpeed;
                 }
             }
+            if (header == 0x43) {
+                user_log_buff = user_log_buff + 'segway & ' + segway_drive_count + ' & ' + (Date.now()/1000 - 1661053890) + ' & ' + segway_time_since_epoch + ' & ' + segway_lin_vel + ' & ' + segway_ang_vel + '\n';
+            }
+            else if (header == 0xa1) {
+                user_log_buff = user_log_buff + 'a1 & ' + a1_drive_count + ' & ' + (Date.now()/1000 - 1661053890) + ' & ' + a1_time_since_epoch + ' & ' + a1_forwardSpeed + ' & ' + a1_rotateSpeed + '\n';
+            }
         };
         return peer;
     }
