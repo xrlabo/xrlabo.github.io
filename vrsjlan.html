@@ -818,6 +818,12 @@
                                             setPosA = setPosA - 1400;
                                         }
                                         setPos = HMD_ang + setPosA;
+                                        if (setPos > 1050) {
+                                            setPos = 1050;
+                                        }
+                                        else if (setPos < -1050) {
+                                            setPos = -1050;
+                                        }
                                         old_HMD_ang = HMD_ang;
                                         let send_value = setPos;
                                         if (twincam_setPos_count > 15 && segway_local_control_recvonly.dataChannel.readyState == 'open') {
