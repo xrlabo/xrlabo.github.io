@@ -67,7 +67,7 @@ const localrecvonly = class {
                 this.makeOffer();
                 clearInterval(intervalID);
             }
-        }, 1000);
+        }, 2000);
         // if (!(this.peerConnection)) {
         //     console.log('make Offer');
         //     this.makeOffer();
@@ -177,6 +177,7 @@ const localrecvonly = class {
                 case 'failed':
                 case 'disconnected':
                     console.log(this);
+                    this.disconnect();
                     this.connect();
                     break;
             }
