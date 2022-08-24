@@ -1054,38 +1054,38 @@
             let localStream;
 
             function connect_clicked() {
-                navigator.mediaDevices
-                .getUserMedia({ audio: true, video: false })
-                .then((stream) => {
-                    localStream = stream;
-                    console.log(stream);
-                    user_audio_sendonly.connect(stream);
-                    if (document.getElementsByName('mic_on_off')[0].checked) {
-                        localStream.getAudioTracks()[0].enabled = true;
-                    }
-                    else {
-                        localStream.getAudioTracks()[0].enabled = false;
-                    }
-                })
-                .catch((e) => {
-                     console.error(e);
-                });
+                // navigator.mediaDevices
+                // .getUserMedia({ audio: true, video: false })
+                // .then((stream) => {
+                //     localStream = stream;
+                //     console.log(stream);
+                //     user_audio_sendonly.connect(stream);
+                //     if (document.getElementsByName('mic_on_off')[0].checked) {
+                //         localStream.getAudioTracks()[0].enabled = true;
+                //     }
+                //     else {
+                //         localStream.getAudioTracks()[0].enabled = false;
+                //     }
+                // })
+                // .catch((e) => {
+                //      console.error(e);
+                // });
 
-                recvonly_chair_control.connect();
+                // recvonly_chair_control.connect();
 
                 setTimeout(() => {
                     segway_local_video_recvonly_left.connect();
                 }, 500);
-                setTimeout(() => {
-                    a1_local_video_recvonly_right.connect();
-                }, 1000);
-
-                setTimeout(() => {
-                    a1_local_control_recvonly.connect();
-                }, 1500);
-                setTimeout(() => {
-                    segway_local_control_recvonly.connect();
-                }, 2000);
+                // setTimeout(() => {
+                //     a1_local_video_recvonly_right.connect();
+                // }, 1000);
+                //
+                // setTimeout(() => {
+                //     a1_local_control_recvonly.connect();
+                // }, 1500);
+                // setTimeout(() => {
+                //     segway_local_control_recvonly.connect();
+                // }, 2000);
             }
 
             setTimeout(() => {

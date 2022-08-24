@@ -1,5 +1,5 @@
 const localrecvonly = class {
-    constructor(remoteVideo_id_str, wsUrl) {
+    constructor(remoteVideo_id_str, wsUrl_in) {
         this.remoteVideo_id = remoteVideo_id_str;
         this.remoteVideo = document.getElementById(remoteVideo_id_str);
         this.peerConnection = null;
@@ -10,7 +10,8 @@ const localrecvonly = class {
         this.peerConnectionConfig = {
           'iceServers': this.iceServers
         };
-        this.ws = new WebSocket(wsUrl);
+        this.wsUrl = wsUrl_in;
+        this.ws = new WebSocket(wsUrl_in);
         this.ws.onopen = this.onWsOpen.bind(this);
         this.ws.onerror = this.onWsError.bind(this);
         this.ws.onmessage = this.onWsMessage.bind(this);
@@ -53,13 +54,27 @@ const localrecvonly = class {
     };
     connect() {
         console.group();
-        if (!(this.peerConnection)) {
-            console.log('make Offer');
-            this.makeOffer();
-        }
-        else {
-            console.warn('peer connection already exists.');
-        }
+        console.log(this.ws);
+        let intervalID = setInterval(() => {
+            if (this.ws.readyState != 1) {
+                this.ws = new WebSocket(this.wsUrl);
+                this.ws.onopen = this.onWsOpen.bind(this);
+                this.ws.onerror = this.onWsError.bind(this);
+                this.ws.onmessage = this.onWsMessage.bind(this);
+            }
+            else {
+                console.log('make COffer');
+                this.makeOffer();
+                clearInterval(intervalID);
+            }
+        }, 1000);
+        // if (!(this.peerConnection)) {
+        //     console.log('make Offer');
+        //     this.makeOffer();
+        // }
+        // else {
+        //     console.warn('peer connection already exists.');
+        // }
         console.groupEnd();
     }
     disconnect() {
@@ -73,7 +88,7 @@ const localrecvonly = class {
                     this.ws.send(message);
                 }
                 console.log('sending close message');
-                this.cleanupVideoElement(this.remoteVideo);
+                // this.cleanupVideoElement(this.remoteVideo);
                 return;
             }
         }
@@ -161,6 +176,8 @@ const localrecvonly = class {
                 case 'closed':
                 case 'failed':
                 case 'disconnected':
+                    console.log(this);
+                    this.connect();
                     break;
             }
         };
