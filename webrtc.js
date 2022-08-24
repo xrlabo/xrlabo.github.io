@@ -273,6 +273,10 @@ const localrecvonly = class {
             console.error('setRemoteDescription(answer) ERROR: ', error);
         }
     }
+    cleanupVideoElement(element) {
+      element.pause();
+      element.srcObject = null;
+    }
 }
 
 function playVideo(element, stream) {
@@ -308,11 +312,6 @@ function isSafari() {
   return browser() === 'safari';
 }
 
-
-function cleanupVideoElement(element) {
-  element.pause();
-  element.srcObject = null;
-}
 
 
 /* getOffer() function is currently unused.
