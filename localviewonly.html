@@ -4,15 +4,15 @@
 
 		<!-- Embed latest version of Babylon.js. -->
 		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
-        <script src="./Babylon.js/babylon.js"></script>
+        <!-- <script src="./Babylon.js/babylon.js"></script> -->
 
 		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
-		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+		<!-- <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script> -->
 
 		<!-- Embed pep.js for consistent cross-browser pointer events. -->
-		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+		<!-- <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script> -->
 
-        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <!-- <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script> -->
 
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
@@ -60,7 +60,7 @@
         </main>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
-		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
+		<!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas> -->
         <script type="text/javascript">
             // let timer;
             // document.addEventListener('keydown', (event) => {
@@ -86,8 +86,8 @@
             let CLOSE_DATA_CHANNEL = false;
             let header = 0x43;
         </script>
-        <script src="./getStats.js"></script>
-        <script type="text/javascript" src="./sora.js"></script>
+        <!-- <script src="./getStats.js"></script> -->
+        <!-- <script type="text/javascript" src="./sora.js"></script> -->
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
 
@@ -106,6 +106,10 @@
                     a1_local_video_recvonly_right.connect();
                 }, 1500);
             }
+
+            setTimeout(() => {
+                connect_clicked();
+            }, 1000);
 
             // /////////////////////////////////////////////////////////////////////////
             //
