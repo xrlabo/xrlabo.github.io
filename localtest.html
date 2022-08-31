@@ -1,0 +1,1172 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>Experiment for VRSJ</title>
+    </head>
+
+    <body>
+        <button onclick="resettime_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">Reset time</font></button><br>
+        <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br> -->
+        <!-- <button onclick="disconnect_clicked()">切断</button> -->
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" checked style="width: 100px; height: 50px;"><font size="7">self change</font>
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" style="width: 100px; height: 50px;"><font size="7">half</font>
+        <input type="radio" name="expe_mode" onclick="expe_mode_clicked()" style="width: 100px; height: 50px;"><font size="7">alternative</font><br>
+
+        <!-- <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font> -->
+        <!-- <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br> -->
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
+
+        <div id="remote-videos">
+
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
+                <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
+            </video>
+            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+
+        </div>
+
+        <main style="margin: 0; padding: 0;">
+            <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
+                Unitree A1 status <br>
+                <font size="4">
+                    <pre><div id="a1ss"></div></pre>
+                </font>
+                <br>
+            </div>
+            <div class="SegwayStatusStamped" style="float: right; width: 50%; height: 250px; background-color: #eee;">
+                Segway RMP status <br>
+                <font size="4">
+                    <pre><div id="sgss"></div></pre>
+                </font>
+                <br>
+            </div>
+        </main>
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
+        <script type="text/javascript">
+            let timer;
+            document.addEventListener('keydown', (event) => {
+                if (segway_local_control_recvonly.dataChannel) {
+                    if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                    }
+                }
+                if (a1_local_control_recvonly.dataChannel) {
+                    if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                    }
+                }
+                console.log(event);
+                clearTimeout(timer);
+                document.body.style.backgroundColor ='#ff3030';
+                timer = setTimeout(bgWhite, 300);
+            });
+
+            function bgWhite() {
+                document.body.style.backgroundColor ='#ffffff';
+            }
+            let CLOSE_DATA_CHANNEL = false;
+        </script>
+        <script src="./getStats.js"></script>
+        <script type="text/javascript" src="./sora.js"></script>
+        <script type="text/javascript">
+            let segway_latch = 0;
+            let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
+            let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
+            let segway_time_since_epoch, segway_ang_vel, segway_lin_vel;
+            let segway_message_stamp = 0;
+
+            let a1_auto_moving_status = 0;
+            let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
+            let a1_time_since_epoch = 0, a1_forwardSpeed = 0, a1_rotateSpeed = 0;
+            let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
+            let a1_message_stamp = 0;
+
+            let header = 0x43, lin = 0, ang = 0, side = 0;
+
+            let user_log_buff = '';
+            let segway_drive_count = -1, a1_drive_count = -1;
+        </script>
+        <script type="text/javascript" src="./webrtc.js"></script>
+        <script type="text/javascript">
+            let expe_mode = 1; // 1: self change, 2: half, 3: alternative
+            function expe_mode_clicked() {
+                if (videoSelfChangeLoop_intervalID) {
+                    clearInterval(videoSelfChangeLoop_intervalID);
+                }
+                if (videoHalfChangeLoop_intervalID) {
+                    clearInterval(videoHalfChangeLoop_intervalID);
+                }
+                if (videoAlterChangeLoop_intervalID) {
+                    clearInterval(videoAlterChangeLoop_intervalID);
+                }
+
+                if (document.getElementsByName('expe_mode')[0].checked) {
+                    expe_mode = 1;
+                    if (header == 0x43) {
+                        videoDome_segway.material.alpha = 1;
+                        videoDome_a1.material.alpha = 0;
+                    }
+                    else if (header == 0xa1) {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                    }
+                    videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
+                    videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
+                    button.isEnabled = true;
+                    button.isVisible = true;
+                }
+                else if (document.getElementsByName('expe_mode')[1].checked) {
+                    expe_mode = 2;
+                    if (header == 0x43) {
+                        videoDome_segway.material.alpha = 0.8;
+                        videoDome_a1.material.alpha = 0.2;
+                    }
+                    else if (header == 0xa1) {
+                        videoDome_segway.material.alpha = 0.2;
+                        videoDome_a1.material.alpha = 0.8;
+                    }
+                    videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+                    videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+                    button.isEnabled = true;
+                    button.isVisible = true;
+                }
+                else if (document.getElementsByName('expe_mode')[2].checked) {
+                    expe_mode = 3;
+                    videoDome_segway.material.alpha = 1;
+                    videoDome_a1.material.alpha = 0;
+                    videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
+                    videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
+                    button.isEnabled = false;
+                    button.isVisible = false;
+                    videoAlterChangeLoop_intervalID = setInterval(videoAlterChangeLoop, 10000);
+                }
+            }
+
+            let videoSelfChangeLoop_intervalID = null;
+            function videoSelfChangeLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                        header = 0xa1;
+                        a1_drive_count++;
+                        user_log_buff += 'segway to a1 & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        button.textBlock.text = "Segwayに変更";
+                        clearInterval(videoSelfChangeLoop_intervalID);
+                        videoSelfChangeLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0;
+                        videoDome_segway.material.alpha = 1;
+                        header = 0x43;
+                        segway_drive_count++;
+                        user_log_buff += 'a1 to segway & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        button.textBlock.text = "犬に変更";
+                        clearInterval(videoSelfChangeLoop_intervalID);
+                        videoSelfChangeLoop_intervalID = null;
+                    }
+                }
+            }
+
+            let videoHalfChangeLoop_intervalID = null;
+            function videoHalfChangeLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0.2) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0.2;
+                        videoDome_a1.material.alpha = 0.8;
+                        header = 0xa1;
+                        a1_drive_count++;
+                        user_log_buff += 'segway to a1 & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        button.textBlock.text = "Segwayに変更";
+                        clearInterval(videoHalfChangeLoop_intervalID);
+                        videoHalfChangeLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0.2) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0.2;
+                        videoDome_segway.material.alpha = 0.8;
+                        header = 0x43;
+                        segway_drive_count++;
+                        user_log_buff += 'a1 to segway & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        button.textBlock.text = "犬に変更";
+                        clearInterval(videoHalfChangeLoop_intervalID);
+                        videoHalfChangeLoop_intervalID = null;
+                    }
+                }
+            }
+
+            let videoAlterChangeLoop_intervalID = null;
+            function videoAlterChangeLoop() {
+                videoAlterChangeSubLoop_intervalID = setInterval(videoAlterChangeSubLoop, 1000.0/10.0);
+            }
+
+            let videoAlterChangeSubLoop_intervalID = null;
+            function videoAlterChangeSubLoop() {
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0;
+                        videoDome_a1.material.alpha = 1;
+                        header = 0xa1;
+                        a1_drive_count++;
+                        user_log_buff += 'segway to a1 & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        clearInterval(videoAlterChangeSubLoop_intervalID);
+                        videoAlterChangeSubLoop_intervalID = null;
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0;
+                        videoDome_segway.material.alpha = 1;
+                        header = 0x43;
+                        a1_drive_count++;
+                        user_log_buff += 'a1 to segway & ' + (Date.now()/1000 - 1661234080) + '\n';
+                        clearInterval(videoAlterChangeSubLoop_intervalID);
+                        videoAlterChangeSubLoop_intervalID = null;
+                    }
+                }
+            }
+
+
+            function start_stop_log_clicked() {
+                if (document.getElementsByName('start_stop_log')[0].checked) {
+                    // document.getElementsByName('start_stop_log')[0].checked = true;
+                    if (header == 0x43) {
+                        segway_drive_count = 0;
+                        a1_drive_count = -1;
+                    }
+                    else if (header == 0xa1) {
+                        segway_drive_count = -1;
+                        a1_drive_count = 0;
+                    }
+                    if (expe_mode == 1) {
+                        user_log_buff = 'Self Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
+                    }
+                    else if (expe_mode == 2) {
+                        user_log_buff = 'Half Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
+                    }
+                    else if (expe_mode == 3) {
+                        user_log_buff = 'Alternative Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
+                    }
+                }
+                else if (document.getElementsByName('start_stop_log')[1].checked) {
+                    // document.getElementsByName('start_stop_log')[1].checked = true;
+                    var blob = new Blob([user_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    if (expe_mode == 1) {
+                        link.download = new Date() + "_self_user_log.txt";
+                    }
+                    else if (expe_mode == 2) {
+                        link.download = new Date() + "_half_user_log.txt";
+                    }
+                    else if (expe_mode == 3) {
+                        link.download = new Date() + "_alter_user_log.txt";
+                    }
+                    link.click();
+                }
+            }
+
+
+            const debug = true;
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+
+            const options_control = {
+                multistream : true,
+                video : false,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
+            const options_audio_sendonly = {
+                multistream : true,
+                video : false,
+                audio : true
+            }
+
+            let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+            let user_audio_sendonly = sora.sendonly("user-audio", null, options_audio_sendonly);
+
+            let segway_local_video_recvonly_left = new localrecvonly("remoteVideo_left", "ws://127.0.0.1:8080/ws");
+            let a1_local_video_recvonly_right = new localrecvonly("remoteVideo_right_A1", "ws://133.10.88.153:8081/ws");
+
+            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://133.10.88.32:8080/ws");
+            let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://133.10.88.153:8080/ws");
+
+
+            user_audio_sendonly.on("track", (event) => {
+                if (event.track.kind == 'audio') {
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    document.getElementById('remote-videos').appendChild(audio);
+                }
+            });
+
+            user_audio_sendonly.on("removetrack", (event) => {
+                if (document.getElementById(`audio-${event.target.id}`)) {
+                    document.getElementById(`audio-${event.target.id}`).remove();
+                }
+            });
+
+            function resettime_clicked() {
+                let ltime = new Uint32Array([Date.now()/1000 - 1660000000])[0];
+                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x96, ltime >> 24, ltime >> 16, ltime >> 8, ltime]));
+                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x96, ltime >> 24, ltime >> 16, ltime >> 8, ltime]));
+            }
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+			// canvas DOM 要素を取得する
+			let canvas = document.getElementById('renderCanvas');
+
+            canvas.addEventListener("mousewheel", (event) => {
+                event.preventDefault();
+                console.log(event);
+            });
+
+			// Initialize Babylon.js variables.
+			let	sceneToRender;
+            let xrHelper;
+			const createDefaultEngine = function (canvas) {
+                return new BABYLON.Engine(canvas, true, {
+					preserveDrawingBuffer: true,
+					stencil: true
+				});
+            }
+
+            const engine = createDefaultEngine(canvas);
+
+            let RobotsLocalDataChannelLoop_intervalID = null;
+            let soraChairDataChannelLoop_intervalID = null;
+
+            let camera;
+            let cameraFovDegree = 60;
+
+            let videoDome_segway, videoDome_a1;
+            let button;
+
+            let dome_position_x = 0;
+            let dome_position_y = 0;
+            let dome_position_z = 0;
+
+            let dome_direction_x = 0;
+            let dome_direction_y = 0;
+            let dome_direction_z = 0;
+
+
+            let twincam_setPos_count = 0;
+            let setPos = 0;
+            let setPosA = 0;
+            let HMD_ang = 0;
+            let old_HMD_ang = 0;
+
+            let buttonheader;
+
+            let twincamMode = 2; //1: left and right, 2: left only, 3: right only
+
+            let arrow_box;
+
+
+			//Create scene and create XR experience.
+			const createScene = async function() {
+				//新しいシーンオブジェクトを作成する
+                var scene = new BABYLON.Scene(engine);
+                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+                // scene.detachControl();
+
+
+                camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                // Camera の操作を canvas 上で可能にする
+    			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
+                }
+                if (camera.inputs.attached.pointers) {
+                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                    camera.inputs.attached.pointers.multiTouchPanning = false;
+                    camera.inputs.attached.pointers.pinchInwards = false;
+                    camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
+                }
+                if (camera.inputs.attached.mousewheel) {
+                    camera.inputs.attached.mousewheel.detachControl();
+                }
+
+
+                var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
+                    arrow_mat.alpha = 0.3;
+                    arrow_mat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                let front_arrow_box = BABYLON.MeshBuilder.CreateBox("arrow_box", {width: 1, height: 1, depth: 6}, scene);
+                    front_arrow_box.position = new BABYLON.Vector3(0, -3, 3);
+                    front_arrow_box.material = arrow_mat;
+                var front_arrow_cylinder = BABYLON.MeshBuilder.CreateCylinder("arrow_cylinder", {height: 0.1, diameter: 4, tessellation: 3}, scene);
+                    front_arrow_cylinder.position = new BABYLON.Vector3(0, -3, 7);
+                    front_arrow_cylinder.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                    front_arrow_cylinder.material = arrow_mat;
+
+
+                var goal_x = 0;
+                var goal_y = 0;
+                var goal_z = 0;
+
+                var ground_y = -500; //地面の位置y
+                var box_height = 200;
+
+
+                const bottom = -3;
+                let length = 3;
+                let a = 1;
+                let b = 0; // a + b = 1
+
+                var box = BABYLON.MeshBuilder.CreateBox("box", {width: 10, height: box_height, depth: 10}, scene);
+                    box.position = new BABYLON.Vector3(0, ground_y + box_height/2.0, 100);
+                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
+                    var boxMat = new BABYLON.StandardMaterial("boxMat", scene);
+                        boxMat.alpha = 0;
+                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                    box.material = boxMat;
+
+
+                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 2000);
+                    plane_goal.position = new BABYLON.Vector3(0, ground_y + box_height, 100);
+                var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
+                var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
+                    button_goal.alpha = 0;
+                    button_goal.width = 0.15;
+                    button_goal.height = "40px";
+                    button_goal.cornerRadius = 10;
+                    button_goal.color = "Orange";
+                    button_goal.thickness = 4;
+                    // button_goal.rotation = 0.2;
+                    // button_goal.scaleY = 1.5;
+                    button_goal.background = "green";
+                    // button_goal.onPointerDownObservable.add(function() {
+                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                    // });
+                    advancedTexture_goal.addControl(button_goal);
+
+
+                let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
+                let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
+
+                videoDome_segway = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_left'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+                videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_segway.material.alpha = 1;
+                // videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+
+                videoDome_a1 = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_right_A1'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+                videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.setDirection(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.material.alpha = 0;
+                // videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
+
+
+
+                var planeb = BABYLON.Mesh.CreatePlane("planeb", 1);
+                    planeb.position = new BABYLON.Vector3(-1, 2, 2);
+                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                    var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
+
+                    button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
+                        button.onPointerDownObservable.add(() => {
+                            if (expe_mode == 1) {
+                                videoSelfChangeLoop_intervalID = setInterval(videoSelfChangeLoop, 1000.0/10.0);
+                            }
+                            if (expe_mode == 2) {
+                                videoHalfChangeLoop_intervalID = setInterval(videoHalfChangeLoop, 1000.0/10.0);
+                            }
+                        });
+                        button.width = "1000px";
+                        button.height = "200px";
+                        button.color = "white";
+                        button.cornerRadius = 100;
+                        button.fontSize = 80;
+                        button.background = "green";
+                    advancedTextureb.addControl(button);
+
+                let old_a1_auto_moving_status = 0, old_segway_latch = 3;
+
+                scene.registerBeforeRender(function () {
+
+                    if (header == 0x43 && segway_latch == 4) {
+                        let gx = goal_x*Math.cos(segway_start_turn_position/180.0*Math.PI) - goal_z*Math.sin(segway_start_turn_position/180.0*Math.PI) + segway_start_position_x*Math.abs(ground_y);
+                        let gz = goal_x*Math.sin(segway_start_turn_position/180.0*Math.PI) + goal_z*Math.cos(segway_start_turn_position/180.0*Math.PI) + segway_start_position_z*Math.abs(ground_y);
+                        let sx = segway_position_x*Math.abs(ground_y);
+                        let sz = segway_position_z*Math.abs(ground_y);
+                        let x_view = (gx - sx)*Math.cos(-segway_turn_position/180.0*Math.PI) - (gz - sz)*Math.sin(-segway_turn_position/180.0*Math.PI);
+                        let z_view = (gx - sx)*Math.sin(-segway_turn_position/180.0*Math.PI) + (gz - sz)*Math.cos(-segway_turn_position/180.0*Math.PI);
+                        let r = ((gx - sx)**2 + (gz - sz)**2)**0.5;
+                        goal_plane_rotation = -(Math.acos((gz - sz)/r)*(-1)**(-(gx - sx)/r < 0) - (segway_turn_position % 360)/180.0*Math.PI);
+                        box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
+                        plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
+                        plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
+                        button_goal.textBlock.text = 'Now moving';
+                        button_goal.background = "blue";
+                    }
+
+
+                    if (segway_latch == 4 && old_segway_latch == 3) {
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & user point out and segway auto moving\n';
+                    }
+                    if (segway_latch == 3 && old_segway_latch == 4) {
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway complete auto moving\n';
+                    }
+
+                    if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & user point out and a1 auto moving\n';
+                    }
+                    if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
+                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 complete auto moving\n';
+                    }
+
+                    old_segway_latch = segway_latch;
+                    old_a1_auto_moving_status = a1_auto_moving_status;
+
+
+                    if (header == 0xa1 && a1_auto_moving_status != 0) {
+                        let gx = goal_x;
+                        // let gz = goal_z + 200;
+                        let gz = goal_z;
+                        let a1x = a1_position_x*Math.abs(ground_y);
+                        let a1z = a1_position_z*Math.abs(ground_y);
+                        let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
+                        let z_view = (gx - a1x)*Math.sin(-a1_position_rot/180.0*Math.PI) + (gz - a1z)*Math.cos(-a1_position_rot/180.0*Math.PI);
+                        let r = ((gx - a1x)**2 + (gz - a1z)**2)**0.5;
+                        goal_plane_rotation = -(Math.acos((gz - a1z)/r)*(-1)**(-(gx - a1x)/r < 0) - (a1_position_rot % 360)/180.0*Math.PI);
+                        box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
+                        plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
+                        plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
+                        button_goal.textBlock.text = 'Now moving';
+                        button_goal.background = "blue";
+                    }
+                });
+
+                let point_ground = false;
+
+                scene.onPointerObservable.add((pointerInfo) => {
+                    // console.log(pointerInfo);
+                    let dx = pointerInfo.pickInfo.ray.direction.x;
+                    let dy = pointerInfo.pickInfo.ray.direction.y;
+                    let dz = pointerInfo.pickInfo.ray.direction.z;
+                    // let ox = pointerInfo.pickInfo.ray.origin.x;
+                    // let oy = pointerInfo.pickInfo.ray.origin.y;
+                    // let oz = pointerInfo.pickInfo.ray.origin.z;
+                    let ox = 0;
+                    let oy = 0;
+                    let oz = 0;
+
+                    let max_r = 4; //(m)
+                    // let ground_y = -20; //地面の位置y
+                    switch (pointerInfo.type) {
+                        case BABYLON.PointerEventTypes.POINTERDOWN:
+                            console.log("POINTER DOWN");
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERUP:
+                            console.log("POINTER UP");
+                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
+                                // let lambda = (ground_y - oy)/dy;
+                                // goal_x = lambda*dx + ox;
+                                // goal_y = lambda*dy + oy;
+                                // goal_z = lambda*dz + oz;
+                                // box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
+                                // plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 2, goal_z);
+                                // let r = (goal_x**2 + goal_z**2)**0.5;
+                                // let roty = -Math.acos(goal_z/r);
+                                // if (goal_x > 0) {
+                                //     roty = -roty;
+                                // }
+                                // plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
+                                // console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
+
+                                let lambda = (ground_y - oy)/dy;
+                                if (lambda <= 0) {
+                                    point_ground = false;
+                                    button_goal.alpha = 0;
+                                    box.material.alpha = 0;
+                                    break;
+                                }
+                                let gx = lambda*dx + ox;
+                                let gy = lambda*dy + oy;
+                                let gz = lambda*dz + oz;
+                                let gr = (gx**2 + gz**2)**0.5;
+                                let roty = Math.acos(gz/gr);
+                                if (gx > 0) {
+                                   roty = -roty;
+                                }
+                                if (header == 0x43 && gr/Math.abs(ground_y) > 3) {
+                                   point_ground = false;
+                                   button_goal.alpha = 0;
+                                   box.material.alpha = 0;
+                                   break;
+                                }
+                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 8) {
+                                   point_ground = false;
+                                   button_goal.alpha = 0;
+                                   box.material.alpha = 0;
+                                   break;
+                                }
+                                point_ground = true;
+                                if (header == 0x43) {
+                                    max_r = 3
+                                }
+                                if (header == 0xa1) {
+                                    max_r = 4
+                                }
+                                if (gr/Math.abs(ground_y) > max_r) {
+                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
+                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
+                                }
+                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
+                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
+                                plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
+                                button_goal.textBlock.text = 'Move here';
+                                button_goal.background = "green";
+                                button_goal.alpha = 1;
+                                box.material.alpha = 0.5;
+                                console.log("gx " + gx + " gy " + gy + " gz " + gz);
+
+                                let x = gx/Math.abs(ground_y);
+                                let z = gz/Math.abs(ground_y);
+                                let r = (x**2 + z**2)**0.5;
+                                let target_turn = Math.acos(z/r)/Math.PI*180;
+                                if (gx > 0) {
+                                   target_turn = -target_turn;
+                                }
+                                if (point_ground) {
+                                    if (header == 0x43) {
+                                        console.log('forward position: ' + r + ' (m)');
+                                        console.log('target_turn:' + target_turn + ' (deg)');
+
+                                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        button_goal.textBlock.text = 'Now moving';
+                                        button_goal.background = "blue";
+                                        segway_start_turn_position = segway_turn_position;
+                                        segway_start_position_x = segway_position_x;
+                                        segway_start_position_z = segway_position_z;
+                                    }
+                                    else if (header == 0xa1) {
+                                        // console.log('target x' + x + ' (m) ' + z + ' (m)');
+                                        r = r/2.0;
+                                        console.log('forward position: ' + r + ' (m)');
+                                        console.log('target_turn:' + target_turn + ' (deg)');
+                                        if (r < 0.3) {
+                                            r = 0;
+                                        }
+                                        else {
+                                            r = r - 0.3;
+                                        }
+                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                        // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
+                                        button_goal.textBlock.text = 'Now moving';
+                                        button_goal.background = "blue";
+                                    }
+                                    goal_x = gx;
+                                    goal_y = gy;
+                                    goal_z = gz;
+                                    console.log("gloal x " + goal_x + " y " + goal_y + " z " + goal_z);
+                                }
+                            }
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERMOVE:
+                            // console.log("POINTER MOVE");
+                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
+                                let lambda = (ground_y - oy)/dy;
+                                if (lambda <= 0) {
+                                    point_ground = false;
+                                    button_goal.alpha = 0;
+                                    box.material.alpha = 0;
+                                    break;
+                                }
+                                let gx = lambda*dx + ox;
+                                let gy = lambda*dy + oy;
+                                let gz = lambda*dz + oz;
+                                let gr = (gx**2 + gz**2)**0.5;
+                                let roty = Math.acos(gz/gr);
+                                if (gx > 0) {
+                                   roty = -roty;
+                                }
+                                if (header == 0x43 && gr/Math.abs(ground_y) > 6) {
+                                   point_ground = false;
+                                   button_goal.alpha = 0;
+                                   box.material.alpha = 0;
+                                   break;
+                                }
+                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 6) {
+                                   point_ground = false;
+                                   button_goal.alpha = 0;
+                                   box.material.alpha = 0;
+                                   break;
+                                }
+                                if (header == 0x43) {
+                                    max_r = 3
+                                }
+                                if (header == 0xa1) {
+                                    max_r = 4
+                                }
+                                point_ground = true;
+                                if (gr/Math.abs(ground_y) > max_r) {
+                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
+                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
+                                }
+                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
+                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
+                                plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
+                                button_goal.textBlock.text = 'Move here';
+                                button_goal.background = "green";
+                                button_goal.alpha = 1;
+                                box.material.alpha = 0.5;
+                                console.log("gx " + gx + " gy " + gy + " gz " + gz);
+                            }
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERWHEEL:
+                            console.log("POINTER WHEEL");
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERPICK:
+                            console.log("POINTER PICK");
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERTAP:
+                            console.log("POINTER TAP");
+                            break;
+                        case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
+                            console.log("POINTER DOUBLE-TAP");
+                            break;
+                        default:
+                    }
+                });
+
+                // Create a default environment for the scene.
+				var environment = scene.createDefaultEnvironment();
+                // environment.ground.parent.position.y = 0;
+                // environment.ground.position.y = 0
+
+
+                // Initialize XR experience with default experience helper.
+				xrHelper = await scene.createDefaultXRExperienceAsync({
+                    // floorMeshes: [environment.ground]
+                });
+
+                //===Stick=====================================================================================================
+                //==============================================================================================================
+				if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+
+                    xrHelper.teleportation.rotationAngle = 0;
+
+                    // xrHelper.input.xrCamera.inputs.attached.mouse.detachControl();
+                    // xrHelper.input.xrCamera.cameraRotation = new BABYLON.Vector2(0, 0);
+
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+
+                    // xrHelper.input.xrCamera.inputs.detachElement(true);
+
+                    // xrHelper.input.xrCamera.inputs.remove(xrHelper.input.xrCamera.inputs.attached.mouse);
+
+                    // xrHelper.input.xrCamera.inputs.attached.mouse.touchEnabled = false;
+                    // xrHelper.input.xrCamera.inputs.attached.mouse._allowCameraRotation = false;
+
+                    // xrHelper.input.onControllerRemovedObservable.add(() => {
+                    //
+                    // });
+
+                    // xrHelper.input.xrCamera.inputs.clear();
+
+                    xrHelper.teleportation.rotationEnabled = false;
+
+                    xrHelper.input.onControllerAddedObservable.add((controller) => {
+                        if (RobotsLocalDataChannelLoop_intervalID == null) {
+                            RobotsLocalDataChannelLoop_intervalID = setInterval(RobotsLocalDataChannelLoop, 1000.0/20.0);
+                            RobotsLocalDataChannelLoop();
+                        }
+                        if (soraChairDataChannelLoop_intervalID == null) {
+                            soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/10.0);
+                            soraChairDataChannelLoop();
+                        }
+                        controller.onMotionControllerInitObservable.add((motionController) => {
+                            if (motionController.handness === 'right') {
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    // console.log(ang);
+                                    if (header == 0x43) {
+                                        side = 0;
+                                        lin = -axes.y;
+                                        ang = -axes.x;
+                                    }
+
+                                    if (header == 0xa1) {
+                                        ang = -axes.x;
+                                        lin = -axes.y;
+                                    }
+
+                                    // dome_position_z = 2000*axes.y;
+                                    // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                                    // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
+                                });
+                                let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+                                triggerComponent.onButtonStateChangedObservable.add((event) => {
+                                    // side = -event._currentValue;
+                                });
+
+                                let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
+                                abuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (abuttonComponent.pressed) {
+                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                    }
+                                });
+                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                //     if (bbuttonComponent.pressed) {
+                                //         if (header == 0xa1) {
+                                //             header = 0xaa;
+                                //         }
+                                //         else if (header == 0xaa) {
+                                //             header = 0xa1;
+                                //         }
+                                //     }
+                                // });
+                            }
+                            if (motionController.handness === 'left') {
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    if (header == 0x43) {
+                                        // ang = -axes.x;
+                                    }
+                                    if (header == 0xa1) {
+                                        // side = -axes.x;
+                                    }
+                                    // dome_direction_x = Math.cos(axes.x*Math.PI/2.0);
+                                    // dome_direction_z = Math.sin(axes.x*Math.PI/2.0)
+                                    // lin = -axes.y;
+                                });
+                                let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+                                triggerComponent.onButtonStateChangedObservable.add((event) => {
+                                    // side = event._currentValue;
+                                });
+                            }
+                        });
+                    });
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        if(state === BABYLON.WebXRState.IN_XR){
+                            setPos = 0;
+                            setPosA = 0;
+                            HMD_ang = 0;
+                            old_HMD_ang = 0;
+                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (header == 0x43) {
+                                    if (xr_camera.isLeftCamera) {
+                                        twincam_setPos_count++;
+                                        let q = xr_camera.rotationQuaternion;
+                                        let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
+                                        let abs_sinX = Math.abs(sinX);
+                                        if (abs_sinX < 0.001) {
+                                            sinX = 0;
+                                        }
+                                        let euler_x = Math.asin(-sinX);
+                                        if (isNaN(euler_x) || Math.abs((Math.abs(euler_x) -  Math.PI / 2)) < 0.001) {
+                                            euler_x = Math.sign(-sinX) * (Math.PI / 2);
+                                        }
+                                        let cosX = Math.cos(euler_x);
+                                        let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
+                                        let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
+                                        let euler_y = -Math.atan2(sinY, cosY);
+                                        HMD_ang = -euler_y/Math.PI*700;
+                                        if (Math.abs(HMD_ang) < 350) {
+                                            setPosA = 0;
+                                        }
+                                        if (HMD_ang - old_HMD_ang < -700) {
+                                            setPosA +=  1400;
+                                        }
+                                        else if (HMD_ang - old_HMD_ang > 700) {
+                                            setPosA += -1400;
+                                        }
+                                        setPos = HMD_ang + setPosA;
+                                        if (setPos > 1050) {
+                                            setPos = 1050;
+                                        }
+                                        else if (setPos < -1050) {
+                                            setPos = -1050;
+                                        }
+                                        old_HMD_ang = HMD_ang;
+                                        let send_value = setPos;
+                                        if (twincam_setPos_count > 15) {
+                                            console.log(setPos);
+                                            if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            }
+                                            twincam_setPos_count = 0;
+                                        }
+                                    }
+                                    if (twincamMode == 1) {
+                                        if (xr_camera.isLeftCamera) {
+                                            videoDome_segway.texture = videoTexture_segway_left;
+                                        }
+                                        else {
+                                            videoDome_segway.texture = videoTexture_segway_right;
+                                        }
+                                    }
+                                }
+                            });
+
+                            // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                            // xrHelper.baseExperience.camera.position.set(0, 0, 0);
+                            // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
+                        }
+                        else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                            lin = 0;
+                            ang = 0;
+                            side = 0;
+                            clearInterval(RobotsLocalDataChannelLoop_intervalID);
+                            RobotsLocalDataChannelLoop_intervalID = null;
+                            clearInterval(soraChairDataChannelLoop_intervalID);
+                            soraChairDataChannelLoop_intervalID = null;
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+
+                            recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
+                            if (camera.inputs.attached.gamepad) {
+                                camera.inputs.attached.gamepad.detachControl();
+                            }
+                        }
+                        console.log(state);
+                    });
+
+				}
+
+                return scene;
+            }
+
+			// Create scene.
+			scene = createScene();
+			scene.then(function (returnedScene) {
+				sceneToRender = returnedScene;
+			});
+            engine.runRenderLoop(function () {
+				if (sceneToRender) {
+					sceneToRender.render();
+				}
+			});
+            // engine.runRenderLoop(function () {
+			// 	scene.render();
+			// });
+
+
+			// Handle browser resize.
+			window.addEventListener('resize', function () {
+				engine.resize();
+			});
+
+            // let localStream_for_A1, localStream_for_segway;
+            let localStream;
+
+            function connect_clicked() {
+                navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then((stream) => {
+                    localStream = stream;
+                    console.log(stream);
+                    user_audio_sendonly.connect(stream);
+                    if (document.getElementsByName('mic_on_off')[0].checked) {
+                        localStream.getAudioTracks()[0].enabled = true;
+                    }
+                    else {
+                        localStream.getAudioTracks()[0].enabled = false;
+                    }
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+
+                recvonly_chair_control.connect();
+
+                setTimeout(() => {
+                    segway_local_video_recvonly_left.connect();
+                }, 500);
+                setTimeout(() => {
+                    a1_local_video_recvonly_right.connect();
+                }, 1000);
+
+                setTimeout(() => {
+                    a1_local_control_recvonly.connect();
+                }, 1500);
+                setTimeout(() => {
+                    segway_local_control_recvonly.connect();
+                }, 2000);
+            }
+
+            setTimeout(() => {
+                connect_clicked();
+            }, 1000);
+
+            function mic_on_off_clicked() {
+                if (document.getElementsByName('mic_on_off')[0].checked) {
+                    localStream.getAudioTracks()[0].enabled = true;
+                }
+                else {
+                    localStream.getAudioTracks()[0].enabled = false;
+                }
+            }
+
+            function RobotsLocalDataChannelLoop() {
+                if (header == 0x43) {
+                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    }
+                }
+            }
+
+            let old_segway_message_stamp = 0;
+            let old_a1_message_stamp = 0;
+            let quit_count = 0;
+
+            function soraChairDataChannelLoop() {
+                if (recvonly_chair_control.signalingSwitched) {
+                    if (header == 0x43) {
+                        if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
+                            if (segway_message_stamp > old_segway_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_segway_message_stamp = segway_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count < 3000) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                segway_latch = 3;
+                            }
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
+                    if (header == 0xa1) {
+                        if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.2 || Math.abs(lin) > 0.2)) || a1_auto_moving_status != 0) {
+                            if (a1_message_stamp > old_a1_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_a1_message_stamp = a1_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count < 3000) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                a1_auto_moving_status = 0;
+                            }
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
+                }
+            }
+
+            setInterval(observe_CLOSE_DATA_CHANNEL, 10000);
+            function observe_CLOSE_DATA_CHANNEL() {
+                if (CLOSE_DATA_CHANNEL) {
+                    connect_clicked();
+                }
+            }
+        </script>
+    </body>
+</html>
