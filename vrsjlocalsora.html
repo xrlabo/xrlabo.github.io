@@ -78,6 +78,25 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
+            let segway_latch = 0;
+            let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
+            let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
+            let segway_time_since_epoch, segway_ang_vel, segway_lin_vel;
+            let segway_message_stamp = 0;
+
+            let a1_auto_moving_status = 0;
+            let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
+            let a1_time_since_epoch = 0, a1_forwardSpeed = 0, a1_rotateSpeed = 0;
+            let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
+            let a1_message_stamp = 0;
+
+            let header = 0x43, lin = 0, ang = 0, side = 0;
+
+            let user_log_buff = '';
+            let segway_drive_count = -1, a1_drive_count = -1;
+        </script>
+        <script type="text/javascript" src="./webrtc.js"></script>
+        <script type="text/javascript">
             const debug = true;
             const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
             const options_video_recvonly = {
@@ -108,8 +127,12 @@
             let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
             let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
-            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
+            // let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
+
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+
+            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
+            let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
 
 
             let videoStream_id_left = null;
@@ -197,41 +220,6 @@
                     document.getElementById(`audio-${event.target.id}`).remove();
                 }
             });
-
-            let segway_latch = 0;
-            let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
-            let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
-            let segway_time_since_epoch, segway_ang_vel, segway_lin_vel;
-            let segway_message_stamp = 0;
-
-            let a1_auto_moving_status = 0;
-            let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
-            let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
-            let a1_message_stamp = 0;
-
-            recvonly_robots_control.on('message', (event) => {
-                if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
-                    segway_message_stamp++;
-                    segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
-                    segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
-                    segway_ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
-                    segway_latch = new Uint8Array(event.data)[13];
-                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
-                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
-                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
-                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + segway_ang_vel;
-                }
-                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
-                    a1_message_stamp++;
-                    a1_auto_moving_status = new Uint8Array(event.data)[1];
-                    a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
-                    a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
-                    a1_position_rot = (new Int16Array([new Uint8Array(event.data)[6] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[7]])[0] )/100.0;
-                    document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot;
-                }
-            });
-
-            var header = 0x43, lin = 0, ang = 0, side = 0;
 
             /////////////////////////////////////////////////////////////////////////
 
@@ -406,7 +394,7 @@
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Change to dog robot");
+                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
                         button.onPointerDownObservable.add(() => {
                             if (document.getElementsByName('change_video')[0].checked) {
                                 document.getElementsByName('change_video')[0].checked = false;
@@ -450,7 +438,6 @@
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
                         }
                         else {
                             header = 0x43;
@@ -460,7 +447,6 @@
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "犬に変更";
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
                         }
                         videoDome.material._alpha = 0;
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
@@ -596,7 +582,7 @@
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
 
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                         segway_start_turn_position = segway_turn_position;
@@ -614,7 +600,7 @@
                                         else {
                                             r = r - 0.3;
                                         }
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
                                         // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
@@ -740,9 +726,9 @@
                     xrHelper.teleportation.rotationEnabled = false;
 
                     xrHelper.input.onControllerAddedObservable.add((controller) => {
-                        if (soraRobotsDataChannelLoop_intervalID == null) {
-                            soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
-                            soraRobotsDataChannelLoop();
+                        if (RobotsLocalDataChannelLoop_intervalID == null) {
+                            RobotsLocalDataChannelLoop_intervalID = setInterval(RobotsLocalDataChannelLoop, 1000.0/20.0);
+                            RobotsLocalDataChannelLoop();
                         }
                         if (soraChairDataChannelLoop_intervalID == null) {
                             soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/10.0);
@@ -777,7 +763,8 @@
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                                     }
                                 });
                                 // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
@@ -861,7 +848,7 @@
                                         let send_value = setPos;
                                         if (twincam_setPos_count > 15 && recvonly_robots_control.signalingSwitched) {
                                             console.log(setPos);
-                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
                                             twincam_setPos_count = 0;
                                         }
                                     }
@@ -884,13 +871,13 @@
                             lin = 0;
                             ang = 0;
                             side = 0;
-                            clearInterval(soraRobotsDataChannelLoop_intervalID);
-                            soraRobotsDataChannelLoop_intervalID = null;
+                            clearInterval(RobotsLocalDataChannelLoop_intervalID);
+                            RobotsLocalDataChannelLoop_intervalID = null;
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
@@ -940,8 +927,14 @@
                      console.error(e);
                 });
                 recvonly_segway_right.connect();
-                recvonly_robots_control.connect();
                 recvonly_chair_control.connect();
+
+                setTimeout(() => {
+                    a1_local_control_recvonly.connect();
+                }, 2000);
+                setTimeout(() => {
+                    segway_local_control_recvonly.connect();
+                }, 2500);
             }
 
             connect_clicked();
@@ -955,10 +948,16 @@
                 }
             }
 
-
-            function soraRobotsDataChannelLoop() {
-                if (recvonly_robots_control.signalingSwitched && sendjoy) {
-                    recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+            function RobotsLocalDataChannelLoop() {
+                if (header == 0x43) {
+                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    }
+                }
+                else if (header == 0xa1) {
+                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    }
                 }
             }
 
@@ -967,7 +966,7 @@
             let quit_count = 0;
 
             function soraChairDataChannelLoop() {
-                if (recvonly_chair_control.signalingSwitched && sendjoy) {
+                if (recvonly_chair_control.signalingSwitched) {
                     if (header == 0x43) {
                         if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
                             if (segway_message_stamp > old_segway_message_stamp) {
@@ -988,7 +987,7 @@
                         }
                     }
                     if (header == 0xa1) {
-                        if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.2 || Math.abs(lin) > 0.2)) || a1_auto_moving_status != 0) {
+                        if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.15 || Math.abs(lin) > 0.15)) || a1_auto_moving_status != 0) {
                             if (a1_message_stamp > old_a1_message_stamp) {
                                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
                                 old_a1_message_stamp = a1_message_stamp;
@@ -1013,74 +1012,6 @@
             function observe_CLOSE_DATA_CHANNEL() {
                 if (CLOSE_DATA_CHANNEL) {
                     connect_clicked();
-                }
-            }
-
-
-            // joystick
-
-            window.addEventListener("gamepadconnected", function(e) {
-                // gp = navigator.getGamepads()[e.gamepad.index];
-                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-                e.gamepad.index, e.gamepad.id,
-                e.gamepad.buttons.length, e.gamepad.axes.length);
-                setInterval(gameLoop, 1000.0/10.0);
-                gameLoop();
-            });
-
-            let start = false;
-            function gameLoop() {
-                let gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
-                let gp = gamepads[0];
-                if (gp != null) {
-                    console.log(gp.axes);
-                    side = -gp.axes[2];
-                    // side = gp.buttons[6].value - gp.buttons[7].value;
-                    // console.log(gp.buttons);
-                    ang = -gp.axes[0];
-                    lin = -gp.axes[3];
-
-                    if (header == 0xa1) {
-                        ang = -gp.axes[0];
-                        lin = -gp.axes[1];
-                        side = -gp.axes[2];
-                    }
-                    // document.getElementById('leftright').value = 127*ang;
-                    // document.getElementById('leftright_out').innerHTML = (127*ang).toFixed(0);
-                    // document.getElementById('frontrear').value = 127*lin;
-                    // document.getElementById('frontrear_out').innerHTML = (127*lin).toFixed(0);
-                    // document.getElementById('side').value = 127*side;
-                    // document.getElementById('side_out').innerHTML = (127*side).toFixed(0);
-
-                    if (recvonly_robots_control.signalingSwitched) {
-                        // dataChannel.send(new TextEncoder().encode("jyja" + ang.toFixed(3) + "," + lin.toFixed(3) + "\n"));
-                        // const buffer = new ArrayBuffer(1);
-                        // console.log(buffer);
-                        if (gp.buttons[2].value && header == 0xaa) {
-                            header = 0xa1;
-                            console.log(header);
-                        }
-                        if (gp.buttons[3].value && header == 0xa1) {
-                            header = 0xaa;
-                            console.log(header);
-                        }
-                        if (gp.buttons[1].value) {
-                            sendjoy = true;
-                            if (soraRobotsDataChannelLoop_intervalID == null) {
-                                soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
-                                soraRobotsDataChannelLoop();
-                            }
-                            return;
-                        }
-                        if (gp.buttons[0].value) {
-                            sendjoy = false;
-                            if (soraRobotsDataChannelLoop_intervalID != null) {
-                                clearInterval(soraRobotsDataChannelLoop_intervalID);
-                                soraRobotsDataChannelLoop_intervalID = null;
-                            }
-                            return;
-                        }
-                    }
                 }
             }
         </script>
