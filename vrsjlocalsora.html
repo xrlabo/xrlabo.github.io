@@ -106,7 +106,7 @@
             };
 
             let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
-            let recvonly_segway_right = sora.sendrecv("twincam-right", null, options_video_recvonly);
+            let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
             let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
@@ -128,20 +128,6 @@
                         videoStream_id_left = event.streams[0].id;
                     }, 1000);
                 }
-            });
-
-
-            recvonly_segway_right.on("track", (event) => {
-                console.log(event);
-                if (event.track.kind == "video") {
-                    setTimeout(() => {
-                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
-                        document.querySelector('#remoteVideo_right').autoplay = true;
-                        document.querySelector('#remoteVideo_right').muted = false;
-                        videoStream_id_right = event.streams[0].id;
-                    }, 2500);
-                    return;
-                }
 
                 if (event.track.kind == 'audio') {
                     // if (audioStream_id_right) {
@@ -156,7 +142,20 @@
                     document.getElementById('remote-videos').appendChild(audio);
                     // audioStream_id_right = event.streams[0].id;
                 }
+            });
 
+
+            recvonly_segway_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right').autoplay = true;
+                        document.querySelector('#remoteVideo_right').muted = false;
+                        videoStream_id_right = event.streams[0].id;
+                    }, 1000);
+                    return;
+                }
             });
 
             sendrecv_A1_right.on("track", (event) => {
@@ -174,8 +173,8 @@
 
             setInterval(observe_video, 10000);
             function observe_video() {
-                if (document.getElementById(`audio-${videoStream_id_right}`)) {
-                    document.getElementById(`audio-${videoStream_id_right}`).remove();
+                if (document.getElementById(`audio-${videoStream_id_left}`)) {
+                    document.getElementById(`audio-${videoStream_id_left}`).remove();
                 }
                 // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
                 //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
