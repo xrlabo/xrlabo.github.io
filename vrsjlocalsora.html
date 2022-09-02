@@ -118,7 +118,7 @@
 
             var segway_info = '';
             const debug = true;
-            const sora = Sora.connection("wss://192.168.11.64/signaling", debug);
+            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
