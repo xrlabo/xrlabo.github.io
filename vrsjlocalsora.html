@@ -588,8 +588,11 @@
                                     if (header == 0x43) {
                                         console.log('forward position: ' + r + ' (m)');
                                         console.log('target_turn:' + target_turn + ' (deg)');
-
-                                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                        if (segway_local_control_recvonly.dataChannel) {
+                                            if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
+                                            }
+                                        }
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                         segway_start_turn_position = segway_turn_position;
@@ -607,7 +610,11 @@
                                         else {
                                             r = r - 0.3;
                                         }
-                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                        if (a1_local_control_recvonly.dataChannel) {
+                                            if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
+                                            }
+                                        }
                                         button_goal.textBlock.text = 'Now moving';
                                         button_goal.background = "blue";
                                     }
@@ -770,7 +777,11 @@
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
                                         segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        if (a1_local_control_recvonly.dataChannel) {
+                                            if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                            }
+                                        }
                                     }
                                 });
                                 // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
@@ -852,9 +863,14 @@
                                         }
                                         old_HMD_ang = HMD_ang;
                                         let send_value = setPos;
-                                        if (twincam_setPos_count > 15 && segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+
+                                        if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
+                                            if (segway_local_control_recvonly.dataChannel) {
+                                                if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                                }
+                                            }
                                         }
                                     }
                                     if (twincamMode == 1) {
@@ -881,8 +897,17 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
-                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                            if (segway_local_control_recvonly.dataChannel) {
+                                if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                                }
+                            }
+                            if (a1_local_control_recvonly.dataChannel) {
+                                if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                                    a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
+                                }
+                            }
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
@@ -977,13 +1002,17 @@
 
             function RobotsLocalDataChannelLoop() {
                 if (header == 0x43) {
-                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    if (segway_local_control_recvonly.dataChannel) {
+                        if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                        }
                     }
                 }
                 else if (header == 0xa1) {
-                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    if (a1_local_control_recvonly.dataChannel) {
+                        if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                            a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                        }
                     }
                 }
             }
