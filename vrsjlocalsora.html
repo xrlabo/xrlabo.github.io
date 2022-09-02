@@ -78,45 +78,6 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
-            var count_change_space = 0;
-            var count_change_space_lines = '';
-            function start_stop_log_clicked() {
-                if (document.getElementsByName('start_stop_log')[0].checked) {
-                    // document.getElementsByName('start_stop_log')[0].checked = true;
-                    count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
-                    vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
-                }
-                else if (document.getElementsByName('start_stop_log')[1].checked) {
-                    // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
-                    var link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "_user_experience_log.txt";
-                    link.click();
-
-                    blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                    link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = new Date() + "velocitylog.txt";
-                    link.click();
-                }
-            }
-
-            function save_log() {
-                var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
-                var link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "_user_experience_log.txt";
-                link.click();
-
-                blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = new Date() + "velocitylog.txt";
-                link.click();
-            }
-
-            var segway_info = '';
             const debug = true;
             const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
             const options_video_recvonly = {
@@ -145,8 +106,7 @@
             };
 
             let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
-            let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
-            let recvonly_segway_rear = sora.recvonly("segway-rear", null, options_video_recvonly);
+            let recvonly_segway_right = sora.sendrecv("twincam-right", null, options_video_recvonly);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
             let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
@@ -166,17 +126,12 @@
                         document.querySelector('#remoteVideo_left').autoplay = true;
                         document.querySelector('#remoteVideo_left').muted = false;
                         videoStream_id_left = event.streams[0].id;
-                        getStats(sendrecv_segway_left.pc, function(result) {
-                            // previewGetStatsResult(this.pc, result);
-                            console.log(result);
-                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.recv.framerateMean);
-                        }, 500);
                     }, 1000);
                 }
             });
 
 
-            sendrecv_segway_right.on("track", (event) => {
+            recvonly_segway_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
@@ -212,35 +167,9 @@
                         document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                         document.querySelector('#remoteVideo_right_A1').autoplay = true;
                         document.querySelector('#remoteVideo_right_A1').muted = false;
-                        getStats(sendrecv_A1_right.pc, function(result) {
-                            // previewGetStatsResult(this.pc, result);
-                            console.log(result);
-                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.send.framerateMean);
-                        }, 500);
                     }, 4000);
                     return;
                 }
-            });
-
-            recvonly_segway_rear.on("track", (event) => {
-                console.log(event);
-                if (event.track.kind == "video") {
-                    document.querySelector('#remoteVideo_segway_rear').srcObject = event.streams[0];
-                    document.querySelector('#remoteVideo_segway_rear').autoplay = true;
-                    document.querySelector('#remoteVideo_segway_rear').muted = false;
-                    // mediaStream_id_right_A1 = event.streams[0].id;
-                    return;
-                }
-
-                // if (event.track.kind == 'audio') {
-                //     const audio = document.createElement('audio');
-                //     audio.id = "audio-" + event.streams[0].id;
-                //     audio.srcObject = event.streams[0];
-                //     audio.controls = true;
-                //     audio.autoplay = true;
-                //     document.getElementById('remote-videos').appendChild(audio);
-                // }
-
             });
 
             setInterval(observe_video, 10000);
@@ -253,9 +182,6 @@
                 // }
             }
 
-
-
-
             sendrecv_segway_left.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
@@ -263,7 +189,7 @@
                 }
             });
 
-            sendrecv_segway_right.on("removetrack", (event) => {
+            recvonly_segway_right.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
                     videoStream_id_right = null;
@@ -307,18 +233,6 @@
             });
 
             var header = 0x43, lin = 0, ang = 0, side = 0;
-            var remote_time = 0, remote_ang = 0, remote_lin = 0;
-
-            // recvonly_robots_control.on('message', (event) => {
-            //     if (event.data.byteLength == 12) {
-            //         remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
-            //         remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
-            //         remote_ang = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
-            //
-            //         segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
-            //         // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
-            //     }
-            // });
 
             /////////////////////////////////////////////////////////////////////////
 
@@ -417,35 +331,6 @@
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
                 }
-                // scene.onPointerObservable.add(e => {
-                //     cameraFovDegree += e.event.wheelDelta * 2**(-5);
-                //     camera.fov = cameraFovDegree * (Math.PI / 180);
-                // }, BABYLON.PointerEventTypes.POINTERWHEEL);
-                // if (camera.inputs.attached.gamepad) {
-                //     camera.inputs.attached.gamepad.detachControl();
-                // }
-
-                // var plane_reconnect = BABYLON.Mesh.CreatePlane("plane_reconnect", 10);
-                //     plane_reconnect.position = new BABYLON.Vector3(0, 4, 10);
-                // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_reconnect);
-                // // var advancedTexture_reconnect = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ReConnect_full_ui");
-                // var button_reconnect = BABYLON.GUI.Button.CreateSimpleButton("ReConnect_button", "ReConnect");
-                //     // button_reconnect.alphaSet = true;
-                //     button_reconnect.alpha = 0.7;
-                //     button_reconnect.width = 0.3;
-                //     button_reconnect.height = 0.1;
-                //     button_reconnect.cornerRadius = 10;
-                //     button_reconnect.color = "white";
-                //     button_reconnect.thickness = 4;
-                //     button_reconnect.fontSize = 40;
-                //     // button_reconnect.rotation = 0.2;
-                //     // button_reconnect.scaleY = 1.5;
-                //     button_reconnect.background = "green";
-                //     button_reconnect.onPointerDownObservable.add(function() {
-                //         connect_clicked();
-                //     });
-                //     advancedTexture_reconnect.addControl(button_reconnect);
-
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
                     arrow_mat.alpha = 0.3;
@@ -481,14 +366,6 @@
                         boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
                     box.material = boxMat;
 
-                // const ground_cylinder = BABYLON.MeshBuilder.CreateCylinder("ground_cylinder", {height: 0.1, diameter: 1000, tessellation: 100}, scene);
-                //     ground_cylinder.position = new BABYLON.Vector3(0, ground_y, 0);
-                //     ground_cylinder.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
-                //     const ground_cylinder_Mat = new BABYLON.StandardMaterial("ground_cylinder_Mat", scene);
-                //         ground_cylinder_Mat.alpha = 0.3;
-                //         ground_cylinder_Mat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //     ground_cylinder.material = ground_cylinder_Mat;
-
                 var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 2000);
                     plane_goal.position = new BABYLON.Vector3(0, ground_y + box_height, 100);
                 var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
@@ -499,22 +376,8 @@
                     button_goal.cornerRadius = 10;
                     button_goal.color = "Orange";
                     button_goal.thickness = 4;
-                    // button_goal.rotation = 0.2;
-                    // button_goal.scaleY = 1.5;
                     button_goal.background = "green";
-                    // button_goal.onPointerDownObservable.add(function() {
-                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                    // });
                     advancedTexture_goal.addControl(button_goal);
-                //
-                // const triangle = BABYLON.MeshBuilder.CreateCylinder("triangle", {diameter: 2.0, height: 0.5, tessellation: 3}, scene);
-                //     triangle.position = new BABYLON.Vector3(0, bottom, 5.5);
-                //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
-                //     const triMat = new BABYLON.StandardMaterial("triMat", scene);
-                //         triMat.alpha = 0.3;
-                //         triMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //     triangle.material = triMat;
-
 
                 let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
                 let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
@@ -535,95 +398,6 @@
 
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
-
-                // var plane = BABYLON.Mesh.CreatePlane("plane", 1);
-                //     plane.position = new BABYLON.Vector3(0, 0.5, 2);
-                //     const planeMat = new BABYLON.StandardMaterial("planeMat", scene);
-                //         planeMat.alpha = 1;
-                //         planeMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                //         plane.material = planeMat;
-                //     // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //
-                //     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                //     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                //         // var panel = new BABYLON.GUI.StackPanel();
-                //         // advancedTexture.addControl(panel);
-                //
-                //         var rect = new BABYLON.GUI.Rectangle('rect');
-                //             rect.background = 'green';
-                //             rect.alpha = 0.3;
-                //             rect.height = '500px';
-                //             rect.width = '1000px';
-                //             advancedTexture.addControl(rect);
-                //             // panel.addControl(rect);
-                //
-                //         var title = new BABYLON.GUI.TextBlock();
-                //             // if (document.getElementsByName('change_header')[0].checked) {
-                //             //     title.text = "Controlling Segway";
-                //             //     // header = 0x43;
-                //             // }
-                //             // else {
-                //             //     title.text = "Controlling Unitree\nA1";
-                //             //     // header = 0xa1;
-                //             // }
-                //             title.height = "500px";
-                //             title.width = "1000px"
-                //             title.color = "white";
-                //             title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                //             title.fontSize = "80";
-                //             // panel.addControl(title);
-                //     advancedTexture.addControl(title);
-                //
-                //
-                // var planeOpts = {
-            	// 		height: 9/4,
-            	// 		width: 16/4,
-            	// 		sideOrientation: BABYLON.Mesh.DOUBLESIDE
-            	// };
-            	// var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                //     ANote0Video.position = new BABYLON.Vector3(-5, 1, 9);
-                //     ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                // 	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
-                //     	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                //     	ANote0VideoMat.roughness = 1;
-                //     	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
-                // 	ANote0Video.material = ANote0VideoMat;
-
-
-                // planeOpts = {
-           		// 	height: 9/3,
-           		// 	width: 16/3,
-           		// 	sideOrientation: BABYLON.Mesh.DOUBLESIDE
-               	// };
-                //
-                // // const myPath = [
-        		// //  	new BABYLON.Vector3(0, 0, 0.0),
-        		// // 	new BABYLON.Vector3(0, 2, 0),
-            	// // ];
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateTube("segway_rear_view", {path: myPath, updatable: true}, scene);  //scene
-                //
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateCylinder("segway_rear_view", {arc: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
-                // // let segway_rear_view = BABYLON.MeshBuilder.CreateSphere("segway_rear_view", {diameterX: 40, diameterY: 40, sideOrientation: BABYLON.Mesh.DOUBLESIDE, segments: 64, slice: 0.5, arc: 0.5}, scene);
-                // var segway_rear_view = BABYLON.MeshBuilder.CreatePlane("segway_rear_view", planeOpts, scene);
-                //     segway_rear_view.position = new BABYLON.Vector3(0, 0, 10);
-                //     segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(Math.PI, Math.PI/2, 0);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, Math.PI/2, Math.PI/10);
-                //     // segway_rear_view.rotation = new BABYLON.Vector3(0, 3*Math.PI/4, 0);
-                // 	var segway_rear_view_mat = new BABYLON.StandardMaterial("segway_rear_view_mat", scene);
-                //     	segway_rear_view_texture = new BABYLON.VideoTexture("segway_rear_video", document.getElementById('remoteVideo_right'), scene, true, false);
-                //         segway_rear_view_texture.vScale = 0.4;
-                //         segway_rear_view_texture.uScale = 0.4;
-                //         segway_rear_view_texture.uOffset = 0.8;
-                //         // segway_rear_view_texture.vOffset = 1;
-                //         segway_rear_view_mat.diffuseTexture = segway_rear_view_texture;
-                //     	segway_rear_view_mat.roughness = 1;
-                //         segway_rear_view_mat.alpha = 1;
-                //     	segway_rear_view_mat.emissiveColor = new BABYLON.Color3.White();
-                // 	segway_rear_view.material = segway_rear_view_mat;
-                //     console.log(segway_rear_view);
-
-                // console.log(ANote0Video);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
                     planeb.position = new BABYLON.Vector3(-5, 1, 9);
@@ -660,201 +434,33 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
-                ////LOG^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                // var planelog = BABYLON.Mesh.CreatePlane("planelog", 4);
-                //     planelog.position = new BABYLON.Vector3(5, 4, 9);
-                //     planelog.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // planelog.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //
-                //     var advancedTexturelog = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planelog);
-                //
-                //     var buttonlog = BABYLON.GUI.Button.CreateSimpleButton("butlog", "start log");
-                //         buttonlog.onPointerDownObservable.add(() => {
-                //             if (!data_log) {
-                //                 vel_log_buff = '';
-                //                 data_log = true;
-                //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x46, 0, 0, 0]));
-                //                 buttonlog.textBlock.text = "stop log";
-                //             }
-                //             else {
-                //                 data_log = false;
-                //                 recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([0x47, 0, 0, 0]));
-                //
-                //                 buttonlog.textBlock.text = "start log";
-                //                 var blob =new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                //                 var link =document.createElement('a');
-                //                 link.href = URL.createObjectURL(blob);
-                //                 link.download = new Date() + "log.txt";
-                //                 link.click();
-                //             }
-                //         });
-                //         buttonlog.alpha = 0.7;
-                //         buttonlog.width = "1000px";
-                //         buttonlog.height = "200px";
-                //         buttonlog.color = "white";
-                //         buttonlog.cornerRadius = 100;
-                //         buttonlog.fontSize = 80;
-                //         buttonlog.background = "green";
-                //     advancedTexturelog.addControl(buttonlog);
-                ////LOG_________________________________________________________________________________________________\
-
                 sendjoy = true;
-
-                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                //     planeheader.position = new BABYLON.Vector3(5, -1.5, 7);
-                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/10, 0);
-                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                //         buttonheader = BABYLON.GUI.Button.CreateSimpleButton("but", "Segway Control OFF");
-                //             buttonheader.alphaSet = true;
-                //             buttonheader.alpha = 0.5;
-                //             // buttonheader.textBlock.alphaSet = true;
-                //             // buttonheader.textBlock.alpha = 1.0;
-                //             buttonheader.width = "1000px";
-                //             buttonheader.height = "200px";
-                //             buttonheader.color = "white";
-                //             buttonheader.cornerRadius = 100;
-                //             buttonheader.fontSize = 80;
-                //             buttonheader.background = "green";
-                //             console.log(buttonheader);
-                //             buttonheader.onPointerClickObservable.add(() => {
-                //                 if (sendjoy) {
-                //                     if (header == 0x43) {
-                //                         buttonheader.textBlock.text = "Segway Control OFF";
-                //                     }
-                //                     else if (header == 0xa1 || header == 0xaa) {
-                //                         buttonheader.textBlock.text = "A1 Control OFF";
-                //                     }
-                //                     sendjoy = false;
-                //                 }
-                //                 else {
-                //                     if (header == 0x43) {
-                //                         buttonheader.textBlock.text = "Segway Control ON";
-                //                     }
-                //                     else if (header == 0xa1 || header == 0xaa) {
-                //                         buttonheader.textBlock.text = "A1 Control ON";
-                //                     }
-                //                     sendjoy = true;
-                //                 }
-                //             });
-                //         advancedTextureheader.addControl(buttonheader);
-
-                // var planeheader = BABYLON.Mesh.CreatePlane("planeheader", 4);
-                //     planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
-                //     planeheader.rotation = new BABYLON.Vector3(0, Math.PI/6, 0);
-                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
-                //     var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
-                //         buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "left and right");
-                //             buttontwincam.alphaSet = true;
-                //             buttontwincam.alpha = 0.7;
-                //             // buttontwincam.textBlock.alphaSet = true;
-                //             // buttontwincam.textBlock.alpha = 1.0;
-                //             buttontwincam.width = "1000px";
-                //             buttontwincam.height = "200px";
-                //             buttontwincam.color = "white";
-                //             buttontwincam.cornerRadius = 100;
-                //             buttontwincam.fontSize = 80;
-                //             buttontwincam.background = "green";
-                //             buttontwincam.onPointerDownObservable.add(() => {
-                //                 console.log("button");
-                //                 if (header == 0x43) {
-                //                     switch (twincamMode) {
-                //                         case 1:
-                //                             twincamMode = 2;
-                //                             buttontwincam.textBlock.text = "left only";
-                //                             videoDome.texture = videoTexture_segway_left;
-                //                             break;
-                //                         case 2:
-                //                             twincamMode = 3;
-                //                             buttontwincam.textBlock.text = "right only";
-                //                             videoDome.texture = videoTexture_segway_right;
-                //                             break;
-                //                         case 3:
-                //                             buttontwincam.textBlock.text = "left and right";
-                //                             twincamMode = 1;
-                //                             break;
-                //                         default:
-                //
-                //                     }
-                //                 }
-                //             });
-                //         advancedTextureheader.addControl(buttontwincam);
-
 
                 let distance_past = 0, distance_current = 0;
 
                 let old_a1_auto_moving_status = 0, old_segway_latch = 3;
 
                 scene.registerBeforeRender(function () {
-                    // title.text = segway_info;
-                    // if (lin >= 0) {
-                    //     box.position = new BABYLON.Vector3((5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (5 +(a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                    //     triangle.position = new BABYLON.Vector3((5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                    //     triangle.rotation = new BABYLON.Vector3(0, -Math.PI/2 -Math.PI*ang/6.0, 0);
-                    // }
-                    // else {
-                    //     box.position = new BABYLON.Vector3((-5 + (a*lin + b*remote_lin)*length/2)*Math.sin(-Math.PI*ang/6.0), bottom, (-5 + (a*lin + b*remote_lin)*length/2)*Math.cos(-Math.PI*ang/6.0));
-                    //     box.scaling = new BABYLON.Vector3(1.0, 1.0, (lin + remote_lin)/2);
-                    //     box.rotation = new BABYLON.Vector3(0, -Math.PI*ang/6.0, 0);
-                    //     triangle.position = new BABYLON.Vector3((-5.5 + (a*lin + b*remote_lin)*length)*Math.sin(-Math.PI*ang/6.0), bottom, (-5.5 + (a*lin + b*remote_lin)*length)*Math.cos(-Math.PI*ang/6.0));
-                    //     triangle.rotation = new BABYLON.Vector3(0, Math.PI/2 -Math.PI*ang/6.0, 0);
-                    // }
-                    // if (camera.inputs.attached.pointers) {
-                    //     if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
-                    //     distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
-                    //     if (distance_current > distance_past) {
-                    //         cameraFovDegree = cameraFovDegree - 1;
-                    //     }
-                    //     if (distance_current < distance_past) {
-                    //         cameraFovDegree = cameraFovDegree + 1;
-                    //     }
-                    //     distance_past = distance_current;
-                    //     if (cameraFovDegree < 0) {
-                    //         cameraFovDegree = 1;
-                    //     }
-                    //     if (cameraFovDegree > 180) {
-                    //         cameraFovDegree = 179;
-                    //     }
-                    //     camera.fov = cameraFovDegree * (Math.PI / 180);
-                    // }
                     if (changeVideoFlag) {
                         changeVideoFlag = false;
                         if (header == 0x43) {
                             header = 0xa1;
-
                             document.getElementsByName('change_video')[0].checked = false;
                             document.getElementsByName('change_video')[1].checked = true;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = false;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = true;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway to a1\n';
-                            button.textBlock.text = "Change to Segway";
+                            button.textBlock.text = "Segway に変更";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
-                            // buttontwincam.alpha = 0;
-                            // segway_rear_view.material.alpha = 0;
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x01, 0x01, 0x01, 0x01]));
                         }
                         else {
                             header = 0x43;
-
                             document.getElementsByName('change_video')[0].checked = true;
                             document.getElementsByName('change_video')[1].checked = false;
-
-                            // localStream_for_segway.getAudioTracks()[0].enabled = true;
-                            // localStream_for_A1.getAudioTracks()[0].enabled = false;
-                            count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 to segway\n';
-                            videoDome.texture = videoTexture_segway_right;
+                            videoDome.texture = videoTexture_segway_left;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            button.textBlock.text = "Change to dog robot";
-                            // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
-                            // buttontwincam.alpha = 0.7;
-                            // segway_rear_view.material.alpha = 1;
+                            button.textBlock.text = "犬に変更";
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x09, 0x09, 0x09, 0x09]));
                         }
                         videoDome.material._alpha = 0;
@@ -876,25 +482,6 @@
                         button_goal.textBlock.text = 'Now moving';
                         button_goal.background = "blue";
                     }
-
-
-                    if (segway_latch == 4 && old_segway_latch == 3) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and segway auto moving\n';
-                    }
-                    if (segway_latch == 3 && old_segway_latch == 4) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway complete auto moving\n';
-                    }
-
-                    if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and a1 auto moving\n';
-                    }
-                    if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 complete auto moving\n';
-                    }
-
-                    old_segway_latch = segway_latch;
-                    old_a1_auto_moving_status = a1_auto_moving_status;
-
 
                     if (header == 0xa1 && a1_auto_moving_status != 0) {
                         let gx = goal_x;
@@ -1179,21 +766,6 @@
                                         lin = -axes.y;
                                     }
 
-                                    controller_log_count++;
-
-                                    if (controller_log_count >= controller_log_interval) {
-                                        if (header == 0x43 && segway_latch == 3) {
-                                            if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segywa joy axes x ' + axes.x + ' y ' + axes.y + '\n';
-                                            }
-                                        }
-                                        else if (header == 0xa1 && a1_auto_moving_status == 0) {
-                                            if (Math.abs(axes.x) > 0.05 && Math.abs(axes.y) > 0.05) {
-                                                count_change_space_lines += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 joy axes x ' + axes.x + ' y ' + axes.y + '\n';
-                                            }
-                                        }
-                                    }
-
                                     // dome_position_z = 2000*axes.y;
                                     // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                                     // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
@@ -1247,8 +819,6 @@
                         camera.alpha = -Math.PI / 2;
                         camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
-                            count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
-                            vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
                             setPos = 0;
                             setPosA = 0;
                             HMD_ang = 0;
@@ -1320,13 +890,11 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-
                             recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                             recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
-                            save_log();
                         }
                         console.log(state);
                     });
@@ -1365,25 +933,14 @@
                 .then((stream) => {
                     localStream = stream;
                     console.log(stream);
-                    sendrecv_segway_right.connect(localStream);
                     sendrecv_segway_left.connect(localStream);
                     sendrecv_A1_right.connect(localStream);
-
                     localStream.getAudioTracks()[0].enabled = true;
-
-                    // if (document.getElementsByName('mic_on_off')[0].checked) {
-                    //     localStream_for_A1.getAudioTracks()[0].enabled = true;
-                    //     localStream_for_segway.getAudioTracks()[0].enabled = true;
-                    // }
-                    // else {
-                    //     localStream_for_A1.getAudioTracks()[0].enabled = true;
-                    //     localStream_for_segway.getAudioTracks()[0].enabled = true;
-                    // }
                 })
                 .catch((e) => {
                      console.error(e);
                 });
-                recvonly_segway_rear.connect();
+                recvonly_segway_right.connect();
                 recvonly_robots_control.connect();
                 recvonly_chair_control.connect();
             }
@@ -1399,35 +956,10 @@
                 }
             }
 
-            function videoDecrimentalLoop() {
-                if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.2
-                }
-                else {
-                    changeVideoFlag = true;
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                    videoDecrimentalLoop_intervalID = null;
-                }
-            }
-
-            function videoIncrimentalLoop() {
-                if (videoDome.material._alpha < 1) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.1
-                }
-                else {
-                    videoDome.material._alpha = 1;
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                    videoIncrimentalLoop_intervalID = null;
-                    sendjoy = true;
-                }
-            }
 
             function soraRobotsDataChannelLoop() {
                 if (recvonly_robots_control.signalingSwitched && sendjoy) {
                     recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                    if (header == 0x43 && segway_latch == 3) {
-                        vel_log_buff = vel_log_buff + (Date.now()/1000 - 1661234080) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
-                    }
                 }
             }
 

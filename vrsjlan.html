@@ -107,47 +107,6 @@
         </script>
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
-            let expe_mode = 1
-            function start_stop_log_clicked() {
-                if (document.getElementsByName('start_stop_log')[0].checked) {
-                    // document.getElementsByName('start_stop_log')[0].checked = true;
-                    if (header == 0x43) {
-                        segway_drive_count = 0;
-                        a1_drive_count = -1;
-                    }
-                    else if (header == 0xa1) {
-                        segway_drive_count = -1;
-                        a1_drive_count = 0;
-                    }
-                    if (expe_mode == 1) {
-                        user_log_buff = 'Self Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
-                    }
-                    else if (expe_mode == 2) {
-                        user_log_buff = 'Half Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
-                    }
-                    else if (expe_mode == 3) {
-                        user_log_buff = 'Alternative Change Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
-                    }
-                }
-                else if (document.getElementsByName('start_stop_log')[1].checked) {
-                    // document.getElementsByName('start_stop_log')[1].checked = true;
-                    var blob = new Blob([user_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
-                    var link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    if (expe_mode == 1) {
-                        link.download = new Date() + "_self_user_log.txt";
-                    }
-                    else if (expe_mode == 2) {
-                        link.download = new Date() + "_half_user_log.txt";
-                    }
-                    else if (expe_mode == 3) {
-                        link.download = new Date() + "_alter_user_log.txt";
-                    }
-                    link.click();
-                }
-            }
-
-            var segway_info = '';
             const debug = true;
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
 
@@ -431,25 +390,6 @@
                         button_goal.textBlock.text = 'Now moving';
                         button_goal.background = "blue";
                     }
-
-
-                    if (segway_latch == 4 && old_segway_latch == 3) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and segway auto moving\n';
-                    }
-                    if (segway_latch == 3 && old_segway_latch == 4) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway complete auto moving\n';
-                    }
-
-                    if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & point out and a1 auto moving\n';
-                    }
-                    if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 complete auto moving\n';
-                    }
-
-                    old_segway_latch = segway_latch;
-                    old_a1_auto_moving_status = a1_auto_moving_status;
-
 
                     if (header == 0xa1 && a1_auto_moving_status != 0) {
                         let gx = goal_x;
@@ -854,6 +794,8 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
