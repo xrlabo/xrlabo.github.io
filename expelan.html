@@ -68,12 +68,12 @@
             let timer;
             document.addEventListener('keydown', (event) => {
                 if (segway_local_control_recvonly.dataChannel) {
-                    if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
                         segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     }
                 }
                 if (a1_local_control_recvonly.dataChannel) {
-                    if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
                         a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     }
                 }
@@ -542,7 +542,7 @@
                     scene
                 );
                 videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                videoDome_a1.setDirection(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.setDirection(new BABYLON.Vector3(-1, 0, 0));
                 videoDome_a1.material.alpha = 0;
                 // videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
@@ -901,7 +901,16 @@
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
-                                        recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                        if (segway_local_control_recvonly.dataChannel) {
+                                            if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                            }
+                                        }
+                                        if (a1_local_control_recvonly.dataChannel) {
+                                            if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                            }
+                                        }
                                     }
                                 });
                                 // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
