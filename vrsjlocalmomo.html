@@ -32,12 +32,12 @@
 
         <div id="remote-videos">
 
-            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;">
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
                 <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
             </video>
-            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
-            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
-            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="segway_control_dummy_video" style="display: none;"></video>
             <video id="a1_control_dummy_video" style="display: none;"></video>
         </div>
@@ -60,17 +60,17 @@
         </main>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
-		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: none;"></canvas>
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none;"></canvas>
         <script type="text/javascript">
             let timer;
             document.addEventListener('keydown', (event) => {
                 if (segway_local_control_recvonly.dataChannel) {
-                    if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
                         segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     }
                 }
                 if (a1_local_control_recvonly.dataChannel) {
-                    if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
                         a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     }
                 }
@@ -356,7 +356,7 @@
                             button.textBlock.text = "Segwayに変更";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, -1));
+                            videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
                             // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, false);
                             // buttontwincam.alpha = 0;
                             // segway_rear_view.material.alpha = 0;
@@ -365,7 +365,7 @@
                             header = 0x43;
                             videoDome.texture = videoTexture_segway_right;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, -1));
+                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "犬に変更";
                             // ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, false);
                             // buttontwincam.alpha = 0.7;
@@ -765,9 +765,13 @@
                                         }
                                         old_HMD_ang = HMD_ang;
                                         let send_value = setPos;
-                                        if (twincam_setPos_count > 15 && segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                        if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
+                                            if (segway_local_control_recvonly.dataChannel) {
+                                                if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                                }
+                                            }
                                         }
                                     }
                                     if (twincamMode == 1) {
