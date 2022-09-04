@@ -1,0 +1,522 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>SIGGRAPH Demo</title>
+    </head>
+
+    <body>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
+        <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font>
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
+        <!-- <button onclick="disconnect_clicked()">切断</button> -->
+        <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font>
+        <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
+
+        <div id="remote-videos">
+
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
+                <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
+            </video>
+            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+
+        </div>
+
+        <main style="margin: 0; padding: 0;">
+            <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
+                Unitree A1 status <br>
+                <font size="4">
+                    <pre><div id="a1ss"></div></pre>
+                </font>
+                <br>
+            </div>
+            <div class="SegwayStatusStamped" style="float: right; width: 50%; height: 250px; background-color: #eee;">
+                Segway RMP status <br>
+                <font size="4">
+                    <pre><div id="sgss"></div></pre>
+                </font>
+                <br>
+            </div>
+        </main>
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas> -->
+        <script type="text/javascript">
+            let timer;
+            document.addEventListener('keydown', (event) => {
+                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                console.log(event);
+                clearTimeout(timer);
+                document.body.style.backgroundColor ='#ff3030';
+                timer = setTimeout(bgWhite, 300);
+            });
+
+            function bgWhite() {
+                document.body.style.backgroundColor ='#ffffff';
+            }
+            let CLOSE_DATA_CHANNEL = false;
+        </script>
+        <script src="./getStats.js"></script>
+        <script type="text/javascript" src="./sora.js"></script>
+        <script type="text/javascript">
+            var count_change_space = 0;
+            var count_change_space_lines = '';
+            function start_stop_log_clicked() {
+                if (document.getElementsByName('start_stop_log')[0].checked) {
+                    // document.getElementsByName('start_stop_log')[0].checked = true;
+                    count_change_space_lines = 'Experience begin at ' + new Date() + ' & ' + (Date.now()/1000 - 1661234080) + '\n';
+                    vel_log_buff = 'Segway velocity log at ' +  new Date() + ' [epoch time angular velocity (deg/s), forward velocity (m/s)]';
+                }
+                else if (document.getElementsByName('start_stop_log')[1].checked) {
+                    // document.getElementsByName('start_stop_log')[1].checked = true;
+                    var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = new Date() + "_user_experience_log.txt";
+                    link.click();
+
+                    blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                    link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = new Date() + "velocitylog.txt";
+                    link.click();
+                }
+            }
+
+            function save_log() {
+                var blob = new Blob([count_change_space_lines], {type:"text"}); //配列に上記の文字列(str)を設定
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = new Date() + "_user_experience_log.txt";
+                link.click();
+
+                blob = new Blob([vel_log_buff], {type:"text"}); //配列に上記の文字列(str)を設定
+                link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = new Date() + "velocitylog.txt";
+                link.click();
+            }
+
+            var segway_info = '';
+            const debug = true;
+            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const options_video_recvonly = {
+                multistream : true,
+                video : true,
+                audio : true
+            };
+
+            const options_video_audio_sendrecv = {
+                multistream : true,
+                video : false,
+                audio : true
+            }
+
+            const options_control = {
+                multistream : true,
+                video : false,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
+            let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
+            let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
+            let recvonly_segway_rear = sora.recvonly("segway-rear", null, options_video_recvonly);
+            let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
+            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
+            let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+
+
+            let videoStream_id_left = null;
+            let videoStream_id_right = null;
+            let audioStream_id_right = null;
+            let videoStream_id_right_A1 = null;
+
+            sendrecv_segway_left.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(()=> {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_left').autoplay = true;
+                        document.querySelector('#remoteVideo_left').muted = false;
+                        videoStream_id_left = event.streams[0].id;
+                        getStats(sendrecv_segway_left.pc, function(result) {
+                            // previewGetStatsResult(this.pc, result);
+                            console.log(result);
+                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.recv.framerateMean);
+                        }, 500);
+                    }, 1000);
+                }
+            });
+
+
+            sendrecv_segway_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right').autoplay = true;
+                        document.querySelector('#remoteVideo_right').muted = false;
+                        videoStream_id_right = event.streams[0].id;
+                    }, 2500);
+                    return;
+                }
+
+                if (event.track.kind == 'audio') {
+                    // if (audioStream_id_right) {
+                    //     document.getElementById(`audio-${audioStream_id_right}`);
+                    //     audioStream_id_right = null;
+                    // }
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    document.getElementById('remote-videos').appendChild(audio);
+                    // audioStream_id_right = event.streams[0].id;
+                }
+
+            });
+
+            sendrecv_A1_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right_A1').autoplay = true;
+                        document.querySelector('#remoteVideo_right_A1').muted = false;
+                        getStats(sendrecv_A1_right.pc, function(result) {
+                            // previewGetStatsResult(this.pc, result);
+                            console.log(result);
+                            console.log('video width: ' + result.resolutions.recv.width + ' video latency: '+ result.video.latency + 'ms framerateMean ' + result.video.send.framerateMean);
+                        }, 500);
+                    }, 4000);
+                    return;
+                }
+            });
+
+            recvonly_segway_rear.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    document.querySelector('#remoteVideo_segway_rear').srcObject = event.streams[0];
+                    document.querySelector('#remoteVideo_segway_rear').autoplay = true;
+                    document.querySelector('#remoteVideo_segway_rear').muted = false;
+                    // mediaStream_id_right_A1 = event.streams[0].id;
+                    return;
+                }
+
+                // if (event.track.kind == 'audio') {
+                //     const audio = document.createElement('audio');
+                //     audio.id = "audio-" + event.streams[0].id;
+                //     audio.srcObject = event.streams[0];
+                //     audio.controls = true;
+                //     audio.autoplay = true;
+                //     document.getElementById('remote-videos').appendChild(audio);
+                // }
+
+            });
+
+            setInterval(observe_video, 10000);
+            function observe_video() {
+                if (document.getElementById(`audio-${videoStream_id_right}`)) {
+                    document.getElementById(`audio-${videoStream_id_right}`).remove();
+                }
+                // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
+                //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
+                // }
+            }
+
+
+
+
+            sendrecv_segway_left.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_left) {
+                    document.querySelector(`#remoteVideo_left`).srcObject = null;
+                    videoStream_id_left = null;
+                }
+            });
+
+            sendrecv_segway_right.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_right) {
+                    document.querySelector(`#remoteVideo_right`).srcObject = null;
+                    videoStream_id_right = null;
+                }
+                if (document.getElementById(`audio-${event.target.id}`)) {
+                    document.getElementById(`audio-${event.target.id}`).remove();
+                }
+            });
+
+            let segway_latch = 0;
+            let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
+            let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
+            let segway_time_since_epoch, segway_ang_vel, segway_lin_vel;
+            let segway_message_stamp = 0;
+
+            let a1_auto_moving_status = 0;
+            let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
+            let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
+            let a1_message_stamp = 0;
+
+            recvonly_robots_control.on('message', (event) => {
+                if (new Uint8Array(event.data)[0] == 0x45 || event.data.byteLength == 19) {
+                    segway_message_stamp++;
+                    segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
+                    segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
+                    segway_ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
+                    segway_latch = new Uint8Array(event.data)[13];
+                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
+                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
+                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
+                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + segway_ang_vel;
+                }
+                if (new Uint8Array(event.data)[0] == 0xa5 || event.data.byteLength == 8) {
+                    a1_message_stamp++;
+                    a1_auto_moving_status = new Uint8Array(event.data)[1];
+                    a1_position_x = (new Int16Array([new Uint8Array(event.data)[2] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[3]])[0] )/100.0;
+                    a1_position_z = (new Int16Array([new Uint8Array(event.data)[4] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[5]])[0] )/100.0;
+                    a1_position_rot = (new Int16Array([new Uint8Array(event.data)[6] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[7]])[0] )/100.0;
+                    document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot;
+                }
+            });
+
+            var header = 0x43, lin = 0, ang = 0, side = 0;
+            var remote_time = 0, remote_ang = 0, remote_lin = 0;
+
+            // recvonly_robots_control.on('message', (event) => {
+            //     if (event.data.byteLength == 12) {
+            //         remote_time = (new Int32Array([new Uint8Array(event.data)[0] << 24])[0] + new Int32Array([new Uint8Array(event.data)[1] << 16])[0] + new Int32Array([new Uint8Array(event.data)[2] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[3]])[0] )/1000.0 ;
+            //         remote_lin = (new Int32Array([new Uint8Array(event.data)[4] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[5] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[6] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[7]])[0] )/10000.0 ;
+            //         remote_ang = (new Int32Array([new Uint8Array(event.data)[8] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[9] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[10] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[11]])[0] )/10000.0 ;
+            //
+            //         segway_info = 'Forward speed(m/s)\n' + remote_lin + '\nRotate speed(deg/s)\n' + remote_ang;
+            //         // document.getElementById("sgss").innerHTML = '時刻(s) ' + remote_time + '\n並進速度(m/s) ' + remote_lin + '\n旋回速度(deg/s)' + remote_ang;
+            //     }
+            // });
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+			let localStream;
+            function connect_clicked() {
+                navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then((stream) => {
+                    localStream = stream;
+                    console.log(stream);
+                    sendrecv_segway_right.connect(localStream);
+                    sendrecv_segway_left.connect(localStream);
+                    sendrecv_A1_right.connect(localStream);
+
+                    localStream.getAudioTracks()[0].enabled = true;
+
+                    // if (document.getElementsByName('mic_on_off')[0].checked) {
+                    //     localStream_for_A1.getAudioTracks()[0].enabled = true;
+                    //     localStream_for_segway.getAudioTracks()[0].enabled = true;
+                    // }
+                    // else {
+                    //     localStream_for_A1.getAudioTracks()[0].enabled = true;
+                    //     localStream_for_segway.getAudioTracks()[0].enabled = true;
+                    // }
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+                recvonly_segway_rear.connect();
+                recvonly_robots_control.connect();
+                recvonly_chair_control.connect();
+            }
+
+            connect_clicked();
+
+            function mic_on_off_clicked() {
+                if (document.getElementsByName('mic_on_off')[0].checked) {
+                    localStream.getAudioTracks()[0].enabled = true;
+                }
+                else {
+                    localStream.getAudioTracks()[0].enabled = false;
+                }
+            }
+
+            function videoDecrimentalLoop() {
+                if (videoDome.material._alpha > 0) {
+                    videoDome.material._alpha = videoDome.material._alpha - 0.2
+                }
+                else {
+                    changeVideoFlag = true;
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                    videoDecrimentalLoop_intervalID = null;
+                }
+            }
+
+            function videoIncrimentalLoop() {
+                if (videoDome.material._alpha < 1) {
+                    videoDome.material._alpha = videoDome.material._alpha + 0.1
+                }
+                else {
+                    videoDome.material._alpha = 1;
+                    clearInterval(videoIncrimentalLoop_intervalID);
+                    videoIncrimentalLoop_intervalID = null;
+                    sendjoy = true;
+                }
+            }
+
+            function soraRobotsDataChannelLoop() {
+                if (recvonly_robots_control.signalingSwitched && sendjoy) {
+                    recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    if (header == 0x43 && segway_latch == 3) {
+                        vel_log_buff = vel_log_buff + (Date.now()/1000 - 1661234080) + '  ' + (-40.0*ang) + ' ' + 0.4*lin + ' ' + segway_time_since_epoch + ' ' + segway_ang_vel + ' ' + segway_lin_vel + '\n';
+                    }
+                }
+            }
+
+            let old_segway_message_stamp = 0;
+            let old_a1_message_stamp = 0;
+            let quit_count = 0;
+
+            function soraChairDataChannelLoop() {
+                if (recvonly_chair_control.signalingSwitched && sendjoy) {
+                    if (header == 0x43) {
+                        if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
+                            if (segway_message_stamp > old_segway_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_segway_message_stamp = segway_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count < 3000) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                segway_latch = 3;
+                            }
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
+                    if (header == 0xa1) {
+                        if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.2 || Math.abs(lin) > 0.2)) || a1_auto_moving_status != 0) {
+                            if (a1_message_stamp > old_a1_message_stamp) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                                old_a1_message_stamp = a1_message_stamp;
+                                quit_count = 0;
+                            }
+                            else if (quit_count < 3000) {
+                                quit_count++;
+                            }
+                            else {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                                a1_auto_moving_status = 0;
+                            }
+                        }
+                        else {
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                        }
+                    }
+                }
+            }
+
+            setInterval(observe_CLOSE_DATA_CHANNEL, 10000);
+            function observe_CLOSE_DATA_CHANNEL() {
+                if (CLOSE_DATA_CHANNEL) {
+                    connect_clicked();
+                }
+            }
+
+
+            // joystick
+
+            window.addEventListener("gamepadconnected", function(e) {
+                // gp = navigator.getGamepads()[e.gamepad.index];
+                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                e.gamepad.index, e.gamepad.id,
+                e.gamepad.buttons.length, e.gamepad.axes.length);
+                setInterval(gameLoop, 1000.0/10.0);
+                gameLoop();
+            });
+
+            let start = false;
+            function gameLoop() {
+                let gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+                let gp = gamepads[0];
+                if (gp != null) {
+                    console.log(gp.axes);
+                    side = -gp.axes[2];
+                    // side = gp.buttons[6].value - gp.buttons[7].value;
+                    // console.log(gp.buttons);
+                    ang = -gp.axes[0];
+                    lin = -gp.axes[3];
+
+                    if (header == 0xa1) {
+                        ang = -gp.axes[0];
+                        lin = -gp.axes[1];
+                        side = -gp.axes[2];
+                    }
+                    // document.getElementById('leftright').value = 127*ang;
+                    // document.getElementById('leftright_out').innerHTML = (127*ang).toFixed(0);
+                    // document.getElementById('frontrear').value = 127*lin;
+                    // document.getElementById('frontrear_out').innerHTML = (127*lin).toFixed(0);
+                    // document.getElementById('side').value = 127*side;
+                    // document.getElementById('side_out').innerHTML = (127*side).toFixed(0);
+
+                    if (recvonly_robots_control.signalingSwitched) {
+                        // dataChannel.send(new TextEncoder().encode("jyja" + ang.toFixed(3) + "," + lin.toFixed(3) + "\n"));
+                        // const buffer = new ArrayBuffer(1);
+                        // console.log(buffer);
+                        if (gp.buttons[2].value && header == 0xaa) {
+                            header = 0xa1;
+                            console.log(header);
+                        }
+                        if (gp.buttons[3].value && header == 0xa1) {
+                            header = 0xaa;
+                            console.log(header);
+                        }
+                        if (gp.buttons[1].value) {
+                            sendjoy = true;
+                            if (soraRobotsDataChannelLoop_intervalID == null) {
+                                soraRobotsDataChannelLoop_intervalID = setInterval(soraRobotsDataChannelLoop, 1000.0/20.0);
+                                soraRobotsDataChannelLoop();
+                            }
+                            return;
+                        }
+                        if (gp.buttons[0].value) {
+                            sendjoy = false;
+                            if (soraRobotsDataChannelLoop_intervalID != null) {
+                                clearInterval(soraRobotsDataChannelLoop_intervalID);
+                                soraRobotsDataChannelLoop_intervalID = null;
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
