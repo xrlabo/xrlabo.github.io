@@ -106,7 +106,7 @@
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
             const debug = true;
-            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const sora = Sora.connection("ws://192.168.10.64:5000/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -117,7 +117,7 @@
                 multistream : true,
                 video : false,
                 audio : true
-            }
+            };
 
             const options_control = {
                 multistream : true,
@@ -131,6 +131,7 @@
                     }
                 ]
             };
+
 
             let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
             let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
@@ -387,6 +388,7 @@
                     scene
                 );
 
+
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
                 videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
 
@@ -424,7 +426,6 @@
                         button.fontSize = 80;
                         button.background = "green";
                     advancedTextureb.addControl(button);
-
                 sendjoy = true;
 
                 let distance_past = 0, distance_current = 0;
@@ -920,6 +921,7 @@
 
                 return scene;
             }
+
 
 			// Create scene.
 			scene = createScene();
