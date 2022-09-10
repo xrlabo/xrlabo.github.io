@@ -35,7 +35,8 @@
         <script type="text/javascript">
             var segway_info = '';
             const debug = true;
-            const sora = Sora.connection("wss://192.168.11.64:5000/signaling", debug);
+            // const sora = Sora.connection("wss://192.168.11.64:5000/signaling", debug);
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -175,7 +176,7 @@
             let dome_direction_z = 0;
 
 
-            let epos_send_count = 0;
+            let twincam_setPos_count = 0;
             let setPos = 0;
             let setPosA = 0;
             let HMD_ang = 0;
@@ -344,10 +345,10 @@
                                     }
                                     if (twincamMode == 1) {
                                         if (xr_camera.isLeftCamera) {
-                                            videoDome.texture = videoTexture_segway_left;
+                                            videoDome.texture = videoTexture_left;
                                         }
                                         else {
-                                            videoDome.texture = videoTexture_segway_right;
+                                            videoDome.texture = videoTexture_right;
                                         }
                                     }
                                 }
