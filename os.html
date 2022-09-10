@@ -37,8 +37,8 @@
         <script type="text/javascript">
             var segway_info = '';
             const debug = true;
-            // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
-            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            // const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -64,7 +64,7 @@
                 ]
             };
 
-            let recvonly_left = sora.recvonly("mobile-twincam-left", null, options_video_recvonly);
+            let sendrecv_left = sora.sendrecv("mobile-twincam-left", null, options_video_audio_sendrecv);
             let sendrecv_right = sora.sendrecv("mobile-twincam-right", null, options_video_audio_sendrecv);
             let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
 
@@ -77,7 +77,7 @@
             let videoStream_id_right = null;
             let audioStream_id_right = null;
 
-            recvonly_left.on("track", (event) => {
+            sendrecv_left.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
@@ -127,7 +127,7 @@
 
 
 
-            recvonly_left.on("removetrack", (event) => {
+            sendrecv_left.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
@@ -575,12 +575,12 @@
                         localStream = stream;
                         console.log(stream);
                         sendrecv_right.connect(stream);
+                        sendrecv_left.connect(stream);
                         localStream.getAudioTracks()[0].enabled = true;
                     })
                     .catch((e) => {
                          console.error(e);
                     });
-                    recvonly_left.connect();
                     recvonly_right_A1.connect();
                     a1_local_control_recvonly.connect();
                     mobile_left_moter.connect();
