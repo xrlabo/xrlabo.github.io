@@ -5,6 +5,7 @@
 		<!-- Embed latest version of Babylon.js. -->
 		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
         <script src="./Babylon.js/babylon.js"></script>
+        <!-- <script src="./Babylon.js/babylon.js.map"></script> -->
 
 		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
 		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -21,9 +22,9 @@
 
     <body>
         <div id="remote-videos">
-            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
-            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
-            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo_left" autoplay controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo_right" autoplay controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo_right_A1" autoplay controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
         </div>
 
 
@@ -37,8 +38,8 @@
         <script type="text/javascript">
             var segway_info = '';
             const debug = true;
-            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
-            // const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -64,15 +65,15 @@
                 ]
             };
 
-            let sendrecv_left = sora.sendrecv("mobile-twincam-left", null, options_video_audio_sendrecv);
-            let sendrecv_right = sora.sendrecv("mobile-twincam-right", null, options_video_audio_sendrecv);
+            let recvonly_left = sora.recvonly("mobile-twincam-left", null, options_video_recvonly);
+            let recvonly_right = sora.recvonly("mobile-twincam-right", null, options_video_recvonly);
             let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
 
             let videoStream_id_left = null;
             let videoStream_id_right = null;
             let audioStream_id_right = null;
 
-            sendrecv_left.on("track", (event) => {
+            recvonly_left.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
@@ -81,12 +82,12 @@
                 }
             });
 
-            sendrecv_right.on("track", (event) => {
+            recvonly_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
                     document.querySelector('#remoteVideo_right').autoplay = true;
-                    document.querySelector('#remoteVideo_right').muted = false;
+                    // document.querySelector('#remoteVideo_right').muted = false;
                     videoStream_id_right = event.streams[0].id;
                     return;
                 }
@@ -122,15 +123,15 @@
 
 
 
-            sendrecv_left.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_left) {
+            recvonly_left.on("removetrack", (event) => {
+                if (event.target.id == videoStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
                 }
             });
 
-            sendrecv_right.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_right) {
+            recvonly_right.on("removetrack", (event) => {
+                if (event.target.id == videoStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
                     videoStream_id_right = null;
                 }
@@ -300,14 +301,14 @@
                         advancedTextureheader.addControl(buttontwincam);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 1);
-                    planeb.position = new BABYLON.Vector3(-1, -3, 2);
-                    planeb.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
+                    planeb.position = new BABYLON.Vector3(0, 0, 4);
+                    planeb.rotation = new BABYLON.Vector3(0, 0, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "A1に変更");
+                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
                         button.onPointerDownObservable.add(() => {
                             if (header == 0x43) {
                                 button.textBlock.text = "手持ちに変更";
@@ -317,7 +318,7 @@
                                 videoDome.texture = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
                             }
                             else {
-                                button.textBlock.text = "A1に変更";
+                                button.textBlock.text = "犬に変更";
                                 buttontwincam.isEnabled = true;
                                 buttontwincam.isVisible = true;
                                 header = 0x43;
@@ -377,16 +378,18 @@
             }
 
 			// Create scene.
-			scene = createScene();
-			scene.then(function (returnedScene) {
-				sceneToRender = returnedScene;
-			});
-            engine.runRenderLoop(function () {
-				if (sceneToRender) {
-					sceneToRender.render();
-				}
-			});
 
+            setTimeout(() => {
+                scene = createScene();
+    			scene.then(function (returnedScene) {
+    				sceneToRender = returnedScene;
+    			});
+                engine.runRenderLoop(function () {
+    				if (sceneToRender) {
+    					sceneToRender.render();
+    				}
+    			});
+            }, 500);
 
 			// Handle browser resize.
 			window.addEventListener('resize', function () {
@@ -396,21 +399,9 @@
             let localStream;
 
             function connect_clicked() {
-                if (!sendrecv_right.signalingSwitched) {
-                    navigator.mediaDevices
-                    .getUserMedia({ audio: true, video: false })
-                    .then((stream) => {
-                        localStream = stream;
-                        console.log(stream);
-                        sendrecv_right.connect(stream);
-                        sendrecv_left.connect(stream);
-                        localStream.getAudioTracks()[0].enabled = true;
-                    })
-                    .catch((e) => {
-                         console.error(e);
-                    });
-                    recvonly_right_A1.connect();
-                }
+                recvonly_left.connect();
+                recvonly_right.connect();
+                recvonly_right_A1.connect();
             }
 
             connect_clicked();
