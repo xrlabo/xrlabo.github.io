@@ -68,8 +68,7 @@
             let sendrecv_right = sora.sendrecv("mobile-twincam-right", null, options_video_audio_sendrecv);
             let recvonly_right_A1 = sora.recvonly("twincam-right-A1", null, options_video_recvonly);
 
-            let mobile_left_moter = new localrecvonly("remoteVideo_left", "ws://192.168.11.11:8080/ws");
-            let mobile_right_moter = new localrecvonly("remoteVideo_right", "ws://192.168.11.12:8080/ws");
+            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
 
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
 
@@ -500,8 +499,7 @@
 
                                         if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
-                                            mobile_left_moter.dataChannel.send('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
-                                            mobile_right_moter.dataChannel.send('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
                                         }
                                     }
                                     if (twincamMode == 1) {
@@ -583,8 +581,7 @@
                     });
                     recvonly_right_A1.connect();
                     a1_local_control_recvonly.connect();
-                    mobile_left_moter.connect();
-                    mobile_right_moter.connect();
+                    recvonly_robots_control.connect();
                 }
             }
 
