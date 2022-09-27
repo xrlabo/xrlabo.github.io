@@ -318,6 +318,7 @@
 
             const debug = true;
             const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
 
             const options_control = {
                 multistream : true,
@@ -341,11 +342,101 @@
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
             let user_audio_sendonly = sora.sendonly("user-audio", null, options_audio_sendonly);
 
-            let segway_local_video_recvonly_left = new localrecvonly("remoteVideo_left", "ws://192.168.11.149:8081/ws");
-            let a1_local_video_recvonly_right = new localrecvonly("remoteVideo_right_A1", "ws://192.168.11.153:8081/ws");
+            let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
+            let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
+            let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
+
+            // let segway_local_video_recvonly_left = new localrecvonly("remoteVideo_left", "ws://192.168.11.149:8081/ws");
+            // let a1_local_video_recvonly_right = new localrecvonly("remoteVideo_right_A1", "ws://192.168.11.153:8081/ws");
 
             let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
+
+
+            let videoStream_id_left = null;
+            let videoStream_id_right = null;
+            let audioStream_id_right = null;
+            let videoStream_id_right_A1 = null;
+
+            sendrecv_segway_left.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(()=> {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_left').autoplay = true;
+                        document.querySelector('#remoteVideo_left').muted = false;
+                        videoStream_id_left = event.streams[0].id;
+                    }, 1000);
+                }
+
+                if (event.track.kind == 'audio') {
+                    // if (audioStream_id_right) {
+                    //     document.getElementById(`audio-${audioStream_id_right}`);
+                    //     audioStream_id_right = null;
+                    // }
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    document.getElementById('remote-videos').appendChild(audio);
+                    // audioStream_id_right = event.streams[0].id;
+                }
+            });
+
+            ecvonly_segway_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right').autoplay = true;
+                        document.querySelector('#remoteVideo_right').muted = false;
+                        videoStream_id_right = event.streams[0].id;
+                    }, 1500);
+                    return;
+                }
+            });
+
+            sendrecv_A1_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right_A1').autoplay = true;
+                        document.querySelector('#remoteVideo_right_A1').muted = false;
+                    }, 4000);
+                    return;
+                }
+            });
+
+            setInterval(observe_video, 10000);
+            function observe_video() {
+                if (document.getElementById(`audio-${videoStream_id_left}`)) {
+                    document.getElementById(`audio-${videoStream_id_left}`).remove();
+                }
+                // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
+                //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
+                // }
+            }
+
+            sendrecv_segway_left.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_left) {
+                    document.querySelector(`#remoteVideo_left`).srcObject = null;
+                    videoStream_id_left = null;
+                }
+            });
+
+            recvonly_segway_right.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_right) {
+                    document.querySelector(`#remoteVideo_right`).srcObject = null;
+                    videoStream_id_right = null;
+                }
+                if (document.getElementById(`audio-${event.target.id}`)) {
+                    document.getElementById(`audio-${event.target.id}`).remove();
+                }
+            });
 
 
             user_audio_sendonly.on("track", (event) => {
@@ -1068,7 +1159,10 @@
                 .then((stream) => {
                     localStream = stream;
                     console.log(stream);
-                    user_audio_sendonly.connect(stream);
+                    console.log(stream);
+                    sendrecv_segway_left.connect(localStream);
+                    sendrecv_A1_right.connect(localStream);
+                    user_audio_sendonly.connect(localStream);
                     if (document.getElementsByName('mic_on_off')[0].checked) {
                         localStream.getAudioTracks()[0].enabled = true;
                     }
@@ -1082,12 +1176,12 @@
 
                 recvonly_chair_control.connect();
 
-                setTimeout(() => {
-                    segway_local_video_recvonly_left.connect();
-                }, 500);
-                setTimeout(() => {
-                    a1_local_video_recvonly_right.connect();
-                }, 1000);
+                // setTimeout(() => {
+                //     segway_local_video_recvonly_left.connect();
+                // }, 500);
+                // setTimeout(() => {
+                //     a1_local_video_recvonly_right.connect();
+                // }, 1000);
 
                 setTimeout(() => {
                     a1_local_control_recvonly.connect();
