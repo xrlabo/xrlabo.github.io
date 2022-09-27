@@ -339,6 +339,18 @@
                 audio : true
             }
 
+            const options_video_audio_sendrecv = {
+                multistream : true,
+                video : false,
+                audio : true
+            }
+
+            const options_video_recvonly = {
+                multistream : true,
+                video : true,
+                audio : true
+            };
+
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
             let user_audio_sendonly = sora.sendonly("user-audio", null, options_audio_sendonly);
 
@@ -385,7 +397,7 @@
                 }
             });
 
-            ecvonly_segway_right.on("track", (event) => {
+            recvonly_segway_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
