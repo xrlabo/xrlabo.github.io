@@ -1175,12 +1175,13 @@
                     sendrecv_segway_left.connect(localStream);
                     sendrecv_A1_right.connect(localStream);
                     user_audio_sendonly.connect(localStream);
-                    if (document.getElementsByName('mic_on_off')[0].checked) {
-                        localStream.getAudioTracks()[0].enabled = true;
-                    }
-                    else {
-                        localStream.getAudioTracks()[0].enabled = false;
-                    }
+                    // if (document.getElementsByName('mic_on_off')[0].checked) {
+                    //     localStream.getAudioTracks()[0].enabled = true;
+                    // }
+                    // else {
+                    //     localStream.getAudioTracks()[0].enabled = false;
+                    // }
+                    localStream.getAudioTracks()[0].enabled = true;
                 })
                 .catch((e) => {
                      console.error(e);
