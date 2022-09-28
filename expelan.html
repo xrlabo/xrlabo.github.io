@@ -1245,45 +1245,62 @@
 
             function soraChairDataChannelLoop() {
                 if (recvonly_chair_control.signalingSwitched) {
-                    if (header == 0x43) {
-                        if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
-                            if (segway_message_stamp > old_segway_message_stamp) {
-                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
-                                old_segway_message_stamp = segway_message_stamp;
-                                quit_count = 0;
-                            }
-                            else if (quit_count < 3000) {
-                                quit_count++;
-                            }
-                            else {
-                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                                segway_latch = 3;
-                            }
-                        }
-                        else {
-                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                        }
+                //     if (header == 0x43) {
+                //         if ((segway_latch == 3 && (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15)) || segway_latch == 4 ) {
+                //             if (segway_message_stamp > old_segway_message_stamp) {
+                //                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                //                 old_segway_message_stamp = segway_message_stamp;
+                //                 quit_count = 0;
+                //             }
+                //             else if (quit_count < 3000) {
+                //                 quit_count++;
+                //             }
+                //             else {
+                //                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                //                 segway_latch = 3;
+                //             }
+                //         }
+                //         else {
+                //             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                //         }
+                //     }
+                //     if (header == 0xa1) {
+                //         if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.2 || Math.abs(lin) > 0.2)) || a1_auto_moving_status != 0) {
+                //             if (a1_message_stamp > old_a1_message_stamp) {
+                //                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                //                 old_a1_message_stamp = a1_message_stamp;
+                //                 quit_count = 0;
+                //             }
+                //             else if (quit_count < 3000) {
+                //                 quit_count++;
+                //             }
+                //             else {
+                //                 recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                //                 a1_auto_moving_status = 0;
+                //             }
+                //         }
+                //         else {
+                //             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                //         }
+                //     }
+                // }
+                if (header == 0x43) {
+                    if (Math.abs(lin) > 0.1 || Math.abs(ang) > 0.1) {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
                     }
-                    if (header == 0xa1) {
-                        if ((a1_auto_moving_status == 0 && (Math.abs(ang) > 0.2 || Math.abs(lin) > 0.2)) || a1_auto_moving_status != 0) {
-                            if (a1_message_stamp > old_a1_message_stamp) {
-                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
-                                old_a1_message_stamp = a1_message_stamp;
-                                quit_count = 0;
-                            }
-                            else if (quit_count < 3000) {
-                                quit_count++;
-                            }
-                            else {
-                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                                a1_auto_moving_status = 0;
-                            }
-                        }
-                        else {
-                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                        }
+                    else {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
                     }
                 }
+                if (header == 0xa1) {
+                    if (Math.abs(ang) > 0.1 || Math.abs(lin) > 0.1) {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                    }
+                    else {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                    }
+                }
+            }
             }
 
             setInterval(observe_CLOSE_DATA_CHANNEL, 10000);
