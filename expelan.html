@@ -42,7 +42,8 @@
             <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
             <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
-
+            <video id="segway_control_dummy_video" style="display: none;"></video>
+            <video id="a1_control_dummy_video" style="display: none;"></video>
         </div>
 
         <main style="margin: 0; padding: 0;">
@@ -1127,9 +1128,17 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-
-                            recvonly_robots_control.sendMessage("#sora-devtools", new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0, 0]));
+                            if (segway_local_control_recvonly.dataChannel) {
+                                if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                                }
+                            }
+                            if (a1_local_control_recvonly.dataChannel) {
+                                if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                                    a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
+                                }
+                            }
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
