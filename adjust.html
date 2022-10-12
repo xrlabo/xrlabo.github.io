@@ -59,8 +59,24 @@
         </main>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+        <canvas id="imageCanvas" style="border: 3px solid gray; touch-action: none; display: inline-block;"></canvas>
+        <canvas id="colorCanvas" style="border: 3px solid gray; touch-action: none; display: inline-block;"></canvas>
 		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
         <script type="text/javascript">
+            function createImage(){
+                const canvas = document.getElementById('imageCanvas');
+                const ctx = canvas.getContext('2d'); //canvasの描画モードを2Dに指定
+
+                //videoの縦幅横幅を取得
+                const videoElm = document.getElementById('remoteVideo_left'); //相手側の映像要素
+                const w = videoElm.offsetWidth;
+                const h = videoElm.offsetHeight;
+                canvas.setAttribute("width", w);
+                canvas.setAttribute("height", h);
+                ctx.drawImage(videoElm, 0, 0, w, h);
+                let imageData = ctx.getImageData(0,0, w, h);
+                console.log(imageData);
+            }
             let timer;
             document.addEventListener('keydown', (event) => {
                 if (segway_local_control_recvonly.dataChannel) {
@@ -106,7 +122,7 @@
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
             const debug = true;
-            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const sora = Sora.connection("ws://127.0.0.1:5000/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -294,6 +310,13 @@
                 videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
             }
 
+            let manager;
+            let panel;
+            let slider1;
+            let slider;
+            let plane_slider;
+            let phi = 0, mu = 0;
+
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -322,6 +345,66 @@
                 if (camera.inputs.attached.mousewheel) {
                     camera.inputs.attached.mousewheel.detachControl();
                 }
+
+                // // Create the 3D UI manager
+                // manager = new BABYLON.GUI.GUI3DManager(scene);
+                //
+                // // Create a horizontal stack panel
+                // panel = new BABYLON.GUI.StackPanel3D();
+                // manager.addControl(panel);
+                // panel.position = new BABYLON.Vector3(0, 0, 5);
+                // panel.margin = 0.05;
+                // panel.isVertical = true;
+                //
+                // slider1 = new BABYLON.GUI.Slider3D("slider1");
+                //     panel.addControl(slider1);
+                //     slider1.minimum = 0;
+                //     slider1.maximum = 2;
+                //     slider1.scaling.x = 2;
+                //     slider1.value = 1;
+                //     slider1.onValueChangedObservable.add(function (value) {
+                //         let phi = 30/180*(value-1)*Math.PI;
+                //         videoDome.setDirection(new BABYLON.Vector3(Math.cos(phi), 0, Math.sin((phi))));
+                //     });
+
+
+                plane_slider = BABYLON.Mesh.CreatePlane("plane_slider", 10);
+                    plane_slider.position = new BABYLON.Vector3(0, 0, 5);
+                var advancedTexture_slider = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_slider);
+                panel = new BABYLON.GUI.StackPanel();
+                panel.width = "220px";
+                panel.isVertical = false;
+                // panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                // panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                advancedTexture_slider.addControl(panel);
+
+                    slider1 = new BABYLON.GUI.Slider();
+                    slider1.isVertical = true;
+                    slider1.minimum = 0;
+                    slider1.maximum = 2;
+                    slider1.value = 1;
+                    slider1.height = "200px";
+                    slider1.width = "20px";
+                    slider1.onValueChangedObservable.add(function(value) {
+                        // let phi = 30/180*(value-1)*Math.PI;
+                        // videoDome.setDirection(new BABYLON.Vector3(Math.cos(phi), 0, Math.sin((phi))));
+                        // let phi = 0;
+                        mu = (value-1)*Math.PI/2;
+                        videoDome.rotation = new BABYLON.Vector3(mu, -phi + Math.PI/2, 0);
+                    });
+                    panel.addControl(slider1);
+                    let slider2 = new BABYLON.GUI.Slider();
+                    slider2.isVertical = false;
+                    slider2.minimum = 0;
+                    slider2.maximum = 2;
+                    slider2.value = 1;
+                    slider2.height = "20px";
+                    slider2.width = "200px";
+                    slider2.onValueChangedObservable.add(function(value) {
+                        phi = (value-1)*Math.PI/2;
+                        videoDome.rotation = new BABYLON.Vector3(mu, -phi + Math.PI/2, 0);
+                    });
+                    panel.addControl(slider2);
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
                     arrow_mat.alpha = 0.3;
@@ -388,7 +471,7 @@
                 );
 
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                // videoDome.rotation = new BABYLON.Vector3(0, 0, 0);
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
                     planeb.position = new BABYLON.Vector3(-5, 1, 9);
@@ -441,8 +524,7 @@
                             button.textBlock.text = "Segway に変更";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            // videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                            videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
                         }
                         else {
                             header = 0x43;
