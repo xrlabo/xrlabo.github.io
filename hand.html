@@ -16,7 +16,7 @@
 
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
-        <title>HCII Demo at New York</title>
+        <title>Bang Kong Virtural Tour</title>
     </head>
 
     <body>
@@ -163,18 +163,6 @@
             let cameraFovDegree = 60;
 
             let videoDome;
-            let videoDecrimentalLoop_intervalID = null;
-            let videoIncrimentalLoop_intervalID = null;
-            let changeVideoFlag = false;
-
-            let dome_position_x = 0;
-            let dome_position_y = 0;
-            let dome_position_z = 0;
-
-            let dome_direction_x = 0;
-            let dome_direction_y = 0;
-            let dome_direction_z = 0;
-
 
             let twincam_setPos_count = 0;
             let setPos = 0;
@@ -230,7 +218,7 @@
 
                 videoDome = new BABYLON.VideoDome(
                     'VideoDome',
-                    document.getElementById('remoteVideo_right'),
+                    document.getElementById('remoteVideo_left'),
                     {
                         resolution: 64,
                         // clickToPlay: true,
@@ -241,8 +229,51 @@
                     scene
                 );
 
-                videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+
+                var planeheader = BABYLON.Mesh.CreatePlane("planetwincammode", 1);
+                    // planeheader.position = new BABYLON.Vector3(5, 2.7, 9);
+                    planeheader.position = new BABYLON.Vector3(0, -1, 2);
+                    planeheader.rotation = new BABYLON.Vector3(Math.PI/2 - Math.PI/10 , 0, 0);
+                    // planeheader.rotation = new BABYLON.Vector3(0, 0, 0);
+                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                    var advancedTextureheader = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeheader);
+                        buttontwincam = BABYLON.GUI.Button.CreateSimpleButton("but", "両眼状態");
+                            buttontwincam.alphaSet = true;
+                            buttontwincam.alpha = 0.7;
+                            // buttontwincam.textBlock.alphaSet = true;
+                            // buttontwincam.textBlock.alpha = 1.0;
+                            buttontwincam.width = "500px";
+                            buttontwincam.height = "200px";
+                            buttontwincam.color = "white";
+                            buttontwincam.cornerRadius = 100;
+                            buttontwincam.fontSize = 80;
+                            buttontwincam.background = "green";
+                            buttontwincam.onPointerDownObservable.add(() => {
+                                button_clicked = true;
+                                if (header == 0x43) {
+                                    switch (twincamMode) {
+                                        case 1:
+                                            twincamMode = 2;
+                                            buttontwincam.textBlock.text = "左のみ状態";
+                                            videoDome.texture = videoTexture_left;
+                                            break;
+                                        case 2:
+                                            twincamMode = 3;
+                                            buttontwincam.textBlock.text = "右のみ状態";
+                                            videoDome.texture = videoTexture_right;
+                                            break;
+                                        case 3:
+                                            buttontwincam.textBlock.text = "両眼状態";
+                                            twincamMode = 1;
+                                            break;
+                                        default:
+
+                                    }
+                                }
+                            });
+                        advancedTextureheader.addControl(buttontwincam);
 
                 let distance_past = 0, distance_current = 0;
 
