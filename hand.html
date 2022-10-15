@@ -113,14 +113,14 @@
 
 
             sendrecv_left.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_left) {
+                if (event.target.id == videoStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
                 }
             });
 
             sendrecv_right.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_right) {
+                if (event.target.id == videoStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
                     videoStream_id_right = null;
                 }
