@@ -403,7 +403,7 @@
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬に変更");
+                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬型に変更");
                         button.onPointerDownObservable.add(() => {
                             if (document.getElementsByName('change_video')[0].checked) {
                                 document.getElementsByName('change_video')[0].checked = false;
@@ -446,7 +446,7 @@
                             button.textBlock.text = "Segway に変更";
                             videoDome.texture = videoTexture_a1;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
+                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                         }
                         else {
                             header = 0x43;
@@ -455,7 +455,7 @@
                             videoDome.texture = videoTexture_segway_left;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            button.textBlock.text = "犬に変更";
+                            button.textBlock.text = "犬型に変更";
                         }
                         videoDome.material._alpha = 0;
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
