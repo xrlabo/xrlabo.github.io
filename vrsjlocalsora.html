@@ -988,6 +988,9 @@
                 setTimeout(() => {
                     segway_local_control_recvonly.connect();
                 }, 2500);
+                setTimeout(() => {
+                    localrecvonly_robot_arm.connect();
+                }, 3000);
             }
 
             connect_clicked();
