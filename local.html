@@ -25,22 +25,16 @@
         <video id="local_video" controls style="display: none;"></video>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
-		<canvas id="renderCanvas" style="border: 3px solid gray; width: 95%; height: 90%; touch-action: none; margin: auto; position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></canvas>
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; height: 80%;"></canvas>
         <script type="text/javascript">
-        	// canvas DOM 要素を取得する
-			const canvas = document.getElementById('renderCanvas');
-			// Initialize Babylon.js variables.
-			let	sceneToRender;
-            let xrHelper;
-			const createDefaultEngine = function (canvas) {
-                return new BABYLON.Engine(canvas, true, {
-					preserveDrawingBuffer: true,
-					stencil: true
-				});
-            }
-
-            const engine = createDefaultEngine(canvas);
-
+            const engine = new BABYLON.Engine(
+                document.getElementById('renderCanvas'),
+                true,
+                {
+                    preserveDrawingBuffer: true,
+                    stencil: true
+                }
+            );
 			//Create scene and create XR experience.
 			const createScene = async function() {
 				//新しいシーンオブジェクトを作成する
@@ -48,81 +42,83 @@
                 scene.ambientColor = new BABYLON.Color3(1, 1, 1);
                 // scene.detachControl();
 
-				//つねに原点を中心として回転するカメラを作成する
-				// var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 4, 3.8, new BABYLON.Vector3(0, 1, 0), scene);
-                // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
-				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
-				// カメラの向きを座標0地点にする
-				camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                //バーチャルカメラを作成する
+                camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                //カメラの向きを正面に設定
+                camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                // カメラの視野角を 95 度に設定
+				camera.fov = 95 * (Math.PI / 180);
+
+                // Camera の操作設定
+    			camera.attachControl(document.getElementById('renderCanvas'), true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
+                }
+                if (camera.inputs.attached.pointers) {
+                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                    camera.inputs.attached.pointers.multiTouchPanning = false;
+                    camera.inputs.attached.pointers.pinchInwards = false;
+                    camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
+                }
+                if (camera.inputs.attached.mousewheel) {
+                    camera.inputs.attached.mousewheel.detachControl();
+                }
+                let cameraFovDegree = 95;
+                scene.onPointerObservable.add(e => {
+                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }, BABYLON.PointerEventTypes.POINTERWHEEL);
+
+                let distance_past = 0, distance_current = 0;
+                setInterval(function() {
+                    if (camera.inputs.attached.pointers) {
+                        if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
+                        distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
+                        if (distance_current > distance_past) {
+                            cameraFovDegree = cameraFovDegree - 1;
+                        }
+                        if (distance_current < distance_past) {
+                            cameraFovDegree = cameraFovDegree + 1;
+                        }
+                        distance_past = distance_current;
+                        if (cameraFovDegree < 0) {
+                            cameraFovDegree = 1;
+                        }
+                        if (cameraFovDegree > 180) {
+                            cameraFovDegree = 179;
+                        }
+                        camera.fov = cameraFovDegree * (Math.PI / 180);
+                    }
+                    if (camera.inputs.attt)
+                    console.log(camera);
+                }, 20)
+
 				// カメラの視野角を 95 度に設定
-				// const cameraFovRadian = 100 * (Math.PI / 180);
-				// camera.fov = cameraFovRadian;
+				camera.fov = 95 * (Math.PI / 180);
 
-                // Camera の操作を canvas 上で可能にする
-    			camera.attachControl(canvas, true);
-                // console.log(camera.inputs);
-                camera.inputs.attached.gamepad.detachControl();
 
-                // scene.activeCamera.beta += 0.8;
-
-				// Create a light and aim it vertically to the sky (0, 1, 0).
-				// let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
-
-				// Set light intensity to a lower value (default is 1).
-				// light.intensity = 0.5;
-
-				// Add one of Babylon's built-in sphere shapes.
-				//let sphere = BABYLON.MeshBuilder.CreateSphere('sphere-1', {
-				//	diameter: 2,
-				//	segments: 32
-				//}, scene);
-
-				// Position the sphere up by half of its height.
-				//sphere.position.y = 1;
 
                 var planeOpts = {
-            			height: 9/4,
-            			width: 16/4,
+            			height: 9,
+            			width: 16,
             			sideOrientation: BABYLON.Mesh.DOUBLESIDE
             	};
-            	var ANote0Video = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video.position = new BABYLON.Vector3(0, 0.5, 7);
-                    // ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                	var ANote0VideoMat = new BABYLON.StandardMaterial("m", scene);
-                    	ANote0VideoMat.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('local_video'), scene, true, false);
-                    	ANote0VideoMat.roughness = 1;
-                    	ANote0VideoMat.emissiveColor = new BABYLON.Color3.White();
-                	ANote0Video.material = ANote0VideoMat;
-
-                var planeOpts = {
-            			height: 9/4,
-            			width: 16/4,
-            			sideOrientation: BABYLON.Mesh.DOUBLESIDE
-            	};
-            	var ANote0Video1 = BABYLON.MeshBuilder.CreatePlane("plane", planeOpts, scene);
-                    ANote0Video1.position = new BABYLON.Vector3(7, 0.5, 7);
-                    // ANote0Video.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
-                	var ANote0VideoMat1 = new BABYLON.StandardMaterial("m", scene);
-                    	ANote0VideoMat1.diffuseTexture = new BABYLON.VideoTexture("right_A1", document.getElementById('local_video'), scene, true, false);
-                    	ANote0VideoMat1.roughness = 1;
-                    	ANote0VideoMat1.emissiveColor = new BABYLON.Color3.White();
-                	ANote0Video1.material = ANote0VideoMat1;
-
-                // videoDome.fovMultiplier = 1;
-                // videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                // videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-
-
-                // Create a default environment for the scene.
-				var environment = scene.createDefaultEnvironment();
-                // environment.ground.parent.position.y = 0;
-                // environment.ground.position.y = 0
+            	var PlaneVideo = BABYLON.MeshBuilder.CreatePlane("plane_video", planeOpts, scene);
+                    PlaneVideo.position = new BABYLON.Vector3(0, 0.5, 7);
+                    // PlaneVideo.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                	var PlaneVideoMat = new BABYLON.StandardMaterial("m", scene);
+                    	PlaneVideoMat.diffuseTexture = new BABYLON.VideoTexture("local_video", document.getElementById('local_video'), scene, true, false);
+                    	PlaneVideoMat.roughness = 1;
+                    	PlaneVideoMat.emissiveColor = new BABYLON.Color3.White();
+                	PlaneVideo.material = PlaneVideoMat;
 
 
                 // Initialize XR experience with default experience helper.
 				xrHelper = await scene.createDefaultXRExperienceAsync({
-                    // floorMeshes: [environment.ground]
                 });
 
                 //===Stick=====================================================================================================
@@ -138,13 +134,21 @@
                     xrHelper.teleportation.rotationAngle = 0;
 
                     xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        camera.inputs.attached.keyboard.detachControl();
+                        camera.inputs.attached.mousewheel.detachControl();
+                    });
 				}
 
                 return scene;
             }
 
 			// Create scene.
-			scene = createScene();
+			let scene = createScene();
+            let	sceneToRender;
 			scene.then(function (returnedScene) {
 				sceneToRender = returnedScene;
 			});
