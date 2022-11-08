@@ -353,7 +353,7 @@
             };
 
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
-            let sendrecv_segway_right = sora.recvonly("twincam-right", null, options_video_audio_sendrecv);
+            let sendrecv_segway_right = sora.sendrecv("twincam-right", null, options_video_audio_sendrecv);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
 
             let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
