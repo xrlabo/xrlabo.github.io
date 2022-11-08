@@ -194,7 +194,7 @@
                         header = 0x43;
                         segway_drive_count++;
                         user_log_buff += 'a1 to segway & ' + (Date.now()/1000 - 1661234080) + '\n';
-                        button.textBlock.text = "犬に変更";
+                        button.textBlock.text = "犬型に変更";
                         clearInterval(videoSelfChangeLoop_intervalID);
                         videoSelfChangeLoop_intervalID = null;
                     }
@@ -230,7 +230,7 @@
                         header = 0x43;
                         segway_drive_count++;
                         user_log_buff += 'a1 to segway & ' + (Date.now()/1000 - 1661234080) + '\n';
-                        button.textBlock.text = "犬に変更";
+                        button.textBlock.text = "犬型に変更";
                         clearInterval(videoHalfChangeLoop_intervalID);
                         videoHalfChangeLoop_intervalID = null;
                     }
@@ -353,52 +353,16 @@
             };
 
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
-            let user_audio_sendonly = sora.sendonly("user-audio", null, options_audio_sendonly);
-
-            let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
-            let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
+            let sendrecv_segway_right = sora.recvonly("twincam-right", null, options_video_audio_sendrecv);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
-
-            // let segway_local_video_recvonly_left = new localrecvonly("remoteVideo_left", "ws://192.168.11.149:8081/ws");
-            // let a1_local_video_recvonly_right = new localrecvonly("remoteVideo_right_A1", "ws://192.168.11.153:8081/ws");
 
             let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
 
-
-            let videoStream_id_left = null;
             let videoStream_id_right = null;
-            let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
-            sendrecv_segway_left.on("track", (event) => {
-                console.log(event);
-                if (event.track.kind == "video") {
-                    setTimeout(()=> {
-                        console.log(event);
-                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
-                        document.querySelector('#remoteVideo_left').autoplay = true;
-                        document.querySelector('#remoteVideo_left').muted = false;
-                        videoStream_id_left = event.streams[0].id;
-                    }, 1000);
-                }
-
-                if (event.track.kind == 'audio') {
-                    // if (audioStream_id_right) {
-                    //     document.getElementById(`audio-${audioStream_id_right}`);
-                    //     audioStream_id_right = null;
-                    // }
-                    const audio = document.createElement('audio');
-                    audio.id = "audio-" + event.streams[0].id;
-                    audio.srcObject = event.streams[0];
-                    audio.controls = true;
-                    audio.autoplay = true;
-                    document.getElementById('remote-videos').appendChild(audio);
-                    // audioStream_id_right = event.streams[0].id;
-                }
-            });
-
-            recvonly_segway_right.on("track", (event) => {
+            sendrecv_segway_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
@@ -419,55 +383,24 @@
                         document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
                         document.querySelector('#remoteVideo_right_A1').autoplay = true;
                         document.querySelector('#remoteVideo_right_A1').muted = false;
+                        videoStream_id_right_A1 = event.streams[0].id;
                     }, 4000);
                     return;
                 }
             });
 
-            setInterval(observe_video, 10000);
-            function observe_video() {
-                if (document.getElementById(`audio-${videoStream_id_left}`)) {
-                    document.getElementById(`audio-${videoStream_id_left}`).remove();
-                }
-                // if (document.getElementById(`audio-${mediaStream_id_right_A1}`)) {
-                //     document.getElementById(`audio-${mediaStream_id_right_A1}`).remove();
-                // }
-            }
-
-            sendrecv_segway_left.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_left) {
-                    document.querySelector(`#remoteVideo_left`).srcObject = null;
-                    videoStream_id_left = null;
-                }
-            });
-
-            recvonly_segway_right.on("removetrack", (event) => {
-                if (event.target.id == mediaStream_id_right) {
+            sendrecv_segway_right.on("removetrack", (event) => {
+                if (event.target.id == videoStream_id_right) {
                     document.querySelector(`#remoteVideo_right`).srcObject = null;
-                    videoStream_id_right = null;
-                }
-                if (document.getElementById(`audio-${event.target.id}`)) {
-                    document.getElementById(`audio-${event.target.id}`).remove();
                 }
             });
 
-
-            user_audio_sendonly.on("track", (event) => {
-                if (event.track.kind == 'audio') {
-                    const audio = document.createElement('audio');
-                    audio.id = "audio-" + event.streams[0].id;
-                    audio.srcObject = event.streams[0];
-                    audio.controls = true;
-                    audio.autoplay = true;
-                    document.getElementById('remote-videos').appendChild(audio);
+            sendrecv_A1_right.on("removetrack", (event) => {
+                if (event.target.id == videoStream_id_right_A1) {
+                    document.querySelector(`#remoteVideo_right`).srcObject = null;
                 }
             });
 
-            user_audio_sendonly.on("removetrack", (event) => {
-                if (document.getElementById(`audio-${event.target.id}`)) {
-                    document.getElementById(`audio-${event.target.id}`).remove();
-                }
-            });
 
             function resettime_clicked() {
                 let ltime = new Uint32Array([Date.now()/1000 - 1660000000])[0];
@@ -507,14 +440,6 @@
             let videoDome_segway, videoDome_a1;
             let button;
 
-            let dome_position_x = 0;
-            let dome_position_y = 0;
-            let dome_position_z = 0;
-
-            let dome_direction_x = 0;
-            let dome_direction_y = 0;
-            let dome_direction_z = 0;
-
 
             let twincam_setPos_count = 0;
             let setPos = 0;
@@ -539,25 +464,7 @@
 
                 camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
                 camera.setTarget(new BABYLON.Vector3(0, 0, 1));
-                // Camera の操作を canvas 上で可能にする
-    			camera.attachControl(canvas, true);
-                camera.panningAxis._x = 0; //水平移動無し。
-                camera.panningAxis._y = 0; //垂直移動無し。
-                if (camera.inputs.attached.keyboard) {
-                    camera.inputs.attached.keyboard.detachControl();
-                }
-                if (camera.inputs.attached.pointers) {
-                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-                    camera.inputs.attached.pointers.multiTouchPanning = false;
-                    camera.inputs.attached.pointers.pinchInwards = false;
-                    camera.inputs.attached.pointers.pinchZoom = false;
-                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
-                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
-                }
-                if (camera.inputs.attached.mousewheel) {
-                    camera.inputs.attached.mousewheel.detachControl();
-                }
-
+                camera.detachControl(canvas, false);
 
                 var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
                     arrow_mat.alpha = 0.3;
@@ -569,48 +476,6 @@
                     front_arrow_cylinder.position = new BABYLON.Vector3(0, -3, 7);
                     front_arrow_cylinder.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
                     front_arrow_cylinder.material = arrow_mat;
-
-
-                var goal_x = 0;
-                var goal_y = 0;
-                var goal_z = 0;
-
-                var ground_y = -500; //地面の位置y
-                var box_height = 200;
-
-
-                const bottom = -3;
-                let length = 3;
-                let a = 1;
-                let b = 0; // a + b = 1
-
-                var box = BABYLON.MeshBuilder.CreateBox("box", {width: 10, height: box_height, depth: 10}, scene);
-                    box.position = new BABYLON.Vector3(0, ground_y + box_height/2.0, 100);
-                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
-                    var boxMat = new BABYLON.StandardMaterial("boxMat", scene);
-                        boxMat.alpha = 0;
-                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    box.material = boxMat;
-
-
-                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 2000);
-                    plane_goal.position = new BABYLON.Vector3(0, ground_y + box_height, 100);
-                var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
-                var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
-                    button_goal.alpha = 0;
-                    button_goal.width = 0.15;
-                    button_goal.height = "40px";
-                    button_goal.cornerRadius = 10;
-                    button_goal.color = "Orange";
-                    button_goal.thickness = 4;
-                    // button_goal.rotation = 0.2;
-                    // button_goal.scaleY = 1.5;
-                    button_goal.background = "green";
-                    // button_goal.onPointerDownObservable.add(function() {
-                    //     recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                    // });
-                    advancedTexture_goal.addControl(button_goal);
-
 
                 let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
                 let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
@@ -628,8 +493,8 @@
                     },
                     scene
                 );
-                videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome_segway.setDirection(new BABYLON.Vector3(0, 0, 0));
                 videoDome_segway.material.alpha = 1;
                 // videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
@@ -674,255 +539,7 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
-                let old_a1_auto_moving_status = 0, old_segway_latch = 3;
 
-                scene.registerBeforeRender(function () {
-
-                    if (header == 0x43 && segway_latch == 4) {
-                        let gx = goal_x*Math.cos(segway_start_turn_position/180.0*Math.PI) - goal_z*Math.sin(segway_start_turn_position/180.0*Math.PI) + segway_start_position_x*Math.abs(ground_y);
-                        let gz = goal_x*Math.sin(segway_start_turn_position/180.0*Math.PI) + goal_z*Math.cos(segway_start_turn_position/180.0*Math.PI) + segway_start_position_z*Math.abs(ground_y);
-                        let sx = segway_position_x*Math.abs(ground_y);
-                        let sz = segway_position_z*Math.abs(ground_y);
-                        let x_view = (gx - sx)*Math.cos(-segway_turn_position/180.0*Math.PI) - (gz - sz)*Math.sin(-segway_turn_position/180.0*Math.PI);
-                        let z_view = (gx - sx)*Math.sin(-segway_turn_position/180.0*Math.PI) + (gz - sz)*Math.cos(-segway_turn_position/180.0*Math.PI);
-                        let r = ((gx - sx)**2 + (gz - sz)**2)**0.5;
-                        goal_plane_rotation = -(Math.acos((gz - sz)/r)*(-1)**(-(gx - sx)/r < 0) - (segway_turn_position % 360)/180.0*Math.PI);
-                        box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
-                        plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
-                        plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
-                        button_goal.textBlock.text = 'Now moving';
-                        button_goal.background = "blue";
-                    }
-
-
-                    if (segway_latch == 4 && old_segway_latch == 3) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & user point out and segway auto moving\n';
-                    }
-                    if (segway_latch == 3 && old_segway_latch == 4) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & segway complete auto moving\n';
-                    }
-
-                    if (a1_auto_moving_status != 0 && old_a1_auto_moving_status == 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & user point out and a1 auto moving\n';
-                    }
-                    if (a1_auto_moving_status == 0 && old_a1_auto_moving_status != 0) {
-                        user_log_buff += new Date() + ' & ' + (Date.now()/1000 - 1661234080) + ' & a1 complete auto moving\n';
-                    }
-
-                    old_segway_latch = segway_latch;
-                    old_a1_auto_moving_status = a1_auto_moving_status;
-
-
-                    if (header == 0xa1 && a1_auto_moving_status != 0) {
-                        let gx = goal_x;
-                        // let gz = goal_z + 200;
-                        let gz = goal_z;
-                        let a1x = a1_position_x*Math.abs(ground_y);
-                        let a1z = a1_position_z*Math.abs(ground_y);
-                        let x_view = (gx - a1x)*Math.cos(-a1_position_rot/180.0*Math.PI) - (gz - a1z)*Math.sin(-a1_position_rot/180.0*Math.PI);
-                        let z_view = (gx - a1x)*Math.sin(-a1_position_rot/180.0*Math.PI) + (gz - a1z)*Math.cos(-a1_position_rot/180.0*Math.PI);
-                        let r = ((gx - a1x)**2 + (gz - a1z)**2)**0.5;
-                        goal_plane_rotation = -(Math.acos((gz - a1z)/r)*(-1)**(-(gx - a1x)/r < 0) - (a1_position_rot % 360)/180.0*Math.PI);
-                        box.position = new BABYLON.Vector3(x_view, goal_y + box_height/2.0, z_view);
-                        plane_goal.position = new BABYLON.Vector3(x_view, goal_y + box_height, z_view);
-                        plane_goal.rotation = new BABYLON.Vector3(0, goal_plane_rotation, 0);
-                        button_goal.textBlock.text = 'Now moving';
-                        button_goal.background = "blue";
-                    }
-                });
-
-                let point_ground = false;
-
-                scene.onPointerObservable.add((pointerInfo) => {
-                    // console.log(pointerInfo);
-                    let dx = pointerInfo.pickInfo.ray.direction.x;
-                    let dy = pointerInfo.pickInfo.ray.direction.y;
-                    let dz = pointerInfo.pickInfo.ray.direction.z;
-                    // let ox = pointerInfo.pickInfo.ray.origin.x;
-                    // let oy = pointerInfo.pickInfo.ray.origin.y;
-                    // let oz = pointerInfo.pickInfo.ray.origin.z;
-                    let ox = 0;
-                    let oy = 0;
-                    let oz = 0;
-
-                    let max_r = 4; //(m)
-                    // let ground_y = -20; //地面の位置y
-                    switch (pointerInfo.type) {
-                        case BABYLON.PointerEventTypes.POINTERDOWN:
-                            console.log("POINTER DOWN");
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERUP:
-                            console.log("POINTER UP");
-                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
-                                // let lambda = (ground_y - oy)/dy;
-                                // goal_x = lambda*dx + ox;
-                                // goal_y = lambda*dy + oy;
-                                // goal_z = lambda*dz + oz;
-                                // box.position = new BABYLON.Vector3(goal_x, goal_y, goal_z);
-                                // plane_goal.position = new BABYLON.Vector3(goal_x, goal_y + 2, goal_z);
-                                // let r = (goal_x**2 + goal_z**2)**0.5;
-                                // let roty = -Math.acos(goal_z/r);
-                                // if (goal_x > 0) {
-                                //     roty = -roty;
-                                // }
-                                // plane_goal.rotation = new BABYLON.Vector3(0, roty, 0);
-                                // console.log('goal: x ' + goal_x + ' y ' + goal_y + ' z ' + goal_z);
-
-                                let lambda = (ground_y - oy)/dy;
-                                if (lambda <= 0) {
-                                    point_ground = false;
-                                    button_goal.alpha = 0;
-                                    box.material.alpha = 0;
-                                    break;
-                                }
-                                let gx = lambda*dx + ox;
-                                let gy = lambda*dy + oy;
-                                let gz = lambda*dz + oz;
-                                let gr = (gx**2 + gz**2)**0.5;
-                                let roty = Math.acos(gz/gr);
-                                if (gx > 0) {
-                                   roty = -roty;
-                                }
-                                if (header == 0x43 && gr/Math.abs(ground_y) > 3) {
-                                   point_ground = false;
-                                   button_goal.alpha = 0;
-                                   box.material.alpha = 0;
-                                   break;
-                                }
-                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 8) {
-                                   point_ground = false;
-                                   button_goal.alpha = 0;
-                                   box.material.alpha = 0;
-                                   break;
-                                }
-                                point_ground = true;
-                                if (header == 0x43) {
-                                    max_r = 3
-                                }
-                                if (header == 0xa1) {
-                                    max_r = 4
-                                }
-                                if (gr/Math.abs(ground_y) > max_r) {
-                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
-                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
-                                }
-                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
-                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
-                                plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
-                                button_goal.textBlock.text = 'Move here';
-                                button_goal.background = "green";
-                                button_goal.alpha = 1;
-                                box.material.alpha = 0.5;
-                                console.log("gx " + gx + " gy " + gy + " gz " + gz);
-
-                                let x = gx/Math.abs(ground_y);
-                                let z = gz/Math.abs(ground_y);
-                                let r = (x**2 + z**2)**0.5;
-                                let target_turn = Math.acos(z/r)/Math.PI*180;
-                                if (gx > 0) {
-                                   target_turn = -target_turn;
-                                }
-                                if (point_ground) {
-                                    if (header == 0x43) {
-                                        console.log('forward position: ' + r + ' (m)');
-                                        console.log('target_turn:' + target_turn + ' (deg)');
-
-                                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x44, 0, r*10, target_turn/2.0]));
-                                        button_goal.textBlock.text = 'Now moving';
-                                        button_goal.background = "blue";
-                                        segway_start_turn_position = segway_turn_position;
-                                        segway_start_position_x = segway_position_x;
-                                        segway_start_position_z = segway_position_z;
-                                    }
-                                    else if (header == 0xa1) {
-                                        // console.log('target x' + x + ' (m) ' + z + ' (m)');
-                                        r = r/2.0;
-                                        console.log('forward position: ' + r + ' (m)');
-                                        console.log('target_turn:' + target_turn + ' (deg)');
-                                        if (r < 0.3) {
-                                            r = 0;
-                                        }
-                                        else {
-                                            r = r - 0.3;
-                                        }
-                                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa4, 0, r*10, target_turn/2.0]));
-                                        // recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa4, 0, x*10, z*10]));
-                                        button_goal.textBlock.text = 'Now moving';
-                                        button_goal.background = "blue";
-                                    }
-                                    goal_x = gx;
-                                    goal_y = gy;
-                                    goal_z = gz;
-                                    console.log("gloal x " + goal_x + " y " + goal_y + " z " + goal_z);
-                                }
-                            }
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERMOVE:
-                            // console.log("POINTER MOVE");
-                            if ((header == 0x43 && segway_latch == 3) || (header == 0xa1 && a1_auto_moving_status == 0)) {
-                                let lambda = (ground_y - oy)/dy;
-                                if (lambda <= 0) {
-                                    point_ground = false;
-                                    button_goal.alpha = 0;
-                                    box.material.alpha = 0;
-                                    break;
-                                }
-                                let gx = lambda*dx + ox;
-                                let gy = lambda*dy + oy;
-                                let gz = lambda*dz + oz;
-                                let gr = (gx**2 + gz**2)**0.5;
-                                let roty = Math.acos(gz/gr);
-                                if (gx > 0) {
-                                   roty = -roty;
-                                }
-                                if (header == 0x43 && gr/Math.abs(ground_y) > 6) {
-                                   point_ground = false;
-                                   button_goal.alpha = 0;
-                                   box.material.alpha = 0;
-                                   break;
-                                }
-                                if (header == 0xa1 && gr/Math.abs(ground_y)/2.0 > 6) {
-                                   point_ground = false;
-                                   button_goal.alpha = 0;
-                                   box.material.alpha = 0;
-                                   break;
-                                }
-                                if (header == 0x43) {
-                                    max_r = 3
-                                }
-                                if (header == 0xa1) {
-                                    max_r = 4
-                                }
-                                point_ground = true;
-                                if (gr/Math.abs(ground_y) > max_r) {
-                                   gx = -max_r*Math.abs(ground_y)*Math.sin(roty);
-                                   gz = max_r*Math.abs(ground_y)*Math.cos(roty);
-                                }
-                                box.position = new BABYLON.Vector3(gx, gy + box_height/2.0, gz);
-                                plane_goal.position = new BABYLON.Vector3(gx, gy + box_height, gz);
-                                plane_goal.rotation = new BABYLON.Vector3(0, -roty, 0);
-                                button_goal.textBlock.text = 'Move here';
-                                button_goal.background = "green";
-                                button_goal.alpha = 1;
-                                box.material.alpha = 0.5;
-                                console.log("gx " + gx + " gy " + gy + " gz " + gz);
-                            }
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERWHEEL:
-                            console.log("POINTER WHEEL");
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERPICK:
-                            console.log("POINTER PICK");
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERTAP:
-                            console.log("POINTER TAP");
-                            break;
-                        case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
-                            console.log("POINTER DOUBLE-TAP");
-                            break;
-                        default:
-                    }
-                });
 
                 // Create a default environment for the scene.
 				var environment = scene.createDefaultEnvironment();
@@ -989,13 +606,11 @@
                                     }
 
                                     if (header == 0xa1) {
-                                        ang = -axes.x;
+                                        side = 0;
                                         lin = -axes.y;
+                                        ang = -axes.x;
                                     }
 
-                                    // dome_position_z = 2000*axes.y;
-                                    // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                                    // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
@@ -1017,30 +632,21 @@
                                         }
                                     }
                                 });
-                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
-                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
-                                //     if (bbuttonComponent.pressed) {
-                                //         if (header == 0xa1) {
-                                //             header = 0xaa;
-                                //         }
-                                //         else if (header == 0xaa) {
-                                //             header = 0xa1;
-                                //         }
-                                //     }
-                                // });
                             }
                             if (motionController.handness === 'left') {
                                 const xr_ids = motionController.getComponentIds();
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     if (header == 0x43) {
-                                        // ang = -axes.x;
+                                        side = 0;
+                                        lin = -axes.y;
+                                        ang = -axes.x;
                                     }
                                     if (header == 0xa1) {
-                                        // side = -axes.x;
+                                        side = 0;
+                                        lin = -axes.y;
+                                        ang = -axes.x;
                                     }
-                                    // dome_direction_x = Math.cos(axes.x*Math.PI/2.0);
-                                    // dome_direction_z = Math.sin(axes.x*Math.PI/2.0)
                                     // lin = -axes.y;
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
@@ -1055,69 +661,7 @@
                         camera.alpha = -Math.PI / 2;
                         camera.beta = Math.PI / 2;
                         if(state === BABYLON.WebXRState.IN_XR){
-                            setPos = 0;
-                            setPosA = 0;
-                            HMD_ang = 0;
-                            old_HMD_ang = 0;
-                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
-                                if (header == 0x43) {
-                                    if (xr_camera.isLeftCamera) {
-                                        twincam_setPos_count++;
-                                        let q = xr_camera.rotationQuaternion;
-                                        let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
-                                        let abs_sinX = Math.abs(sinX);
-                                        if (abs_sinX < 0.001) {
-                                            sinX = 0;
-                                        }
-                                        let euler_x = Math.asin(-sinX);
-                                        if (isNaN(euler_x) || Math.abs((Math.abs(euler_x) -  Math.PI / 2)) < 0.001) {
-                                            euler_x = Math.sign(-sinX) * (Math.PI / 2);
-                                        }
-                                        let cosX = Math.cos(euler_x);
-                                        let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
-                                        let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
-                                        let euler_y = -Math.atan2(sinY, cosY);
-                                        HMD_ang = -euler_y/Math.PI*700;
-                                        if (Math.abs(HMD_ang) < 350) {
-                                            setPosA = 0;
-                                        }
-                                        if (HMD_ang - old_HMD_ang < -700) {
-                                            setPosA +=  1400;
-                                        }
-                                        else if (HMD_ang - old_HMD_ang > 700) {
-                                            setPosA += -1400;
-                                        }
-                                        setPos = HMD_ang + setPosA;
-                                        if (setPos > 1050) {
-                                            setPos = 1050;
-                                        }
-                                        else if (setPos < -1050) {
-                                            setPos = -1050;
-                                        }
-                                        old_HMD_ang = HMD_ang;
-                                        let send_value = setPos;
-                                        if (twincam_setPos_count > 15) {
-                                            console.log(setPos);
-                                            if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
-                                            }
-                                            twincam_setPos_count = 0;
-                                        }
-                                    }
-                                    if (twincamMode == 1) {
-                                        if (xr_camera.isLeftCamera) {
-                                            videoDome_segway.texture = videoTexture_segway_left;
-                                        }
-                                        else {
-                                            videoDome_segway.texture = videoTexture_segway_right;
-                                        }
-                                    }
-                                }
-                            });
 
-                            // console.log('WebXR camera position(before_enteringVR): ' + xrHelper.baseExperience.camera.position);
-                            // xrHelper.baseExperience.camera.position.set(0, 0, 0);
-                            // console.log('WebXR camera position(after_enteringVR): ' + xrHelper.baseExperience.camera.position);
                         }
                         else if (state === BABYLON.WebXRState.NOT_IN_XR) {
                             lin = 0;
@@ -1181,7 +725,7 @@
                     localStream = stream;
                     console.log(stream);
                     console.log(stream);
-                    sendrecv_segway_left.connect(localStream);
+                    sendrecv_segway_right.connect(localStream);
                     sendrecv_A1_right.connect(localStream);
                     user_audio_sendonly.connect(localStream);
                     // if (document.getElementsByName('mic_on_off')[0].checked) {
