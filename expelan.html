@@ -440,16 +440,7 @@
             let videoDome_segway, videoDome_a1;
             let button;
 
-
-            let twincam_setPos_count = 0;
-            let setPos = 0;
-            let setPosA = 0;
-            let HMD_ang = 0;
-            let old_HMD_ang = 0;
-
             let buttonheader;
-
-            let twincamMode = 2; //1: left and right, 2: left only, 3: right only
 
             let arrow_box;
 
@@ -483,7 +474,7 @@
 
                 videoDome_segway = new BABYLON.VideoDome(
                     'VideoDome',
-                    document.getElementById('remoteVideo_left'),
+                    document.getElementById('remoteVideo_right'),
                     {
                         resolution: 64,
                         // clickToPlay: true,
