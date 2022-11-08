@@ -629,16 +629,15 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     if (header == 0x43) {
-                                        side = 0;
-                                        lin = -axes.y;
-                                        ang = -axes.x;
-                                    }
-                                    if (header == 0xa1) {
-                                        side = 0;
-                                        lin = -axes.y;
-                                        ang = -axes.x;
-                                    }
-                                    // lin = -axes.y;
+                                    //     side = 0;
+                                    //     lin = -axes.y;
+                                    //     ang = -axes.x;
+                                    // }
+                                    // if (header == 0xa1) {
+                                    //     side = 0;
+                                    //     lin = -axes.y;
+                                    //     ang = -axes.x;
+                                    // }
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
