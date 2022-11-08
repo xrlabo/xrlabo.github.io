@@ -628,7 +628,7 @@
                                 const xr_ids = motionController.getComponentIds();
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
-                                    if (header == 0x43) {
+                                    // if (header == 0x43) {
                                     //     side = 0;
                                     //     lin = -axes.y;
                                     //     ang = -axes.x;
