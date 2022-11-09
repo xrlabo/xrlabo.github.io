@@ -530,6 +530,23 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
+                let bbutton_pressed = false;
+                let bbutton_status = false;
+                setInterval(function() {
+                    if (bbutton_pressed && !bbutton_status) {
+                        if (expe_mode == 1) {
+                            videoSelfChangeLoop_intervalID = setInterval(videoSelfChangeLoop, 1000.0/10.0);
+                        }
+                        if (expe_mode == 2) {
+                            videoHalfChangeLoop_intervalID = setInterval(videoHalfChangeLoop, 1000.0/10.0);
+                        }
+                        bbutton_status = true;
+                    }
+                    if (!bbutton_pressed) {
+                        bbutton_status = false;
+                    }
+                }, 100);
+
 
 
                 // Create a default environment for the scene.
@@ -631,6 +648,16 @@
                                                 a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                                             }
                                         }
+                                    }
+                                });
+
+                                let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (bbuttonComponent.pressed) {
+                                        bbutton_pressed = true;
+                                    }
+                                    else {
+                                        bbutton_pressed = false;
                                     }
                                 });
                             }
