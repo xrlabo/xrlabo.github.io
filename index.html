@@ -35,14 +35,16 @@
 
             setTimeout(() => {
                 recvonly.connect();
-            }, 1000)
+            }, 1000);
 
             setInterval(() => {
                 if (STREAM_STOPPED) {
-                    recvonly.connect();
-                    STREAM_STOPPED = false;
+                    setTimeout(() => {
+                        recvonly.connect();
+                        STREAM_STOPPED = false;
+                    }, 1000)
                 }
-            }, 2000);
+            }, 5000);
     </script>
   </body>
 </html>
