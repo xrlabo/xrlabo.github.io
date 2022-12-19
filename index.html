@@ -19,7 +19,6 @@
             };
 
             let recvonly = sora.recvonly("avatar-render", null, options);
-            recvonly.connect();
             recvonly.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
