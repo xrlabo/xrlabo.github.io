@@ -8,6 +8,9 @@
         <div id="remote-videos">
             <video id="remoteVideo" muted="false" style="width: 100%;"></video>
         </div>
+        <script type="text/javascript">
+            let STREAM_STOPPED = false;
+        </script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
             const debug = true;
@@ -33,6 +36,12 @@
             setTimeout(() => {
                 recvonly.connect();
             }, 1000)
+
+            setInterval(() => {
+                if (STREAM_STOPPED) {
+                    recvonly.connected();
+                }
+            }, 2000)
     </script>
   </body>
 </html>

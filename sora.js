@@ -2198,6 +2198,7 @@
 	    stopStream() {
 	        return new Promise((resolve, _) => {
 	            if (this.debug) {
+                    STREAM_STOPPED = true;
 	                console.warn("@deprecated closing MediaStream in disconnect will be removed in a future version. Close every track in the MediaStream by yourself.");
 	            }
 	            if (!this.stream) {
