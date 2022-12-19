@@ -5,25 +5,9 @@
     </head>
 
     <body>
-        <!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 99%; height: 93%; margin: auto; position: absolute; top: 60; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas> -->
-        <!-- <font size="6"> Channel ID <input type="text" id="channel_id_input" value="twincam-right" style="height: 30px;font-size: 19px;position: relative;top: -2;"> -->
-            <!-- <input type="button" value="Reconnect" onclick="connect_clicked();" style="position: relative;top: -4;height: 30;"> -->
-        <!-- </font> -->
-        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 50;"><font size="6">mic on</font> -->
-        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 30px; height: 30px; position: relative; top: 6px; margin-left: 20;"><font size="6">mic off</font><br> -->
-
         <div id="remote-videos">
-
             <video id="remoteVideo" muted="false" style="width: 100%;"></video>
-
         </div>
-
-		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
-		<!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 80%; height: 80%; float: left; touch-action: none; margin: auto; position: absolute; top: 0;"></canvas> -->
-        <!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 98%; height: 90%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0;"></canvas> -->
-        <script type="text/javascript">
-            let CLOSE_DATA_CHANNEL = false;
-        </script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
             const debug = true;
@@ -36,9 +20,6 @@
 
             let recvonly = sora.recvonly("avatar-render", null, options);
             recvonly.connect();
-
-            let mediaStream_id = null;
-
             recvonly.on("track", (event) => {
                 console.log(event);
                 const stream = event.streams[0];
@@ -47,10 +28,12 @@
                     document.querySelector('#remoteVideo').autoplay = true;
                     document.querySelector('#remoteVideo').muted = false;
                     document.querySelector('#remoteVideo').volume = 1;
-                    mediaStream_id = event.streams[0].id;
                 }
             });
 
+            setTimeout(() => {
+                recvonly.connect();
+            }, 1000)
     </script>
   </body>
 </html>
