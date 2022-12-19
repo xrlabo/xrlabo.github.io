@@ -2198,7 +2198,7 @@
 	    stopStream() {
 	        return new Promise((resolve, _) => {
 	            if (this.debug) {
-                    STREAM_STOPPED = true;
+                    // this.connect();
 	                console.warn("@deprecated closing MediaStream in disconnect will be removed in a future version. Close every track in the MediaStream by yourself.");
 	            }
 	            if (!this.stream) {
@@ -2215,7 +2215,7 @@
 	     * connect 処理中に例外が発生した場合の切断処理をするメソッド
 	     */
 	    async signalingTerminate() {
-	        await this.stopStream();
+	        // await this.stopStream();
 	        for (const key of Object.keys(this.soraDataChannels)) {
 	            const dataChannel = this.soraDataChannels[key];
 	            if (dataChannel) {
@@ -2599,7 +2599,7 @@
 	     */
 	    async disconnect() {
 	        this.clearMonitorIceConnectionStateChange();
-	        await this.stopStream();
+	        // await this.stopStream();
 	        // callback を止める
 	        if (this.pc) {
 	            this.pc.ondatachannel = null;

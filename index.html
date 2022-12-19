@@ -10,6 +10,7 @@
         </div>
         <script type="text/javascript">
             let STREAM_STOPPED = false;
+            let STREAM_STOPPED_FIRST = false;
         </script>
         <script type="text/javascript" src="./sora.js"></script>
         <script type="text/javascript">
@@ -35,16 +36,8 @@
 
             setTimeout(() => {
                 recvonly.connect();
+                // recvonly.connect();
             }, 1000);
-
-            setInterval(() => {
-                if (STREAM_STOPPED) {
-                    setTimeout(() => {
-                        recvonly.connect();
-                        STREAM_STOPPED = false;
-                    }, 1000)
-                }
-            }, 5000);
     </script>
   </body>
 </html>
