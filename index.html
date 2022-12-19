@@ -1,21 +1,6 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8" />
-
-		<!-- Embed latest version of Babylon.js. -->
-		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
-        <script src="./Babylon.js/babylon.js"></script>
-
-		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
-		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-
-		<!-- Embed pep.js for consistent cross-browser pointer events. -->
-		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
-
-        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-
-        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
-        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
         <title>Avatar Render</title>
     </head>
 
@@ -29,7 +14,7 @@
 
         <div id="remote-videos">
 
-            <video id="remoteVideo" controls muted="false" style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo" muted="false" style="width: 100%;"></video>
 
         </div>
 
@@ -49,7 +34,8 @@
                 audio : true
             };
 
-            let recvonly = sora.sendrecv("avatar-render", null, options);
+            let recvonly = sora.recvonly("avatar-render", null, options);
+            recvonly.connect();
 
             let mediaStream_id = null;
 
@@ -60,11 +46,11 @@
                     document.querySelector('#remoteVideo').srcObject = stream;
                     document.querySelector('#remoteVideo').autoplay = true;
                     document.querySelector('#remoteVideo').muted = false;
+                    document.querySelector('#remoteVideo').volume = 1;
                     mediaStream_id = event.streams[0].id;
                 }
             });
 
-            recvonly.connect();
     </script>
   </body>
 </html>
