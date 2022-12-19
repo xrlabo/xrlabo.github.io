@@ -2599,7 +2599,7 @@
 	     */
 	    async disconnect() {
 	        this.clearMonitorIceConnectionStateChange();
-	        // await this.stopStream();
+	        await this.stopStream();
 	        // callback を止める
 	        if (this.pc) {
 	            this.pc.ondatachannel = null;
