@@ -509,8 +509,16 @@
                                         old_abutton_pressed = abutton_pressed;
 
                                         if (abutton_pressed && head_or_controller == 'head') {
-                                            ang = -(xr_camera_px - xr_camera_offsetx)/0.5;
-                                            lin = (xr_camera_pz - xr_camera_offsetz)/0.5;
+                                            ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.3;
+                                            lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.3;
+                                            if (Math.abs(ang) > 1) {
+                                                ang_tmp = ang_tmp / Math.abs(ang);
+                                            }
+                                            if (Math.abs(lin) > 1) {
+                                                lin_tmp = lin_mp / Math.abs(lin);
+                                            }
+                                            lin = lin_tmp;
+                                            ang = ang_tmp;
                                             console.log('ang: ' + ang + ', lin: ' + lin);
                                         }
 
