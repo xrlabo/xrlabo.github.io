@@ -660,24 +660,14 @@
                 if (header == 0x43) {
                     if (segway_local_control_recvonly.dataChannel) {
                         if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                            if (abutton_pressed) {
-                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 0, 0, 0 ]));
-                            }
-                            else {
-                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            }
+                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                         }
                     }
                 }
                 else if (header == 0xa1) {
                     if (a1_local_control_recvonly.dataChannel) {
                         if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                            if (abutton_pressed) {
-                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 0, 0, 0 ]));
-                            }
-                            else {
-                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                            }
+                            a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
                         }
                     }
                 }
