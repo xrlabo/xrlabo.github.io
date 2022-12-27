@@ -22,13 +22,13 @@
     <body>
         <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
         <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font>
-        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font> -->
+        <!-- <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br> -->
         <!-- <button onclick="disconnect_clicked()">切断</button> -->
-        <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font>
-        <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br>
-        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
-        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
+        <!-- <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font> -->
+        <!-- <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br> -->
+        <!-- <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font> -->
+        <!-- <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font> -->
 
         <div id="remote-videos">
 
@@ -71,7 +71,7 @@
                     if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
                         a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
                     }
-                }                console.log(event);
+                }
                 clearTimeout(timer);
                 document.body.style.backgroundColor ='#ff3030';
                 timer = setTimeout(bgWhite, 300);
@@ -98,6 +98,14 @@
             let a1_message_stamp = 0;
 
             let header = 0x43, lin = 0, ang = 0, side = 0;
+            let head_or_controller = 'controller';
+            let abutton_pressed = false;
+            let old_abutton_pressed = true;
+
+            let xr_camera_px = 0;
+            let xr_camera_pz = 0;
+            let xr_camera_offsetx = 0;
+            let xr_camera_offsetz = 0;
         </script>
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
@@ -134,7 +142,7 @@
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
 
-            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8081/ws");
+            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
 
             let videoStream_id_left = null;
@@ -331,52 +339,81 @@
 
                 videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                 videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                //
+                // var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
+                //     planeb.position = new BABYLON.Vector3(-5, 1, 9);
+                //     planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                // // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+                //
+                //     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                //     var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
+                //
+                //     var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬型に変更");
+                //         button.onPointerDownObservable.add(() => {
+                //             if (document.getElementsByName('change_video')[0].checked) {
+                //                 document.getElementsByName('change_video')[0].checked = false;
+                //                 document.getElementsByName('change_video')[1].checked = true;
+                //             }
+                //             else if (document.getElementsByName('change_video')[1].checked) {
+                //                 document.getElementsByName('change_video')[0].checked = true;
+                //                 document.getElementsByName('change_video')[1].checked = false;
+                //             }
+                //
+                //             if (header == 0x43) {
+                //                 header = 0xa1;
+                //                 document.getElementsByName('change_video')[0].checked = false;
+                //                 document.getElementsByName('change_video')[1].checked = true;
+                //                 button.textBlock.text = "Segway に変更";
+                //                 videoDome.texture = videoTexture_a1;
+                //                 videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                //                 videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                //             }
+                //             else {
+                //                 header = 0x43;
+                //                 document.getElementsByName('change_video')[0].checked = true;
+                //                 document.getElementsByName('change_video')[1].checked = false;
+                //                 videoDome.texture = videoTexture_segway_left;
+                //                 videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                //                 videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                //                 button.textBlock.text = "犬型に変更";
+                //             }
+                //         });
+                //         button.width = "1000px";
+                //         button.height = "200px";
+                //         button.color = "white";
+                //         button.cornerRadius = 100;
+                //         button.fontSize = 80;
+                //         button.background = "green";
+                //     advancedTextureb.addControl(button);
 
-                var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
-                    planeb.position = new BABYLON.Vector3(-5, 1, 9);
-                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                var plane_joy = BABYLON.Mesh.CreatePlane("planejoy", 5);
+                    plane_joy.position = new BABYLON.Vector3(-5, 1, 9);
+                    plane_joy.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
                 // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
 
                     // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-                    var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
+                    var advancedTexture_joy = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_joy);
 
-                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬型に変更");
-                        button.onPointerDownObservable.add(() => {
-                            if (document.getElementsByName('change_video')[0].checked) {
-                                document.getElementsByName('change_video')[0].checked = false;
-                                document.getElementsByName('change_video')[1].checked = true;
+                    var button_joy = BABYLON.GUI.Button.CreateSimpleButton("but", "headに変更");
+                        button_joy.onPointerDownObservable.add(() => {
+                            if (head_or_controller == 'controller') {
+                                head_or_controller = 'head';
+                                button_joy.textBlock.text = "controllerに変更";
                             }
-                            else if (document.getElementsByName('change_video')[1].checked) {
-                                document.getElementsByName('change_video')[0].checked = true;
-                                document.getElementsByName('change_video')[1].checked = false;
+                            else if (head_or_controller == 'head') {
+                                head_or_controller = 'controller';
+                                button_joy.textBlock.text = "headに変更";
                             }
-
-                            if (header == 0x43) {
-                                header = 0xa1;
-                                document.getElementsByName('change_video')[0].checked = false;
-                                document.getElementsByName('change_video')[1].checked = true;
-                                button.textBlock.text = "Segway に変更";
-                                videoDome.texture = videoTexture_a1;
-                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                            }
-                            else {
-                                header = 0x43;
-                                document.getElementsByName('change_video')[0].checked = true;
-                                document.getElementsByName('change_video')[1].checked = false;
-                                videoDome.texture = videoTexture_segway_left;
-                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-                                button.textBlock.text = "犬型に変更";
-                            }
+                            lin = 0;
+                            ang = 0;
                         });
-                        button.width = "1000px";
-                        button.height = "200px";
-                        button.color = "white";
-                        button.cornerRadius = 100;
-                        button.fontSize = 80;
-                        button.background = "green";
-                    advancedTextureb.addControl(button);
+                        button_joy.width = "1000px";
+                        button_joy.height = "200px";
+                        button_joy.color = "white";
+                        button_joy.cornerRadius = 100;
+                        button_joy.fontSize = 80;
+                        button_joy.background = "green";
+                    advancedTexture_joy.addControl(button_joy);
 
                 sendjoy = true;
 
@@ -417,13 +454,7 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     // console.log(ang);
-                                    if (header == 0x43) {
-                                        side = 0;
-                                        ang = -axes.x;
-                                        lin = -axes.y;
-                                    }
-
-                                    if (header == 0xa1) {
+                                    if (head_or_controller == 'controller') {
                                         side = 0;
                                         ang = -axes.x;
                                         lin = -axes.y;
@@ -432,16 +463,14 @@
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
-                                        if (segway_local_control_recvonly.dataChannel) {
-                                            if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                                            }
+                                        abutton_pressed = true;
+                                    }
+                                    else {
+                                        if (head_or_controller == 'head') {
+                                            ang = 0;
+                                            lin = 0;
                                         }
-                                        if (a1_local_control_recvonly.dataChannel) {
-                                            if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                                            }
-                                        }
+                                        abutton_pressed = false;
                                     }
                                 });
                             }
@@ -449,12 +478,7 @@
                                 const xr_ids = motionController.getComponentIds();
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
-                                    if (header == 0x43) {
-                                        side = 0;
-                                        ang = -axes.x;
-                                        lin = -axes.y;
-                                    }
-                                    if (header == 0xa1) {
+                                    if (head_or_controller == 'controller') {
                                         side = 0;
                                         ang = -axes.x;
                                         lin = -axes.y;
@@ -475,7 +499,20 @@
                             scene.onBeforeCameraRenderObservable.add((xr_camera) => {
                                 if (header == 0x43) {
                                     if (xr_camera.isLeftCamera) {
-                                        console.log(xr_camera);
+                                        xr_camera_px = xr_camera.position.x;
+                                        xr_camera_pz = xr_camera.position.z;
+
+                                        if (abutton_pressed & !old_abutton_pressed) {
+                                            xr_camera_offsetx = xr_camera_px;
+                                            xr_camera_offsetz = xr_camera_pz;
+                                        }
+                                        old_abutton_pressed = true;
+
+                                        if (abutton_pressed && head_or_controller == 'head') {
+                                            ang = (xr_camera_px - xr_camera_offsetx)/0.5;
+                                            lin = (xr_camera_pz - xr_camera_offsetz)/0.5;
+                                            console.log('ang: ' + ang + ', lin: ' + lin);
+                                        }
 
                                         twincam_setPos_count++;
                                         let q = xr_camera.rotationQuaternion;
@@ -623,14 +660,24 @@
                 if (header == 0x43) {
                     if (segway_local_control_recvonly.dataChannel) {
                         if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            if (abutton_pressed) {
+                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 0, 0, 0 ]));
+                            }
+                            else {
+                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            }
                         }
                     }
                 }
                 else if (header == 0xa1) {
                     if (a1_local_control_recvonly.dataChannel) {
                         if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                            a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            if (abutton_pressed) {
+                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 0, 0, 0 ]));
+                            }
+                            else {
+                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                            }
                         }
                     }
                 }
