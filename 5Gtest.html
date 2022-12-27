@@ -75,7 +75,7 @@
             let CLOSE_DATA_CHANNEL = false;
         </script>
         <script src="./getStats.js"></script>
-        <script type="text/javascript" src="./sora2022.2.0.js"></script>
+        <script type="text/javascript" src="./sora2022.3.1.js"></script>
         <script type="text/javascript">
             let segway_latch = 0;
             let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
@@ -105,7 +105,7 @@
 
             const options_video_audio_sendrecv = {
                 multistream : true,
-                video : false,
+                video : true,
                 audio : true
             }
 
@@ -123,7 +123,7 @@
             };
 
             let sendrecv_segway_left = sora.sendrecv("segway-left", null, options_video_audio_sendrecv);
-            let sendrecv_segway_right = sora.recvonly("segaway-right", null, options_video_audio_sendrecv);
+            let sendrecv_segway_right = sora.recvonly("segway-right", null, options_video_audio_sendrecv);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
             let recvonly_robots_control = sora.recvonly('robots-control', null, options_control);
@@ -553,17 +553,12 @@
                             RobotsLocalDataChannelLoop_intervalID = null;
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
-                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            if (segway_local_control_recvonly.dataChannel) {
-                                if (segway_local_control_recvonly.dataChannel.state == 'open') {
-                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
-                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
-                                }
+                            if (recvonly_chair_control.signalingSwitched) {
+                                recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
                             }
-                            if (a1_local_control_recvonly.dataChannel) {
-                                if (a1_local_control_recvonly.dataChannel.state == 'open') {
-                                    a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
-                                }
+                            if (recvonly_robots_control.signalingSwitched) {
+                                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xa1, 0x00, 0x00, 0x00]));
+                                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x43, 0x00, 0x00, 0x00]));
                             }
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
