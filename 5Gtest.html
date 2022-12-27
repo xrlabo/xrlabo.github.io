@@ -1,0 +1,655 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+
+		<!-- Embed latest version of Babylon.js. -->
+		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
+        <script src="./Babylon.js/babylon.js"></script>
+
+		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+		<!-- Embed pep.js for consistent cross-browser pointer events. -->
+		<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
+        <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
+        <title>5G test</title>
+    </head>
+
+    <body>
+        <button onclick="connect_clicked();" style="width: 150px; height: 50px; margin: 10px"><font size="5">ReConnect</font></button><br>
+        <!-- <input id="mic_on_off_button" type="button" onclick="mic_on_off();" value="mic on" style="width: 100px; height: 50px; margin: 10px; font-size: 20px"> -->
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" checked style="width: 100px; height: 50px;"><font size="7">mic on</font>
+        <input type="radio" name="mic_on_off" onclick="mic_on_off_clicked()" style="width: 100px; height: 50px;"><font size="7">mic off</font><br>
+        <!-- <button onclick="disconnect_clicked()">切断</button> -->
+        <input type="radio" name="change_video" onclick="change_video_clicked()" checked style="width: 100px; height: 50px;"><font size="7">Segway</font>
+        <input type="radio" name="change_video" onclick="change_video_clicked()" style="width: 100px; height: 50px;"><font size="7">A1</font><br>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" style="width: 100px; height: 50px;"><font size="7">start log</font>
+        <input type="radio" name="start_stop_log" onclick="start_stop_log_clicked()" checked style="width: 100px; height: 50px;"><font size="7">stop log</font>
+
+        <div id="remote-videos">
+
+            <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
+                <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
+            </video>
+            <video id="remoteVideo_right" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_segway_rear" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="remoteVideo_right_A1" controls style="border: 1px solid gray; width: 49.5%; float: left;"></video>
+            <video id="robotarm_dummy_video"></video>
+        </div>
+
+        <main style="margin: 0; padding: 0;">
+            <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
+                Unitree A1 status <br>
+                <font size="4">
+                    <pre><div id="a1ss"></div></pre>
+                </font>
+                <br>
+            </div>
+            <div class="SegwayStatusStamped" style="float: right; width: 50%; height: 250px; background-color: #eee;">
+                Segway RMP status <br>
+                <font size="4">
+                    <pre><div id="sgss"></div></pre>
+                </font>
+                <br>
+            </div>
+        </main>
+
+		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
+		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
+        <script type="text/javascript">
+            let timer;
+            document.addEventListener('keydown', (event) => {
+                if (recvonly_robots_control.signalingSwitched) {
+                    recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                }
+                clearTimeout(timer);
+                document.body.style.backgroundColor ='#ff3030';
+                timer = setTimeout(() => {
+                    document.body.style.backgroundColor ='#ffffff';
+                }, 300);
+            });
+            let CLOSE_DATA_CHANNEL = false;
+        </script>
+        <script src="./getStats.js"></script>
+        <script type="text/javascript" src="./sora2022.2.0.js"></script>
+        <script type="text/javascript">
+            let segway_latch = 0;
+            let segway_turn_position = 0, segway_position_x = 0, segway_position_z = 0;
+            let segway_start_turn_position = 0, segway_start_position_x = 0, segway_start_position_z = 0;
+            let segway_time_since_epoch, segway_ang_vel, segway_lin_vel;
+            let segway_message_stamp = 0;
+
+            let a1_auto_moving_status = 0;
+            let a1_position_x = 0, a1_position_z = 0, a1_position_rot = 0;
+            let a1_time_since_epoch = 0, a1_forwardSpeed = 0, a1_rotateSpeed = 0;
+            let a1_start_position_x = 0, a1_start_position_z = 0, a1_start_position_rot = 0;
+            let a1_message_stamp = 0;
+
+            let header = 0x43, lin = 0, ang = 0, side = 0;
+        </script>
+        <script type="text/javascript" src="./webrtc.js"></script>
+        <script type="text/javascript">
+
+            const debug = true;
+            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const options_video_recvonly = {
+                multistream : true,
+                video : true,
+                audio : true
+            };
+
+            const options_video_audio_sendrecv = {
+                multistream : true,
+                video : false,
+                audio : true
+            }
+
+            const options_control = {
+                multistream : true,
+                video : false,
+                audio : true,
+                dataChannelSignaling : true,
+                dataChannels : [
+                    {
+                        label : "#sora-devtools",
+                        direction : "sendrecv"
+                    }
+                ]
+            };
+
+            let sendrecv_segway_left = sora.sendrecv("segway-left", null, options_video_audio_sendrecv);
+            let sendrecv_segway_right = sora.recvonly("segaway-right", null, options_video_audio_sendrecv);
+            let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
+            let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+            let recvonly_robots_control = sora.recvonly('robots-control', null, options_control);
+
+            let videoStream_id_left = null;
+            let videoStream_id_right = null;
+            let audioStream_id_right = null;
+            let videoStream_id_right_A1 = null;
+
+            sendrecv_segway_left.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(()=> {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_left').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_left').autoplay = true;
+                        document.querySelector('#remoteVideo_left').muted = false;
+                        videoStream_id_left = event.streams[0].id;
+                    }, 1000);
+                }
+
+                if (event.track.kind == 'audio') {
+                    const audio = document.createElement('audio');
+                    audio.id = "audio-" + event.streams[0].id;
+                    audio.srcObject = event.streams[0];
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    document.getElementById('remote-videos').appendChild(audio);
+                }
+            });
+
+
+            sendrecv_segway_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        document.querySelector('#remoteVideo_right').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right').autoplay = true;
+                        document.querySelector('#remoteVideo_right').muted = false;
+                        videoStream_id_right = event.streams[0].id;
+                    }, 1500);
+                    return;
+                }
+            });
+
+            sendrecv_A1_right.on("track", (event) => {
+                console.log(event);
+                if (event.track.kind == "video") {
+                    setTimeout(() => {
+                        console.log(event);
+                        document.querySelector('#remoteVideo_right_A1').srcObject = event.streams[0];
+                        document.querySelector('#remoteVideo_right_A1').autoplay = true;
+                        document.querySelector('#remoteVideo_right_A1').muted = false;
+                    }, 4000);
+                    return;
+                }
+            });
+
+            setInterval(observe_video, 10000);
+            function observe_video() {
+                if (document.getElementById(`audio-${videoStream_id_left}`)) {
+                    document.getElementById(`audio-${videoStream_id_left}`).remove();
+                }
+            }
+
+            sendrecv_segway_left.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_left) {
+                    document.querySelector(`#remoteVideo_left`).srcObject = null;
+                    videoStream_id_left = null;
+                }
+            });
+
+            sendrecv_segway_right.on("removetrack", (event) => {
+                if (event.target.id == mediaStream_id_right) {
+                    document.querySelector(`#remoteVideo_right`).srcObject = null;
+                    videoStream_id_right = null;
+                }
+                if (document.getElementById(`audio-${event.target.id}`)) {
+                    document.getElementById(`audio-${event.target.id}`).remove();
+                }
+            });
+
+            recvonly_robots_control.on("message", (event) => {
+                if (new Uint8Array(event.data)[0] == 0x45 && event.data.byteLength == 20) {
+                    segway_message_stamp++;
+                    segway_time_since_epoch = (new Int32Array([new Uint8Array(event.data)[1] << 24])[0] + new Int32Array([new Uint8Array(event.data)[2] << 16])[0] + new Int32Array([new Uint8Array(event.data)[3] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[4]])[0] )/1000.0;
+                    segway_lin_vel = (new Int32Array([new Uint8Array(event.data)[5] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[6] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[7] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[8]])[0] )/10000.0;
+                    segway_ang_vel = (new Int32Array([new Uint8Array(event.data)[9] << 24])[0] + new Int32Array([ new Uint8Array(event.data)[10] << 16 ])[0] + new Int32Array([new Uint8Array(event.data)[11] << 8])[0] + new Int32Array([ new Uint8Array(event.data)[12]])[0] )/10000.0;
+                    segway_latch = new Uint8Array(event.data)[13];
+                    segway_turn_position = (new Int16Array([new Uint8Array(event.data)[14] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[15]])[0] )/100.0;
+                    segway_position_x = (new Int16Array([new Uint8Array(event.data)[16] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[17]])[0] )/100.0;
+                    segway_position_z = (new Int16Array([new Uint8Array(event.data)[18] << 8])[0] + new Int16Array([ new Uint8Array(event.data)[19]])[0] )/100.0;
+                    document.getElementById("sgss").innerHTML = 'latch ' + segway_latch + '\nturn position(deg) ' + segway_turn_position + '\nposition x(m) ' + segway_position_x + '\nposition z(m) ' + segway_position_z  + '\n時刻(s) ' + segway_time_since_epoch + '\n並進速度(m/s) ' + segway_lin_vel + '\n旋回速度(deg/s)' + segway_ang_vel;
+                }
+                else if (new Uint8Array(event.data)[0] == 0xa5 && event.data.byteLength == 20) {
+                    let event_data = new Uint8Array(event.data);
+                    a1_message_stamp++;
+                    a1_auto_moving_status = event_data[1];
+                    a1_position_x = (new Int16Array([event_data[2] << 8])[0] + new Int16Array([event_data[3]])[0] )/100.0;
+                    a1_position_z = (new Int16Array([event_data[4] << 8])[0] + new Int16Array([event_data[5]])[0] )/100.0;
+                    a1_position_rot = (new Int16Array([event_data[6] << 8])[0] + new Int16Array([event_data[7]])[0] )/100.0;
+                    a1_forwardSpeed = (new Int32Array([event_data[8] << 24])[0] + new Int32Array([event_data[9] << 16 ])[0] + new Int32Array([event_data[10] << 8])[0] + new Int32Array([event_data[11]])[0] )/10000.0;
+                    a1_rotateSpeed = (new Int32Array([event_data[12] << 24])[0] + new Int32Array([event_data[13] << 16 ])[0] + new Int32Array([event_data[14] << 8])[0] + new Int32Array([event_data[15]])[0] )/10000.0;
+                    a1_time_since_epoch = (new Int32Array([event_data[16] << 24])[0] + new Int32Array([event_data[17] << 16])[0] + new Int32Array([event_data[18] << 8])[0] + new Int32Array([event_data[19]])[0] )/1000.0;
+                    document.getElementById("a1ss").innerHTML = 'auto_moving ' + a1_auto_moving_status + '\nposition x(m) ' + a1_position_x + '\nposition z(m) ' + a1_position_z + '\nrotation (deg) ' + a1_position_rot + '\ntime since epoch (s) ' + a1_time_since_epoch + '\nforwardSpeed (m/s) ' + a1_forwardSpeed + '\nrotateSpeed (deg/s) ' + a1_rotateSpeed;
+                }
+            });
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+			// canvas DOM 要素を取得する
+			let canvas = document.getElementById('renderCanvas');
+
+            canvas.addEventListener("mousewheel", (event) => {
+                event.preventDefault();
+                console.log(event);
+            });
+
+			// Initialize Babylon.js variables.
+			let	sceneToRender;
+            let xrHelper;
+			const createDefaultEngine = function (canvas) {
+                return new BABYLON.Engine(canvas, true, {
+					preserveDrawingBuffer: true,
+					stencil: true
+				});
+            }
+
+            const engine = createDefaultEngine(canvas);
+
+            let RobotsLocalDataChannelLoop_intervalID = null;
+            let soraChairDataChannelLoop_intervalID = null;
+            let sendjoy = false;
+
+            let camera;
+            let cameraFovDegree = 60;
+
+            let videoDome;
+
+            let twincam_setPos_count = 0;
+            let setPos = 0;
+            let setPosA = 0;
+            let HMD_ang = 0;
+            let old_HMD_ang = 0;
+
+            let buttonheader;
+
+            let twincamMode = 1; //1: left and right, 2: left only, 3: right only
+
+            let arrow_box;
+
+            let grip = 0;
+
+            function change_video_clicked() {
+                if (videoDecrimentalLoop_intervalID) {
+                    clearInterval(videoDecrimentalLoop_intervalID);
+                }
+                if (videoIncrimentalLoop_intervalID) {
+                    clearInterval(videoIncrimentalLoop_intervalID);
+                }
+                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+            }
+
+			//Create scene and create XR experience.
+			const createScene = async function() {
+				//新しいシーンオブジェクトを作成する
+                var scene = new BABYLON.Scene(engine);
+                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+                // scene.detachControl();
+
+
+                camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+                camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                // Camera の操作を canvas 上で可能にする
+    			camera.attachControl(canvas, true);
+                camera.panningAxis._x = 0; //水平移動無し。
+                camera.panningAxis._y = 0; //垂直移動無し。
+                if (camera.inputs.attached.keyboard) {
+                    camera.inputs.attached.keyboard.detachControl();
+                }
+                if (camera.inputs.attached.pointers) {
+                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                    camera.inputs.attached.pointers.multiTouchPanning = false;
+                    camera.inputs.attached.pointers.pinchInwards = false;
+                    camera.inputs.attached.pointers.pinchZoom = false;
+                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
+                }
+                if (camera.inputs.attached.mousewheel) {
+                    camera.inputs.attached.mousewheel.detachControl();
+                }
+
+                var arrow_mat = new BABYLON.StandardMaterial("arrow_mat", scene);
+                    arrow_mat.alpha = 0.3;
+                    arrow_mat.ambientColor = new BABYLON.Color3(0, 1, 0);
+                let front_arrow_box = BABYLON.MeshBuilder.CreateBox("arrow_box", {width: 1, height: 1, depth: 6}, scene);
+                    front_arrow_box.position = new BABYLON.Vector3(0, -3, 3);
+                    front_arrow_box.material = arrow_mat;
+                var front_arrow_cylinder = BABYLON.MeshBuilder.CreateCylinder("arrow_cylinder", {height: 0.1, diameter: 4, tessellation: 3}, scene);
+                    front_arrow_cylinder.position = new BABYLON.Vector3(0, -3, 7);
+                    front_arrow_cylinder.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
+                    front_arrow_cylinder.material = arrow_mat;
+
+
+                let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
+                let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
+                let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
+
+                videoDome = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_left'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+
+                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+
+                var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
+                    planeb.position = new BABYLON.Vector3(-5, 1, 9);
+                    planeb.rotation = new BABYLON.Vector3(0, -Math.PI/6, 0);
+                // plane.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP
+
+                    // var advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                    var advancedTextureb = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(planeb);
+
+                    var button = BABYLON.GUI.Button.CreateSimpleButton("but", "犬型に変更");
+                        button.onPointerDownObservable.add(() => {
+                            if (document.getElementsByName('change_video')[0].checked) {
+                                document.getElementsByName('change_video')[0].checked = false;
+                                document.getElementsByName('change_video')[1].checked = true;
+                            }
+                            else if (document.getElementsByName('change_video')[1].checked) {
+                                document.getElementsByName('change_video')[0].checked = true;
+                                document.getElementsByName('change_video')[1].checked = false;
+                            }
+
+                            if (header == 0x43) {
+                                header = 0xa1;
+                                document.getElementsByName('change_video')[0].checked = false;
+                                document.getElementsByName('change_video')[1].checked = true;
+                                button.textBlock.text = "Segway に変更";
+                                videoDome.texture = videoTexture_a1;
+                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                            }
+                            else {
+                                header = 0x43;
+                                document.getElementsByName('change_video')[0].checked = true;
+                                document.getElementsByName('change_video')[1].checked = false;
+                                videoDome.texture = videoTexture_segway_left;
+                                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                                button.textBlock.text = "犬型に変更";
+                            }
+                        });
+                        button.width = "1000px";
+                        button.height = "200px";
+                        button.color = "white";
+                        button.cornerRadius = 100;
+                        button.fontSize = 80;
+                        button.background = "green";
+                    advancedTextureb.addControl(button);
+
+                sendjoy = true;
+
+                // Create a default environment for the scene.
+				var environment = scene.createDefaultEnvironment();
+
+                // Initialize XR experience with default experience helper.
+				xrHelper = await scene.createDefaultXRExperienceAsync({
+                    // floorMeshes: [environment.ground]
+                });
+
+                //===Stick=====================================================================================================
+                //==============================================================================================================
+				if (!xrHelper.baseExperience) {
+					// XR support is unavailable.
+					console.log('WebXR support is unavailable');
+
+				}
+                else {
+					// XR support is available; proceed.
+
+                    xrHelper.teleportation.rotationAngle = 0;
+                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
+                    xrHelper.teleportation.rotationEnabled = false;
+
+                    xrHelper.input.onControllerAddedObservable.add((controller) => {
+                        if (RobotsLocalDataChannelLoop_intervalID == null) {
+                            RobotsLocalDataChannelLoop_intervalID = setInterval(RobotsLocalDataChannelLoop, 1000.0/20.0);
+                            RobotsLocalDataChannelLoop();
+                        }
+                        if (soraChairDataChannelLoop_intervalID == null) {
+                            soraChairDataChannelLoop_intervalID = setInterval(soraChairDataChannelLoop, 1000.0/10.0);
+                            soraChairDataChannelLoop();
+                        }
+                        controller.onMotionControllerInitObservable.add((motionController) => {
+                            if (motionController.handness === 'right') {
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    // console.log(ang);
+                                    if (header == 0x43) {
+                                        side = 0;
+                                        ang = -axes.x;
+                                        lin = -axes.y;
+                                    }
+
+                                    if (header == 0xa1) {
+                                        side = 0;
+                                        ang = -axes.x;
+                                        lin = -axes.y;
+                                    }
+                                });
+                                let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
+                                abuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (abuttonComponent.pressed) {
+                                        if (segway_local_control_recvonly.dataChannel) {
+                                            if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                            }
+                                        }
+                                        if (a1_local_control_recvonly.dataChannel) {
+                                            if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            if (motionController.handness === 'left') {
+                                const xr_ids = motionController.getComponentIds();
+                                let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+                                thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                                    if (header == 0x43) {
+                                        side = 0;
+                                        ang = -axes.x;
+                                        lin = -axes.y;
+                                    }
+                                    if (header == 0xa1) {
+                                        side = 0;
+                                        ang = -axes.x;
+                                        lin = -axes.y;
+                                    }
+                                });
+                            }
+                        });
+                    });
+
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        camera.alpha = -Math.PI / 2;
+                        camera.beta = Math.PI / 2;
+                        if(state === BABYLON.WebXRState.IN_XR){
+                            setPos = 0;
+                            setPosA = 0;
+                            HMD_ang = 0;
+                            old_HMD_ang = 0;
+                            scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (header == 0x43) {
+                                    if (xr_camera.isLeftCamera) {
+                                        twincam_setPos_count++;
+                                        let q = xr_camera.rotationQuaternion;
+                                        let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
+                                        let abs_sinX = Math.abs(sinX);
+                                        if (abs_sinX < 0.001) {
+                                            sinX = 0;
+                                        }
+                                        let euler_x = Math.asin(-sinX);
+                                        if (isNaN(euler_x) || Math.abs((Math.abs(euler_x) -  Math.PI / 2)) < 0.001) {
+                                            euler_x = Math.sign(-sinX) * (Math.PI / 2);
+                                        }
+                                        let cosX = Math.cos(euler_x);
+                                        let sinY = (2 * q.x * q.z + 2 * q.y * q.w) / cosX;
+                                        let cosY = (2* Math.pow(q.w, 2) + 2*Math.pow(q.z, 2) - 1) / cosX;
+                                        let euler_y = -Math.atan2(sinY, cosY);
+                                        HMD_ang = -euler_y/Math.PI*700;
+                                        if (Math.abs(HMD_ang) < 350) {
+                                            setPosA = 0;
+                                        }
+                                        if (HMD_ang - old_HMD_ang < -700) {
+                                            setPosA +=  1400;
+                                        }
+                                        else if (HMD_ang - old_HMD_ang > 700) {
+                                            setPosA += -1400;
+                                        }
+                                        setPos = HMD_ang + setPosA;
+                                        if (setPos > 1050) {
+                                            setPos = 1050;
+                                        }
+                                        else if (setPos < -1050) {
+                                            setPos = -1050;
+                                        }
+                                        old_HMD_ang = HMD_ang;
+                                        let send_value = setPos;
+
+                                        if (twincam_setPos_count > 15) {
+                                            twincam_setPos_count = 0;
+                                            if (recvonly_robots_control.signalingSwitched) {
+                                                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            }
+                                        }
+                                    }
+                                    if (twincamMode == 1) {
+                                        if (xr_camera.isLeftCamera) {
+                                            videoDome.texture = videoTexture_segway_left;
+                                        }
+                                        else {
+                                            videoDome.texture = videoTexture_segway_right;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                            lin = 0;
+                            ang = 0;
+                            side = 0;
+                            clearInterval(RobotsLocalDataChannelLoop_intervalID);
+                            RobotsLocalDataChannelLoop_intervalID = null;
+                            clearInterval(soraChairDataChannelLoop_intervalID);
+                            soraChairDataChannelLoop_intervalID = null;
+                            recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                            if (segway_local_control_recvonly.dataChannel) {
+                                if (segway_local_control_recvonly.dataChannel.state == 'open') {
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
+                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                                }
+                            }
+                            if (a1_local_control_recvonly.dataChannel) {
+                                if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                                    a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
+                                }
+                            }
+                            if (camera.inputs.attached.gamepad) {
+                                camera.inputs.attached.gamepad.detachControl();
+                            }
+                        }
+                        console.log(state);
+                    });
+
+				}
+
+                return scene;
+            }
+
+			// Create scene.
+			scene = createScene();
+			scene.then(function (returnedScene) {
+				sceneToRender = returnedScene;
+			});
+            engine.runRenderLoop(function () {
+				if (sceneToRender) {
+					sceneToRender.render();
+				}
+			});
+
+
+			// Handle browser resize.
+			window.addEventListener('resize', function () {
+				engine.resize();
+			});
+
+            // let localStream_for_A1, localStream_for_segway;
+            let localStream;
+
+            function connect_clicked() {
+                navigator.mediaDevices
+                .getUserMedia({ audio: true, video: false })
+                .then((stream) => {
+                    localStream = stream;
+                    console.log(stream);
+                    sendrecv_segway_left.connect(localStream);
+                    sendrecv_segway_right.connect(localStream);
+                    sendrecv_A1_right.connect(localStream);
+                    localStream.getAudioTracks()[0].enabled = true;
+                })
+                .catch((e) => {
+                     console.error(e);
+                });
+
+                recvonly_chair_control.connect();
+                recvonly_robots_control.connect();
+            }
+
+            connect_clicked();
+
+            function mic_on_off_clicked() {
+                if (document.getElementsByName('mic_on_off')[0].checked) {
+                    localStream.getAudioTracks()[0].enabled = true;
+                }
+                else {
+                    localStream.getAudioTracks()[0].enabled = false;
+                }
+            }
+
+            function RobotsLocalDataChannelLoop() {
+                if (recvonly_robots_control.signalingSwitched) {
+                    recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                }
+            }
+
+            function soraChairDataChannelLoop() {
+                if (recvonly_chair_control.signalingSwitched) {
+                    if (Math.abs(lin) > 0.15 || Math.abs(ang) > 0.15) {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x01 ]));
+                    }
+                    else {
+                        recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
+                    }
+                }
+            }
+
+            setInterval(observe_CLOSE_DATA_CHANNEL, 10000);
+            function observe_CLOSE_DATA_CHANNEL() {
+                if (CLOSE_DATA_CHANNEL) {
+                    connect_clicked();
+                }
+            }
+        </script>
+    </body>
+</html>
