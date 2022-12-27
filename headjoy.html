@@ -509,13 +509,13 @@
                                         old_abutton_pressed = abutton_pressed;
 
                                         if (abutton_pressed && head_or_controller == 'head') {
-                                            ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.3;
-                                            lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.3;
+                                            ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.2;
+                                            lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.2;
                                             if (Math.abs(ang) > 1) {
                                                 ang_tmp = ang_tmp / Math.abs(ang);
                                             }
                                             if (Math.abs(lin) > 1) {
-                                                lin_tmp = lin_mp / Math.abs(lin);
+                                                lin_tmp = lin_tmp / Math.abs(lin);
                                             }
                                             lin = lin_tmp;
                                             ang = ang_tmp;
