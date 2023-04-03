@@ -105,33 +105,6 @@
         </script>
         <script type="text/javascript" src="./webrtc.js"></script>
         <script type="text/javascript">
-            let ws = new WebSocket("ws://192.168.11.32:9001/ws");
-
-            // Set event handlers.
-            ws.onopen = function() {
-                console.log("onopen");
-            };
-
-            ws.onmessage = function(e) {
-                // e.data contains received string.
-                console.log("onmessage: " + e.data);
-            };
-
-            ws.onclose = function() {
-                console.log("onclose");
-            };
-
-            ws.onerror = function(e) {
-                console.log(e)
-            };
-
-            setInterval(observe_ws_readyState, 1000)
-            function observe_ws_readyState() {
-                if (ws.readyState == 3) {
-                    ws = new WebSocket("ws://192.168.11.32:9001/ws");
-                }
-            }
-
             const debug = true;
             // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
             const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
