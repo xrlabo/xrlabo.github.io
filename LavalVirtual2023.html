@@ -133,13 +133,14 @@
                 ]
             };
 
-            let sendrecv_segway_left = sora.sendrecv("twincam-left", null, options_video_audio_sendrecv);
-            let recvonly_segway_right = sora.recvonly("twincam-right", null, options_video_recvonly);
+            let sendrecv_segway_left = sora.sendrecv("segway-left", null, options_video_audio_sendrecv);
+            let recvonly_segway_right = sora.recvonly("segway-right", null, options_video_recvonly);
             let sendrecv_A1_right = sora.sendrecv("twincam-right-A1", null, options_video_audio_sendrecv);
 
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
 
-            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8081/ws");
+            let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:9080/ws");
+            let twincam_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.149:9081/ws");
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
 
             let videoStream_id_left = null;
@@ -647,9 +648,9 @@
 
                                         if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
-                                            if (segway_local_control_recvonly.dataChannel) {
-                                                if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            if (twincam_local_control_recvonly.dataChannel) {
+                                                if (twincam_local_control_recvonly.dataChannel.readyState == 'open') {
+                                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
                                                 }
                                             }
                                         }
@@ -678,10 +679,9 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            if (segway_local_control_recvonly.dataChannel) {
-                                if (segway_local_control_recvonly.dataChannel.state == 'open') {
-                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([header, 0, 0, 0]));
-                                    segway_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                            if (twincam_local_control_recvonly.dataChannel) {
+                                if (twincam_local_control_recvonly.dataChannel.state == 'open') {
+                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
                                 }
                             }
                             if (a1_local_control_recvonly.dataChannel) {
@@ -747,7 +747,7 @@
                     segway_local_control_recvonly.connect();
                 }, 2500);
                 setTimeout(() => {
-                    localrecvonly_robot_arm.connect();
+                    twincam_local_control_recvonly.connect();
                 }, 3000);
             }
 
