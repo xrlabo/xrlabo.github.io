@@ -55,7 +55,7 @@
             var sora = Sora.connection(document.getElementById('url_input').value, debug);
             const options = {
                 multistream : true,
-                video : true,
+                video : false,
                 audio : true
             };
             var sendrecv = sora.sendrecv(document.getElementById('channel_id_input').value, null, options);
