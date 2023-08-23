@@ -20,7 +20,7 @@
     </head>
 
     <body>
-        <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
+        <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; top: 0; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -32,8 +32,11 @@
 
         <div id="remote-videos">
 
-            <video id="remoteVideo" controls muted="false" style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo" autoplay muted controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
 
+        </div>
+
+        <div id="remote-audios">
         </div>
 
 		<!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
@@ -41,12 +44,6 @@
         <!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 98%; height: 90%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0;"></canvas> -->
         <script type="text/javascript">
             let CLOSE_DATA_CHANNEL = false;
-            function previewGetStatsResult(peer, result) {
-                console.log('video latency: '+ result.video.latency + 'ms');
-            }
-            function hoge() {
-                console.log("hoge\nhoge\nhoge\nhoge");
-            }
         </script>
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora2023.1.0.js"></script>
@@ -70,7 +67,7 @@
                     const stream = event.streams[0];
                     if (event.track.kind == "video") {
                         document.querySelector('#remoteVideo').srcObject = stream;
-                        document.querySelector('#remoteVideo').autoplay = true;
+                        // document.querySelector('#remoteVideo').autoplay = true;
                         // document.querySelector('#remoteVideo').muted = false;
                         mediaStream_id = event.streams[0].id;
                         getStats(recvonly.pc, function(result) {
@@ -78,24 +75,30 @@
                             console.log(result.video.latency + 'ms');
                         }, 500);
                     }
-                    if (event.track.kind == 'audio') {
-                        const audio = document.createElement('audio');
-                        audio.id = "audio-" + event.streams[0].id;
-                        audio.srcObject = event.streams[0];
-                        audio.controls = true;
-                        audio.autoplay = true;
-                        audio.style = "display: none;"
-                        document.getElementById('remote-videos').appendChild(audio);
-                    }
+                    // if (event.track.kind == 'audio') {
+                    //     const audio = document.createElement('audio');
+                    //     audio.id = "audio-" + event.streams[0].id;
+                    //     audio.srcObject = event.streams[0];
+                    //     audio.controls = true;
+                    //     audio.autoplay = true;
+                    //     audio.muted = false;
+                    //     audio.style = "display: none;"
+                    //     document.getElementById('remote-audios').appendChild(audio);
+                    // }
                 });
             }
 
-            // setInterval(observe_video, 10000);
-            // function observe_video() {
-            //     if (document.getElementById(`audio-${mediaStream_id}`)) {
-            //         document.getElementById(`audio-${mediaStream_id}`).remove();
-            //     }
-            // }
+            setInterval(observe_video, 1000);
+            function observe_video() {
+                if (document.querySelector('#remoteVideo').muted) {
+                    document.querySelector('#remoteVideo').muted = false;
+                    document.querySelector('#remoteVideo').play();
+                }
+                document.querySelector('#remoteVideo').play();
+                // if (document.getElementById(`audio-${mediaStream_id}`)) {
+                //     document.getElementById(`audio-${mediaStream_id}`).remove();
+                // }
+            }
 
 
             // recvonly.on("removetrack", (event) => {
@@ -288,67 +291,11 @@
             let localStream;
 
             function connect_clicked() {
-                if (videoDecrimentalLoop_intervalID) {
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                }
-                if (videoIncrimentalLoop_intervalID) {
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                }
-                videoDecrimentalLoop_intervalID = setInterval(videoDecrimentalLoop, 1000.0/10.0);
+                sora = Sora.connection(signaling_url, debug);
+                recvonly = sora.recvonly(channel_id, null, options);
+                set_callback();
+                recvonly.connect();
             }
-
-            function videoDecrimentalLoop() {
-                if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.2;
-                }
-                else {
-                    videoDome.material._alpha = 0;
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                    videoDecrimentalLoop_intervalID = null;
-                    sora = Sora.connection(signaling_url, debug);
-                    recvonly = sora.recvonly(channel_id, null, options);
-                    set_callback();
-                    // navigator.mediaDevices
-                    // .getUserMedia({ audio: true, video: false })
-                    // .then((stream) => {
-                    //     localStream = stream;
-                    //     localStream.getAudioTracks()[0].enabled = false;
-                    //     console.log(stream);
-                    //     sendrecv.connect(stream);
-                    // })
-                    // .catch((e) => {
-                    //      console.error(e);
-                    // });
-                    recvonly.connect();
-                    videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10.0);
-                }
-            }
-
-            function videoIncrimentalLoop() {
-                if (videoDome.material._alpha < 0.2) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.1
-                }
-                else if (videoDome.material._alpha < 1) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.1
-                }
-                else {
-                    videoDome.material._alpha = 1;
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                    videoIncrimentalLoop_intervalID = null;
-                }
-            }
-
-
-
-            function mic_on_off_clicked() {
-                if (document.getElementsByName('mic_on_off')[0].checked) {
-                    localStream.getAudioTracks()[0].enabled = true;
-                }
-                else {
-                    localStream.getAudioTracks()[0].enabled = false;
-                }
-            }
-
             connect_clicked();
     </script>
   </body>
