@@ -17,16 +17,26 @@
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.min.js"></script> -->
         <!-- <script src="./Babylon.js/dist/gui/babylon.gui.js.map"></script> -->
         <title>URCF</title>
+
+        <link rel="stylesheet" href="./toggleButton.css">
     </head>
 
     <body>
+        <!-- <div style="z-index: 100;">
+            <input class="checkbox" id="checkbox1" type="checkbox"/>
+            <label for="checkbox1" class="checkbox-label">
+                <span class="on">Segway</span>
+                <span class="off">Quadruped</span>
+            </label>
+        </div> -->
         <div id="touchstart" style="width: 100%; height: 100%; text-align: center;">
             <font size="9">
                 <br><br>
                 最初に画面をタッチしてください
             </font>
         </div>
-        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; top: 0; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
+        
+        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none; z-index: -1;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -51,7 +61,7 @@
         <script type="text/javascript">
             let CLOSE_DATA_CHANNEL = false;
         </script>
-        <script src="./getStats.js"></script>
+        <!-- <script src="./getStats.js"></script> -->
         <script type="text/javascript" src="./sora2023.1.0.js"></script>
         <script type="text/javascript">
             // let signaling_url = 'wss://u1.xr360d.net/signaling';
@@ -77,10 +87,10 @@
                         // document.querySelector('#remoteVideo').autoplay = true;
                         // document.querySelector('#remoteVideo').muted = false;
                         mediaStream_id = event.streams[0].id;
-                        getStats(recvonly.pc, function(result) {
-                            // previewGetStatsResult(this.pc, result);
-                            console.log(result.video.latency + 'ms');
-                        }, 500);
+                        // getStats(recvonly.pc, function(result) {
+                        //     // previewGetStatsResult(this.pc, result);
+                        //     console.log(result.video.latency + 'ms');
+                        // }, 500);
                     }
                     if (event.track.kind == 'audio') {
                         const audio1 = document.createElement('audio');
