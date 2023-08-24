@@ -36,7 +36,7 @@
             </font>
         </div>
         
-        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none; z-index: -1;"></canvas>
+        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none; z-index: 1;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -173,12 +173,12 @@
             //     console.log(e);
             // });
 
-            document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
-                console.log(e);
-                if (document.getElementById('touchstart')) {
-                    document.getElementById('touchstart').remove();
-                }
-            });
+            // document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
+            //     console.log(e);
+            //     if (document.getElementById('touchstart')) {
+            //         document.getElementById('touchstart').remove();
+            //     }
+            // });
 
             document.getElementsByTagName('body')[0].onpointerdown = (e) => {
                 console.log(e);
@@ -313,43 +313,6 @@
 				var environment = scene.createDefaultEnvironment();
                 // environment.ground.parent.position.y = 0;
                 // environment.ground.position.y = 0
-
-
-                // Initialize XR experience with default experience helper.
-				xrHelper = await scene.createDefaultXRExperienceAsync({
-                    // floorMeshes: [environment.ground]
-                });
-
-                if (!xrHelper.baseExperience) {
-					// XR support is unavailable.
-					console.log('WebXR support is unavailable');
-				}
-                else {
-					// XR support is available; proceed.
-
-                    // xrHelper.teleportation.rotationAngle = 0;
-
-                    xrHelper.teleportation.detach();
-
-                    xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
-
-                    // xrHelper.teleportation.rotationEnabled = false;
-                    //
-                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                        if (camera.id == "ArcRotateCamera") {
-                            camera.alpha = -Math.PI / 2;
-                            camera.beta = Math.PI / 2;
-                        }
-                        if (camera.id == "UniversalCamera") {
-                            camera.position = new BABYLON.Vector3(0, 0, 0);
-                            camera.setTarget(new BABYLON.Vector3(0, 0, 1));
-                        }
-                        // xrHelper.input.xrCamera.setTarget(new BABYLON.Vector3(0, 0, 1));
-                        console.log(state);
-                    });
-
-				}
-
 
                 return scene;
             }
