@@ -1,10 +1,11 @@
-<html lang="ja">
+<html>
     <head>
-        <meta charset="utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
 		<!-- Embed latest version of Babylon.js. -->
-		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
-        <script src="./Babylon.js/babylon.js"></script>
+		<script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+        <!-- <script src="./Babylon.js/babylon.js"></script> -->
 
 		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
 		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -36,7 +37,7 @@
             </font>
         </div>
         
-        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0; touch-action: none; z-index: 1;"></canvas>
+        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; touch-action: none; z-index: 1;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -81,9 +82,8 @@
             function set_callback() {
                 recvonly.on("track", (event) => {
                     console.log(event);
-                    const stream = event.streams[0];
                     if (event.track.kind == "video") {
-                        document.querySelector('#remoteVideo').srcObject = stream;
+                        document.querySelector('#remoteVideo').srcObject = event.streams[0];
                         // document.querySelector('#remoteVideo').autoplay = true;
                         // document.querySelector('#remoteVideo').muted = false;
                         mediaStream_id = event.streams[0].id;
@@ -132,7 +132,7 @@
             setInterval(observe_video, 1000);
             function observe_video() {
                 if (document.querySelector('#remoteVideo')) {
-                    document.querySelector('#remoteVideo').muted = false;
+                    document.querySelector('#remoteVideo').muted = true;
                     document.querySelector('#remoteVideo').volume = 1;
                     document.querySelector('#remoteVideo').play();
                 }
@@ -185,6 +185,7 @@
                 if (document.getElementById('touchstart')) {
                     document.getElementById('touchstart').remove();
                 }
+                engine.resize();
             }
 
             // recvonly.on("removetrack", (event) => {
@@ -201,16 +202,10 @@
 			let canvas = document.getElementById('renderCanvas');
 
 			// Initialize Babylon.js variables.
-			let	sceneToRender;
-            let xrHelper;
-			const createDefaultEngine = function (canvas) {
-                return new BABYLON.Engine(canvas, true, {
-					preserveDrawingBuffer: true,
-					stencil: true
-				});
-            }
-
-            const engine = createDefaultEngine(canvas);
+			const engine = new BABYLON.Engine(canvas, true, {
+                preserveDrawingBuffer: true,
+                stencil: true
+            });
 
             let camera;
             let cameraFovDegree = 60;
