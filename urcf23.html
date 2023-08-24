@@ -31,10 +31,7 @@
             </label>
         </div> -->
         <div id="touchstart" style="width: 100%; height: 100%; text-align: center;">
-            <font size="9">
-                <br><br>
-                最初に画面をタッチしてください
-            </font>
+            <input type="button" value="最初に画面をタッチしてください" onclick="onClicked();" style="font-size: 300%; position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
         </div>
         
         <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; touch-action: none; z-index: 1;"></canvas>
@@ -130,14 +127,51 @@
                 });
             }
 
-            setInterval(observe_video, 1000);
-            function observe_video() {
-                if (isTouched) {
-                    if (document.querySelector('#remoteVideo')) {
-                        document.querySelector('#remoteVideo').muted = false;
-                        document.querySelector('#remoteVideo').volume = 1;
-                        document.querySelector('#remoteVideo').play();
-                    }
+            // setInterval(observe_video, 1000);
+            // function observe_video() {
+            //     if (isTouched) {
+            //         if (document.querySelector('#remoteVideo')) {
+            //             document.querySelector('#remoteVideo').muted = false;
+            //             document.querySelector('#remoteVideo').volume = 1;
+            //             document.querySelector('#remoteVideo').play();
+            //         }
+            //         if (document.getElementById(`audio-${mediaStream_id}-1`)) {
+            //             document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
+            //             document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
+            //             document.getElementById(`audio-${mediaStream_id}-1`).play();
+            //         }
+            //         if (document.getElementById(`audio-${mediaStream_id}-2`)) {
+            //             document.getElementById(`audio-${mediaStream_id}-2`).muted = false;
+            //             document.getElementById(`audio-${mediaStream_id}-2`).volume = 1;
+            //             document.getElementById(`audio-${mediaStream_id}-2`).play();
+            //         }
+            //         if (document.getElementById(`audio-${mediaStream_id}-3`)) {
+            //             document.getElementById(`audio-${mediaStream_id}-3`).muted = false;
+            //             document.getElementById(`audio-${mediaStream_id}-3`).volume = 1;
+            //             document.getElementById(`audio-${mediaStream_id}-3`).play();
+            //         }
+            //         if (document.getElementById(`audio-${mediaStream_id}-4`)) {
+            //             document.getElementById(`audio-${mediaStream_id}-4`).muted = false;
+            //             document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
+            //             document.getElementById(`audio-${mediaStream_id}-4`).play();
+            //         }
+            //     }
+            // }
+
+            function connect_clicked() {
+                sora = Sora.connection(signaling_url, debug);
+                recvonly = sora.recvonly(channel_id, null, options);
+                set_callback();
+                recvonly.connect();
+            }
+
+            connect_clicked()
+
+            function onClicked() {
+                if (mediaStream_id) {
+                    document.querySelector('#remoteVideo').muted = false;
+                    document.querySelector('#remoteVideo').volume = 1;
+                    document.querySelector('#remoteVideo').play();
                     if (document.getElementById(`audio-${mediaStream_id}-1`)) {
                         document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
                         document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
@@ -158,17 +192,10 @@
                         document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
                         document.getElementById(`audio-${mediaStream_id}-4`).play();
                     }
+                    document.getElementById('touchstart').remove();
                 }
             }
-
-            function connect_clicked() {
-                sora = Sora.connection(signaling_url, debug);
-                recvonly = sora.recvonly(channel_id, null, options);
-                set_callback();
-                recvonly.connect();
-            }
-
-            connect_clicked()
+            
             
             // window.addEventListener('beforeunload', (e) => {
             //     e.preventDefault();
@@ -183,13 +210,13 @@
             //     }
             // });
 
-            document.getElementsByTagName('body')[0].onpointerdown = (e) => {
-                console.log(e);
-                if (document.getElementById('touchstart')) {
-                    document.getElementById('touchstart').remove();
-                    isTouched = true;
-                }
-            }
+            // document.getElementsByTagName('body')[0].onpointerdown = (e) => {
+            //     console.log(e);
+            //     if (document.getElementById('touchstart')) {
+            //         document.getElementById('touchstart').remove();
+            //         isTouched = true;
+            //     }
+            // }
 
             // recvonly.on("removetrack", (event) => {
             //     if (event.target.id == mediaStream_id) {
