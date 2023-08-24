@@ -93,40 +93,40 @@
                         //     console.log(result.video.latency + 'ms');
                         // }, 500);
                     }
-                    // if (event.track.kind == 'audio') {
-                    //     const audio1 = document.createElement('audio');
-                    //     audio1.id = "audio-" + event.streams[0].id + '-1';
-                    //     audio1.srcObject = event.streams[0];
-                    //     audio1.controls = true;
-                    //     audio1.autoplay = true;
-                    //     audio1.muted = false;
-                    //     audio1.style = "display: none;"
-                    //     document.getElementById('remote-audios').appendChild(audio1);
-                    //     const audio2 = document.createElement('audio');
-                    //     audio2.id = "audio-" + event.streams[0].id + '-2';
-                    //     audio2.srcObject = event.streams[0];
-                    //     audio2.controls = true;
-                    //     audio2.autoplay = true;
-                    //     audio2.muted = false;
-                    //     audio2.style = "display: none;"
-                    //     document.getElementById('remote-audios').appendChild(audio2);
-                    //     const audio3 = document.createElement('audio');
-                    //     audio3.id = "audio-" + event.streams[0].id + '-3';
-                    //     audio3.srcObject = event.streams[0];
-                    //     audio3.controls = true;
-                    //     audio3.autoplay = true;
-                    //     audio3.muted = false;
-                    //     audio3.style = "display: none;"
-                    //     document.getElementById('remote-audios').appendChild(audio3);
-                    //     const audio4 = document.createElement('audio');
-                    //     audio4.id = "audio-" + event.streams[0].id + '-3';
-                    //     audio4.srcObject = event.streams[0];
-                    //     audio4.controls = true;
-                    //     audio4.autoplay = true;
-                    //     audio4.muted = false;
-                    //     audio4.style = "display: none;"
-                    //     document.getElementById('remote-audios').appendChild(audio4);
-                    // }
+                    if (event.track.kind == 'audio') {
+                        const audio1 = document.createElement('audio');
+                        audio1.id = "audio-" + event.streams[0].id + '-1';
+                        audio1.srcObject = event.streams[0];
+                        audio1.controls = true;
+                        audio1.autoplay = true;
+                        audio1.muted = true;
+                        audio1.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio1);
+                        const audio2 = document.createElement('audio');
+                        audio2.id = "audio-" + event.streams[0].id + '-2';
+                        audio2.srcObject = event.streams[0];
+                        audio2.controls = true;
+                        audio2.autoplay = true;
+                        audio2.muted = true;
+                        audio2.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio2);
+                        const audio3 = document.createElement('audio');
+                        audio3.id = "audio-" + event.streams[0].id + '-3';
+                        audio3.srcObject = event.streams[0];
+                        audio3.controls = true;
+                        audio3.autoplay = true;
+                        audio3.muted = true;
+                        audio3.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio3);
+                        const audio4 = document.createElement('audio');
+                        audio4.id = "audio-" + event.streams[0].id + '-3';
+                        audio4.srcObject = event.streams[0];
+                        audio4.controls = true;
+                        audio4.autoplay = true;
+                        audio4.muted = true;
+                        audio4.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio4);
+                    }
                 });
             }
 
@@ -134,7 +134,7 @@
             function observe_video() {
                 if (isTouched) {
                     if (document.querySelector('#remoteVideo')) {
-                        document.querySelector('#remoteVideo').muted = true;
+                        document.querySelector('#remoteVideo').muted = false;
                         document.querySelector('#remoteVideo').volume = 1;
                         document.querySelector('#remoteVideo').play();
                     }
