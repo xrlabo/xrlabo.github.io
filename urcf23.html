@@ -61,6 +61,7 @@
         <!-- <canvas id="renderCanvas" style="border: 3px solid gray; width: 98%; height: 90%; margin: auto; position: absolute; top: 0; bottom: 0;left: 0;right: 0;"></canvas> -->
         <script type="text/javascript">
             let CLOSE_DATA_CHANNEL = false;
+            let isTouched = false;
         </script>
         <!-- <script src="./getStats.js"></script> -->
         <script type="text/javascript" src="./sora2023.1.0.js"></script>
@@ -131,30 +132,32 @@
 
             setInterval(observe_video, 1000);
             function observe_video() {
-                if (document.querySelector('#remoteVideo')) {
-                    document.querySelector('#remoteVideo').muted = true;
-                    document.querySelector('#remoteVideo').volume = 1;
-                    document.querySelector('#remoteVideo').play();
-                }
-                if (document.getElementById(`audio-${mediaStream_id}-1`)) {
-                    document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
-                    document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
-                    document.getElementById(`audio-${mediaStream_id}-1`).play();
-                }
-                if (document.getElementById(`audio-${mediaStream_id}-2`)) {
-                    document.getElementById(`audio-${mediaStream_id}-2`).muted = false;
-                    document.getElementById(`audio-${mediaStream_id}-2`).volume = 1;
-                    document.getElementById(`audio-${mediaStream_id}-2`).play();
-                }
-                if (document.getElementById(`audio-${mediaStream_id}-3`)) {
-                    document.getElementById(`audio-${mediaStream_id}-3`).muted = false;
-                    document.getElementById(`audio-${mediaStream_id}-3`).volume = 1;
-                    document.getElementById(`audio-${mediaStream_id}-3`).play();
-                }
-                if (document.getElementById(`audio-${mediaStream_id}-4`)) {
-                    document.getElementById(`audio-${mediaStream_id}-4`).muted = false;
-                    document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
-                    document.getElementById(`audio-${mediaStream_id}-4`).play();
+                if (isTouched) {
+                    if (document.querySelector('#remoteVideo')) {
+                        document.querySelector('#remoteVideo').muted = true;
+                        document.querySelector('#remoteVideo').volume = 1;
+                        document.querySelector('#remoteVideo').play();
+                    }
+                    if (document.getElementById(`audio-${mediaStream_id}-1`)) {
+                        document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
+                        document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
+                        document.getElementById(`audio-${mediaStream_id}-1`).play();
+                    }
+                    if (document.getElementById(`audio-${mediaStream_id}-2`)) {
+                        document.getElementById(`audio-${mediaStream_id}-2`).muted = false;
+                        document.getElementById(`audio-${mediaStream_id}-2`).volume = 1;
+                        document.getElementById(`audio-${mediaStream_id}-2`).play();
+                    }
+                    if (document.getElementById(`audio-${mediaStream_id}-3`)) {
+                        document.getElementById(`audio-${mediaStream_id}-3`).muted = false;
+                        document.getElementById(`audio-${mediaStream_id}-3`).volume = 1;
+                        document.getElementById(`audio-${mediaStream_id}-3`).play();
+                    }
+                    if (document.getElementById(`audio-${mediaStream_id}-4`)) {
+                        document.getElementById(`audio-${mediaStream_id}-4`).muted = false;
+                        document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
+                        document.getElementById(`audio-${mediaStream_id}-4`).play();
+                    }
                 }
             }
 
@@ -184,8 +187,8 @@
                 console.log(e);
                 if (document.getElementById('touchstart')) {
                     document.getElementById('touchstart').remove();
+                    isTouched = true;
                 }
-                engine.resize();
             }
 
             // recvonly.on("removetrack", (event) => {
