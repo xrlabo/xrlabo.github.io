@@ -20,7 +20,13 @@
     </head>
 
     <body>
-        <canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; top: 0; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
+        <div id="touchstart" style="width: 100%; height: 100%; text-align: center;">
+            <font size="9">
+                <br><br>
+                最初に画面をタッチしてください
+            </font>
+        </div>
+        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; top: 0; bottom: 0;left: 0;right: 0; touch-action: none;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -32,7 +38,7 @@
 
         <div id="remote-videos">
 
-            <video id="remoteVideo" autoplay muted controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
+            <video id="remoteVideo" muted controls style="border: 1px solid gray; width: 49.5%; float: left; display: none;"></video>
 
         </div>
 
@@ -151,19 +157,18 @@
 
             connect_clicked()
             
-            window.addEventListener('beforeunload', (e) => {
-                e.preventDefault();
-                recvonly.disconnect();
+            // window.addEventListener('beforeunload', (e) => {
+            //     e.preventDefault();
+            //     recvonly.disconnect();
+            //     console.log(e);
+            // });
+
+            document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
                 console.log(e);
+                if (document.getElementById('touchstart')) {
+                    document.getElementById('touchstart').remove();
+                }
             });
-
-            // canvas DOM 要素を取得する
-			let canvas = document.getElementById('renderCanvas');
-
-            canvas.addEventListener('touchstart', (e) => {
-                console.log(e);
-            });
-
 
             // recvonly.on("removetrack", (event) => {
             //     if (event.target.id == mediaStream_id) {
@@ -175,7 +180,8 @@
 
             /////////////////////////////////////////////////////////////////////////
 
-
+            // canvas DOM 要素を取得する
+			let canvas = document.getElementById('renderCanvas');
 
 			// Initialize Babylon.js variables.
 			let	sceneToRender;
