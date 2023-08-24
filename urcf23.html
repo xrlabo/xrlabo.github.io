@@ -170,6 +170,13 @@
                 }
             });
 
+            document.getElementsByTagName('body')[0].onpointerdown = (e) => {
+                console.log(e);
+                if (document.getElementById('touchstart')) {
+                    document.getElementById('touchstart').remove();
+                }
+            }
+
             // recvonly.on("removetrack", (event) => {
             //     if (event.target.id == mediaStream_id) {
             //         document.querySelector(`#remoteVideo`).srcObject = null;
