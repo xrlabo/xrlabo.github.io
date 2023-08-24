@@ -197,11 +197,11 @@
             }
             
             
-            // window.addEventListener('beforeunload', (e) => {
-            //     e.preventDefault();
-            //     recvonly.disconnect();
-            //     console.log(e);
-            // });
+            window.addEventListener('beforeunload', (e) => {
+                e.preventDefault();
+                recvonly.disconnect();
+                console.log(e);
+            });
 
             // document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
             //     console.log(e);
