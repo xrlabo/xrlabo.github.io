@@ -48,7 +48,8 @@
         <script src="./getStats.js"></script>
         <script type="text/javascript" src="./sora2023.1.0.js"></script>
         <script type="text/javascript">
-            let signaling_url = 'wss://u1.xr360d.net/signaling';
+            // let signaling_url = 'wss://u1.xr360d.net/signaling';
+            let signaling_url = 'wss://sora.ikeilabsora.0am.jp/signaling';
             let channel_id = 'twincam-left';
             const debug = true;
             var sora = Sora.connection(signaling_url, debug);
@@ -75,30 +76,93 @@
                             console.log(result.video.latency + 'ms');
                         }, 500);
                     }
-                    // if (event.track.kind == 'audio') {
-                    //     const audio = document.createElement('audio');
-                    //     audio.id = "audio-" + event.streams[0].id;
-                    //     audio.srcObject = event.streams[0];
-                    //     audio.controls = true;
-                    //     audio.autoplay = true;
-                    //     audio.muted = false;
-                    //     audio.style = "display: none;"
-                    //     document.getElementById('remote-audios').appendChild(audio);
-                    // }
+                    if (event.track.kind == 'audio') {
+                        const audio1 = document.createElement('audio');
+                        audio1.id = "audio-" + event.streams[0].id + '-1';
+                        audio1.srcObject = event.streams[0];
+                        audio1.controls = true;
+                        audio1.autoplay = true;
+                        audio1.muted = false;
+                        audio1.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio1);
+                        const audio2 = document.createElement('audio');
+                        audio2.id = "audio-" + event.streams[0].id + '-2';
+                        audio2.srcObject = event.streams[0];
+                        audio2.controls = true;
+                        audio2.autoplay = true;
+                        audio2.muted = false;
+                        audio2.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio2);
+                        const audio3 = document.createElement('audio');
+                        audio3.id = "audio-" + event.streams[0].id + '-3';
+                        audio3.srcObject = event.streams[0];
+                        audio3.controls = true;
+                        audio3.autoplay = true;
+                        audio3.muted = false;
+                        audio3.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio3);
+                        const audio4 = document.createElement('audio');
+                        audio4.id = "audio-" + event.streams[0].id + '-3';
+                        audio4.srcObject = event.streams[0];
+                        audio4.controls = true;
+                        audio4.autoplay = true;
+                        audio4.muted = false;
+                        audio4.style = "display: none;"
+                        document.getElementById('remote-audios').appendChild(audio4);
+                    }
                 });
             }
 
             setInterval(observe_video, 1000);
             function observe_video() {
-                if (document.querySelector('#remoteVideo').muted) {
+                if (document.querySelector('#remoteVideo')) {
                     document.querySelector('#remoteVideo').muted = false;
+                    document.querySelector('#remoteVideo').volume = 1;
                     document.querySelector('#remoteVideo').play();
                 }
-                document.querySelector('#remoteVideo').play();
-                // if (document.getElementById(`audio-${mediaStream_id}`)) {
-                //     document.getElementById(`audio-${mediaStream_id}`).remove();
-                // }
+                if (document.getElementById(`audio-${mediaStream_id}-1`)) {
+                    document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
+                    document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
+                    document.getElementById(`audio-${mediaStream_id}-1`).play();
+                }
+                if (document.getElementById(`audio-${mediaStream_id}-2`)) {
+                    document.getElementById(`audio-${mediaStream_id}-2`).muted = false;
+                    document.getElementById(`audio-${mediaStream_id}-2`).volume = 1;
+                    document.getElementById(`audio-${mediaStream_id}-2`).play();
+                }
+                if (document.getElementById(`audio-${mediaStream_id}-3`)) {
+                    document.getElementById(`audio-${mediaStream_id}-3`).muted = false;
+                    document.getElementById(`audio-${mediaStream_id}-3`).volume = 1;
+                    document.getElementById(`audio-${mediaStream_id}-3`).play();
+                }
+                if (document.getElementById(`audio-${mediaStream_id}-4`)) {
+                    document.getElementById(`audio-${mediaStream_id}-4`).muted = false;
+                    document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
+                    document.getElementById(`audio-${mediaStream_id}-4`).play();
+                }
             }
+
+            function connect_clicked() {
+                sora = Sora.connection(signaling_url, debug);
+                recvonly = sora.recvonly(channel_id, null, options);
+                set_callback();
+                recvonly.connect();
+            }
+
+            connect_clicked()
+            
+            window.addEventListener('beforeunload', (e) => {
+                e.preventDefault();
+                recvonly.disconnect();
+                console.log(e);
+            });
+
+            // canvas DOM 要素を取得する
+			let canvas = document.getElementById('renderCanvas');
+
+            canvas.addEventListener('touchstart', (e) => {
+                console.log(e);
+            });
 
 
             // recvonly.on("removetrack", (event) => {
@@ -112,8 +176,7 @@
             /////////////////////////////////////////////////////////////////////////
 
 
-			// canvas DOM 要素を取得する
-			let canvas = document.getElementById('renderCanvas');
+
 			// Initialize Babylon.js variables.
 			let	sceneToRender;
             let xrHelper;
@@ -288,15 +351,6 @@
 				engine.resize();
 			});
 
-            let localStream;
-
-            function connect_clicked() {
-                sora = Sora.connection(signaling_url, debug);
-                recvonly = sora.recvonly(channel_id, null, options);
-                set_callback();
-                recvonly.connect();
-            }
-            connect_clicked();
     </script>
   </body>
 </html>
