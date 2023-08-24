@@ -221,112 +221,100 @@
             let changeVideoFlag = false;
 
 
-			//Create scene and create XR experience.
-			const createScene = async function() {
-				//新しいシーンオブジェクトを作成する
-                var scene = new BABYLON.Scene(engine);
-                scene.ambientColor = new BABYLON.Color3(1, 1, 1);
-                // scene.detachControl();
+            //新しいシーンオブジェクトを作成する
+            var scene = new BABYLON.Scene(engine);
+            scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+            // scene.detachControl();
 
-                //つねに原点を中心として回転するカメラを作成する
-				camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
-                // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
-				// const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
-				// カメラの向きを座標0地点にする
-				// camera.setTarget(new BABYLON.Vector3(0, 0, 1));
-				// カメラの視野角を 95 度に設定
-				const cameraFovRadian = 70 * (Math.PI / 180);
-				camera.fov = cameraFovRadian;
-                console.log(camera);
+            //つねに原点を中心として回転するカメラを作成する
+            camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", -Math.PI / 2, Math.PI / 2, 0, new BABYLON.Vector3(0, 0, 0), scene);
+            // var camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 0, new BABYLON.Vector3(0, 0, 0), scene);
+            // const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, 0), scene)
+            // const camera = new BABYLON.FreeCamera('MainCamera', new BABYLON.Vector3(0, 0, -2), scene);
+            // カメラの向きを座標0地点にする
+            // camera.setTarget(new BABYLON.Vector3(0, 0, 1));
+            // カメラの視野角を 95 度に設定
+            const cameraFovRadian = 70 * (Math.PI / 180);
+            camera.fov = cameraFovRadian;
+            console.log(camera);
 
-                // Camera の操作を canvas 上で可能にする
-    			camera.attachControl(canvas, true);
-                camera.panningAxis._x = 0; //水平移動無し。
-                camera.panningAxis._y = 0; //垂直移動無し。
-                if (camera.inputs.attached.keyboard) {
-                    camera.inputs.attached.keyboard.detachControl();
-                }
-                if (camera.inputs.attached.pointers) {
-                    camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-                    camera.inputs.attached.pointers.multiTouchPanning = false;
-                    camera.inputs.attached.pointers.pinchInwards = false;
-                    camera.inputs.attached.pointers.pinchZoom = false;
-                    camera.inputs.attached.pointers.angularSensibilityX = 3000;
-                    camera.inputs.attached.pointers.angularSensibilityY = 3000;
-                }
-                if (camera.inputs.attached.mousewheel) {
-                    camera.inputs.attached.mousewheel.detachControl();
-                }
-                scene.onPointerObservable.add(e => {
-                    cameraFovDegree += e.event.wheelDelta * 2**(-5);
-                    camera.fov = cameraFovDegree * (Math.PI / 180);
-                }, BABYLON.PointerEventTypes.POINTERWHEEL);
-                if (camera.inputs.attached.gamepad) {
-                    camera.inputs.attached.gamepad.detachControl();
-                }
-
-                console.log(camera);
-
-
-                videoDome = new BABYLON.VideoDome(
-                    'VideoDome',
-                    document.getElementById('remoteVideo'),
-                    {
-                        resolution: 64,
-                        // clickToPlay: true,
-                        autoPlay: true,
-                        // size: 100
-                        // useDirectMapping: false
-                    },
-                    scene
-                );
-                videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
-
-                let distance_past = 0, distance_current = 0;
-
-
-                scene.registerBeforeRender(function () {
-                    if (camera.inputs.attached.pointers) {
-                        if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
-                        distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
-                        if (distance_current > distance_past) {
-                            cameraFovDegree = cameraFovDegree - 1;
-                        }
-                        if (distance_current < distance_past) {
-                            cameraFovDegree = cameraFovDegree + 1;
-                        }
-                        distance_past = distance_current;
-                        if (cameraFovDegree < 0) {
-                            cameraFovDegree = 1;
-                        }
-                        if (cameraFovDegree > 180) {
-                            cameraFovDegree = 179;
-                        }
-                        camera.fov = cameraFovDegree * (Math.PI / 180);
-                    }
-                });
-
-
-                // Create a default environment for the scene.
-				var environment = scene.createDefaultEnvironment();
-                // environment.ground.parent.position.y = 0;
-                // environment.ground.position.y = 0
-
-                return scene;
+            // Camera の操作を canvas 上で可能にする
+            camera.attachControl(canvas, true);
+            camera.panningAxis._x = 0; //水平移動無し。
+            camera.panningAxis._y = 0; //垂直移動無し。
+            if (camera.inputs.attached.keyboard) {
+                camera.inputs.attached.keyboard.detachControl();
+            }
+            if (camera.inputs.attached.pointers) {
+                camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+                camera.inputs.attached.pointers.multiTouchPanning = false;
+                camera.inputs.attached.pointers.pinchInwards = false;
+                camera.inputs.attached.pointers.pinchZoom = false;
+                camera.inputs.attached.pointers.angularSensibilityX = 3000;
+                camera.inputs.attached.pointers.angularSensibilityY = 3000;
+            }
+            if (camera.inputs.attached.mousewheel) {
+                camera.inputs.attached.mousewheel.detachControl();
+            }
+            scene.onPointerObservable.add(e => {
+                cameraFovDegree += e.event.wheelDelta * 2**(-5);
+                camera.fov = cameraFovDegree * (Math.PI / 180);
+            }, BABYLON.PointerEventTypes.POINTERWHEEL);
+            if (camera.inputs.attached.gamepad) {
+                camera.inputs.attached.gamepad.detachControl();
             }
 
-			// Create scene.
-			scene = createScene();
-			scene.then(function (returnedScene) {
-				sceneToRender = returnedScene;
-			});
-            engine.runRenderLoop(function () {
-				if (sceneToRender) {
-					sceneToRender.render();
-				}
-			});
+            console.log(camera);
+
+
+            videoDome = new BABYLON.VideoDome(
+                'VideoDome',
+                document.getElementById('remoteVideo'),
+                {
+                    resolution: 64,
+                    // clickToPlay: true,
+                    autoPlay: true,
+                    // size: 100
+                    // useDirectMapping: false
+                },
+                scene
+            );
+            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+
+            let distance_past = 0, distance_current = 0;
+
+
+            scene.registerBeforeRender(function () {
+                if (camera.inputs.attached.pointers) {
+                    if (camera.inputs.attached.pointers._pointA && camera.inputs.attached.pointers._pointB)
+                    distance_current = (camera.inputs.attached.pointers._pointA.x - camera.inputs.attached.pointers._pointB.x)**2 + (camera.inputs.attached.pointers._pointA.y - camera.inputs.attached.pointers._pointB.y)**2;
+                    if (distance_current > distance_past) {
+                        cameraFovDegree = cameraFovDegree - 1;
+                    }
+                    if (distance_current < distance_past) {
+                        cameraFovDegree = cameraFovDegree + 1;
+                    }
+                    distance_past = distance_current;
+                    if (cameraFovDegree < 0) {
+                        cameraFovDegree = 1;
+                    }
+                    if (cameraFovDegree > 180) {
+                        cameraFovDegree = 179;
+                    }
+                    camera.fov = cameraFovDegree * (Math.PI / 180);
+                }
+            });
+
+
+            // Create a default environment for the scene.
+            var environment = scene.createDefaultEnvironment();
+            // environment.ground.parent.position.y = 0;
+            // environment.ground.position.y = 0
+
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
             // engine.runRenderLoop(function () {
 			// 	scene.render();
 			// });
