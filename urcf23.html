@@ -23,18 +23,18 @@
     </head>
 
     <body>
-        <!-- <div style="z-index: 100;">
-            <input class="checkbox" id="checkbox1" type="checkbox"/>
+        <div style="z-index: 100; position: absolute; left: 0; top: 0; width: 100%;">
+            <input class="checkbox" id="checkbox1" onclick="toggleOnClicked();" type="checkbox"/>
             <label for="checkbox1" class="checkbox-label">
                 <span class="on">Segway</span>
                 <span class="off">Quadruped</span>
             </label>
-        </div> -->
+        </div>
         <div id="touchstart" style="width: 100%; height: 100%; text-align: center;">
             <input type="button" value="最初に画面をタッチしてください" onclick="onClicked();" style="font-size: 300%; position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
         </div>
         
-        <canvas id="renderCanvas" muted style="border: 3px solid gray; width: 100%; height: 100%; margin: auto; touch-action: none; z-index: 1;"></canvas>
+        <canvas id="renderCanvas" muted style="border: 3px solid gray; position: absolute; width: 100%; height: 100%; margin: auto; touch-action: none; z-index: 1;"></canvas>
         <!-- <font size="4">
             Signaling url <input type="text" id="url_input" value="wss://u1.xr360d.net/signaling" style="height: 30px;font-size: 19px;position: relative;top: -2;">
         </font> -->
@@ -65,7 +65,7 @@
         <script type="text/javascript">
             // let signaling_url = 'wss://u1.xr360d.net/signaling';
             let signaling_url = 'wss://sora.ikeilabsora.0am.jp/signaling';
-            let channel_id = 'twincam-left';
+            let channel_id = 'segway-left';
             const debug = true;
             var sora = Sora.connection(signaling_url, debug);
             const options = {
@@ -202,6 +202,11 @@
                 recvonly.disconnect();
                 console.log(e);
             });
+
+
+            function toggleOnClicked() {
+                console.log('toggleOnClicked');
+            }
 
             // document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
             //     console.log(e);
