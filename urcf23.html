@@ -23,13 +23,19 @@
     </head>
 
     <body>
-        <div style="z-index: 100; position: absolute; left: 0; top: 0; width: 100%;">
+        <!-- <div style="z-index: 100; position: absolute; left: 0; top: 0; width: 100%;">
             <input class="checkbox" id="checkbox1" onclick="toggleOnClicked();" type="checkbox"/>
             <label for="checkbox1" class="checkbox-label">
                 <span class="on">Segway</span>
                 <span class="off">Quadruped</span>
             </label>
-        </div>
+        </div> -->
+        
+        <select id="robot-selection" onchange="robotonchange()" style="font-size: 20px; z-index: 100; position: absolute; left: 0; top: 0;">
+            <option>Segway</option>
+            <option>四足ロボット</option>
+        </select>
+        
         <div id="touchstart" style="width: 100%; height: 100%; text-align: center;">
             <input type="button" value="最初に画面をタッチしてください" onclick="onClicked();" style="font-size: 300%; position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
         </div>
@@ -116,7 +122,7 @@
                         audio3.style = "display: none;"
                         document.getElementById('remote-audios').appendChild(audio3);
                         const audio4 = document.createElement('audio');
-                        audio4.id = "audio-" + event.streams[0].id + '-3';
+                        audio4.id = "audio-" + event.streams[0].id + '-4';
                         audio4.srcObject = event.streams[0];
                         audio4.controls = true;
                         audio4.autoplay = true;
@@ -127,38 +133,23 @@
                 });
             }
 
-            // setInterval(observe_video, 1000);
-            // function observe_video() {
-            //     if (isTouched) {
-            //         if (document.querySelector('#remoteVideo')) {
-            //             document.querySelector('#remoteVideo').muted = false;
-            //             document.querySelector('#remoteVideo').volume = 1;
-            //             document.querySelector('#remoteVideo').play();
-            //         }
-            //         if (document.getElementById(`audio-${mediaStream_id}-1`)) {
-            //             document.getElementById(`audio-${mediaStream_id}-1`).muted = false;
-            //             document.getElementById(`audio-${mediaStream_id}-1`).volume = 1;
-            //             document.getElementById(`audio-${mediaStream_id}-1`).play();
-            //         }
-            //         if (document.getElementById(`audio-${mediaStream_id}-2`)) {
-            //             document.getElementById(`audio-${mediaStream_id}-2`).muted = false;
-            //             document.getElementById(`audio-${mediaStream_id}-2`).volume = 1;
-            //             document.getElementById(`audio-${mediaStream_id}-2`).play();
-            //         }
-            //         if (document.getElementById(`audio-${mediaStream_id}-3`)) {
-            //             document.getElementById(`audio-${mediaStream_id}-3`).muted = false;
-            //             document.getElementById(`audio-${mediaStream_id}-3`).volume = 1;
-            //             document.getElementById(`audio-${mediaStream_id}-3`).play();
-            //         }
-            //         if (document.getElementById(`audio-${mediaStream_id}-4`)) {
-            //             document.getElementById(`audio-${mediaStream_id}-4`).muted = false;
-            //             document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
-            //             document.getElementById(`audio-${mediaStream_id}-4`).play();
-            //         }
-            //     }
-            // }
+            setInterval(observe_video, 5000);
+            let remoteAudios;
+            function observe_video() {
+                remoteAudios = document.getElementById('remote-audios');
+                while(remoteAudios.lastChild){
+                    if (!remoteAudios.lastChild.id.includes(`audio-${mediaStream_id}`)) {
+                        remoteAudios.removeChild(remoteAudios.lastChild);
+                    }
+                }
+            }
 
             function connect_clicked() {
+                remoteAudios = document.getElementById('remote-audios');
+                while(remoteAudios.lastChild){
+                    remoteAudios.removeChild(remoteAudios.lastChild);
+                }
+
                 sora = Sora.connection(signaling_url, debug);
                 recvonly = sora.recvonly(channel_id, null, options);
                 set_callback();
@@ -192,7 +183,7 @@
                         document.getElementById(`audio-${mediaStream_id}-4`).volume = 1;
                         document.getElementById(`audio-${mediaStream_id}-4`).play();
                     }
-                    document.getElementById('touchstart').remove();
+                    document.getElementById('touchstart').style = "display: none;";
                 }
             }
             
@@ -204,8 +195,17 @@
             });
 
 
-            function toggleOnClicked() {
-                console.log('toggleOnClicked');
+            function robotonchange() {
+                console.log('robotonchange');
+                document.getElementById('touchstart').style = "width: 100%; height: 100%; text-align: center;";
+                if (document.getElementById('robot-selection').value == 'Segway') {
+                    channel_id = 'segway-left';
+                    connect_clicked();
+                }
+                else {
+                    channel_id = 'a1';
+                    connect_clicked();
+                }
             }
 
             // document.getElementsByTagName('body')[0].addEventListener('touchstart', (e) => {
