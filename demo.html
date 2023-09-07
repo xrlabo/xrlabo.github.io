@@ -288,7 +288,6 @@
 
             let grip = 0;
 
-            let head_or_controller = 'controller';
             let abutton_pressed = false;
             let old_abutton_pressed = true;
 
@@ -530,20 +529,11 @@
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     // console.log(ang);
-                                    if (header == 0x43) {
-                                        side = 0;
+
+                                    if (!abutton_pressed) {
                                         lin = -axes.y;
                                         ang = -axes.x;
                                     }
-
-                                    if (header == 0xa1) {
-                                        ang = -axes.x;
-                                        lin = -axes.y;
-                                    }
-
-                                    // dome_position_z = 2000*axes.y;
-                                    // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                                    // videoDome.setDirection(new BABYLON.Vector3(Math.cos(axes.x*Math.PI), 0, Math.sin(axes.x*Math.PI)));
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
@@ -567,10 +557,6 @@
                                         abutton_pressed = true;
                                     }
                                     else {
-                                        if (head_or_controller == 'head') {
-                                            ang = 0;
-                                            lin = 0;
-                                        }
                                         abutton_pressed = false;
                                     }
                                 });
@@ -628,7 +614,7 @@
                                         }
                                         old_abutton_pressed = abutton_pressed;
 
-                                        if (abutton_pressed && head_or_controller == 'head') {
+                                        if (abutton_pressed) {
                                             let ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.2;
                                             let lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.2;
                                             if (Math.abs(ang_tmp) > 1) {
