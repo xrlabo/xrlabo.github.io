@@ -108,7 +108,8 @@
             const debug = true;
             // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
             // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
-            const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
+            const sora = Sora.connection("wss://u1.xr360d.net/signaling", debug);
+            // const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
                 video : true,
@@ -345,42 +346,6 @@
                     front_arrow_cylinder.position = new BABYLON.Vector3(0, -3, 7);
                     front_arrow_cylinder.rotation = new BABYLON.Vector3(0, -Math.PI/2.0, 0)
                     front_arrow_cylinder.material = arrow_mat;
-
-
-                var goal_x = 0;
-                var goal_y = 0;
-                var goal_z = 0;
-
-                var ground_y = -500; //地面の位置y
-                var box_height = 200;
-
-
-                const bottom = -3;
-                let length = 3;
-                let a = 1;
-                let b = 0; // a + b = 1
-                //
-                // const box = BABYLON.MeshBuilder.CreateBox("box", {width: 1, height: 0.5, depth: length}, scene);
-                var box = BABYLON.MeshBuilder.CreateBox("box", {width: 10, height: box_height, depth: 10}, scene);
-                    box.position = new BABYLON.Vector3(0, ground_y + box_height/2.0, 100);
-                    box.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
-                    var boxMat = new BABYLON.StandardMaterial("boxMat", scene);
-                        boxMat.alpha = 0;
-                        boxMat.ambientColor = new BABYLON.Color3(0, 1, 0);
-                    box.material = boxMat;
-
-                var plane_goal = BABYLON.Mesh.CreatePlane("plane_goal", 2000);
-                    plane_goal.position = new BABYLON.Vector3(0, ground_y + box_height, 100);
-                var advancedTexture_goal = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane_goal);
-                var button_goal = BABYLON.GUI.Button.CreateSimpleButton("but", "Move here");
-                    button_goal.alpha = 0;
-                    button_goal.width = 0.15;
-                    button_goal.height = "40px";
-                    button_goal.cornerRadius = 10;
-                    button_goal.color = "Orange";
-                    button_goal.thickness = 4;
-                    button_goal.background = "green";
-                    advancedTexture_goal.addControl(button_goal);
 
                 let videoTexture_segway_right = new BABYLON.VideoTexture("video_segway_right", document.getElementById('remoteVideo_right'), scene, true, true);
                 let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
