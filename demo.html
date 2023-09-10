@@ -144,6 +144,7 @@
             let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
             let twincam_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.149:9081/ws");
             let a1_local_control_recvonly = new localrecvonly("a1_control_dummy_video", "ws://192.168.11.153:8080/ws");
+            let robotarm_control_recvonly = new localrecvonly("robotarm_control_dummy_video", "ws://192.168.11.32:8081/ws");
 
             let videoStream_id_left = null;
             let videoStream_id_right = null;
@@ -256,7 +257,6 @@
 
             let RobotsLocalDataChannelLoop_intervalID = null;
             let soraChairDataChannelLoop_intervalID = null;
-            let sendjoy = false;
 
             let camera;
             let cameraFovDegree = 60;
@@ -402,12 +402,6 @@
                         button.background = "green";
                     advancedTextureb.addControl(button);
 
-                sendjoy = true;
-
-                let distance_past = 0, distance_current = 0;
-
-                let old_a1_auto_moving_status = 0, old_segway_latch = 3;
-
                 scene.registerBeforeRender(function () {
                     if (changeVideoFlag) {
                         changeVideoFlag = false;
@@ -433,6 +427,45 @@
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
                     }
                 });
+
+
+                ///// Robot Arm ////////////////////////////////
+                let BbuttonPressed = false;
+                let index_buttonPressed = false;
+                let ox = 0, oy = 0, oz = 0;
+                let old_ox = 0, old_oy = 0, old_oz = 0;
+                let dx = 0, dy = 0, dz = 0;
+                let old_phi = 0;
+
+                scene.onPointerObservable.add((pointerInfo) => {
+                    dx = pointerInfo.pickInfo.ray.direction.x;
+                    dy = pointerInfo.pickInfo.ray.direction.y;
+                    dz = pointerInfo.pickInfo.ray.direction.z;
+
+                    ox = pointerInfo.pickInfo.ray.origin.x;
+                    oy = pointerInfo.pickInfo.ray.origin.y;
+                    oz = pointerInfo.pickInfo.ray.origin.z;
+                });
+
+                let dt = 0.1; // 送信間隔 (単位：秒)
+
+                setInterval(function() {
+                    if (BbuttonPressed && ws.readyState == 1) {
+                        let phi = Math.sign(dz) * Math.acos((dx)/Math.sqrt(((dx)*(dx) + (dz)*(dz)))) /Math.PI * 180;
+                        robotarm_control_recvonly.send(new Int8Array([1, (ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, 0, (phi-old_phi)/dt, 0]));
+                        // console.log(new Int8Array([(ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, (phi-old_phi)/dt]));
+                        // console.log(phi-old_phi);
+                        old_phi = phi;
+                    }
+                    else {
+                        robotarm_control_recvonly.send(new Int8Array([1, 0, 0, grip*100, 0, 0, 0]));
+                    }
+                    old_ox = ox;
+                    old_oy = oy;
+                    old_oz = oz;
+                }, dt*1000);
+                ////////////////////////////////////////////////
+
 
 
 
@@ -507,15 +540,15 @@
                                     grip = triggerComponent.value;
                                     index_buttonPressed = triggerComponent.pressed;
                                 });
-                                let squeezeComponent = motionController.getComponent(xr_ids[1]);//squeeze
-                                squeezeComponent.onButtonStateChangedObservable.add(() => {
-                                    if (squeezeComponent.value > 0.5) {
-                                        midle_buttonPressed = true;
-                                    }
-                                    else {
-                                        midle_buttonPressed = false;
-                                    }
-                                });
+                                // let squeezeComponent = motionController.getComponent(xr_ids[1]);//squeeze
+                                // squeezeComponent.onButtonStateChangedObservable.add(() => {
+                                //     if (squeezeComponent.value > 0.5) {
+                                //         midle_buttonPressed = true;
+                                //     }
+                                //     else {
+                                //         midle_buttonPressed = false;
+                                //     }
+                                // });
                                 let abuttonComponent = motionController.getComponent(xr_ids[3]);//a-button
                                 abuttonComponent.onButtonStateChangedObservable.add(() => {
                                     if (abuttonComponent.pressed) {
@@ -527,17 +560,15 @@
                                         ang = 0;
                                     }
                                 });
-                                // let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
-                                // bbuttonComponent.onButtonStateChangedObservable.add(() => {
-                                //     if (bbuttonComponent.pressed) {
-                                //         if (header == 0xa1) {
-                                //             header = 0xaa;
-                                //         }
-                                //         else if (header == 0xaa) {
-                                //             header = 0xa1;
-                                //         }
-                                //     }
-                                // });
+                                let bbuttonComponent = motionController.getComponent(xr_ids[4]);//b-button
+                                bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                                    if (bbuttonComponent.pressed) {
+                                        BbuttonPressed = true;
+                                    }
+                                    else {
+                                        BbuttonPressed = false;
+                                    }
+                                });
                             }
                             if (motionController.handness === 'left') {
                                 const xr_ids = motionController.getComponentIds();
