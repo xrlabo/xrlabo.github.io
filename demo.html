@@ -459,7 +459,7 @@
                             old_phi = phi;
                         }
                         else {
-                            robotarm_control_recvonly.dataChannel.send(new Int8Array([1, 0, 0, grip*100, 0, 0, 0]));
+                            robotarm_control_recvonly.dataChannel.send(new Int8Array([1, 0, 0, 0, grip*100, 0, 0, 0]));
                         }
                     }
                     old_ox = ox;
