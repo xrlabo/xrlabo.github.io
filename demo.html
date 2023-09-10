@@ -284,6 +284,7 @@
             let buttonheader;
 
             let twincamMode = 1; //1: left and right, 2: left only, 3: right only
+            let su = false;
 
             let arrow_box;
 
@@ -530,7 +531,7 @@
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
                                     // console.log(ang);
 
-                                    if (!abutton_pressed) {
+                                    if (!abutton_pressed && !su) {
                                         lin = -axes.y;
                                         ang = -axes.x;
                                     }
@@ -576,19 +577,19 @@
                                 const xr_ids = motionController.getComponentIds();
                                 let thumbstickComponent = motionController.getComponent(xr_ids[2]);
                                 thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
-                                    if (header == 0x43) {
-                                        // ang = -axes.x;
+                                    if (su) {
+                                        ang = -axes.x;
+                                        lin = -axes.y;
                                     }
-                                    if (header == 0xa1) {
-                                        // side = -axes.x;
-                                    }
-                                    // dome_direction_x = Math.cos(axes.x*Math.PI/2.0);
-                                    // dome_direction_z = Math.sin(axes.x*Math.PI/2.0)
-                                    // lin = -axes.y;
                                 });
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
-                                    // side = event._currentValue;
+                                    if (triggerComponent.value > 0.5) {
+                                        su = true;
+                                    }
+                                    else {
+                                        su = false;
+                                    }
                                 });
                             }
                         });
@@ -614,7 +615,7 @@
                                         }
                                         old_abutton_pressed = abutton_pressed;
 
-                                        if (abutton_pressed) {
+                                        if (abutton_pressed && !su) {
                                             let ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.2;
                                             let lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.2;
                                             if (Math.abs(ang_tmp) > 1) {
