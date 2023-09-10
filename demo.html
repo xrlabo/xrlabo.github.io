@@ -450,15 +450,17 @@
                 let dt = 0.1; // 送信間隔 (単位：秒)
 
                 setInterval(function() {
-                    if (BbuttonPressed && ws.readyState == 1) {
-                        let phi = Math.sign(dz) * Math.acos((dx)/Math.sqrt(((dx)*(dx) + (dz)*(dz)))) /Math.PI * 180;
-                        robotarm_control_recvonly.dataChannel.send(new Int8Array([1, (ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, 0, (phi-old_phi)/dt, 0]));
-                        // console.log(new Int8Array([(ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, (phi-old_phi)/dt]));
-                        // console.log(phi-old_phi);
-                        old_phi = phi;
-                    }
-                    else {
-                        robotarm_control_recvonly.dataChannel.send(new Int8Array([1, 0, 0, grip*100, 0, 0, 0]));
+                    if (robotarm_control_recvonly.dataChannel) {
+                        if (BbuttonPressed) {
+                            let phi = Math.sign(dz) * Math.acos((dx)/Math.sqrt(((dx)*(dx) + (dz)*(dz)))) /Math.PI * 180;
+                            robotarm_control_recvonly.dataChannel.send(new Int8Array([1, (ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, 0, (phi-old_phi)/dt, 0]));
+                            // console.log(new Int8Array([(ox - old_ox)/dt*100, (oy - old_oy)/dt*100, (oz - old_oz)/dt*100, grip*100, (phi-old_phi)/dt]));
+                            // console.log(phi-old_phi);
+                            old_phi = phi;
+                        }
+                        else {
+                            robotarm_control_recvonly.dataChannel.send(new Int8Array([1, 0, 0, grip*100, 0, 0, 0]));
+                        }
                     }
                     old_ox = ox;
                     old_oy = oy;
