@@ -19,7 +19,7 @@
     </head>
 
     <body>
-        <select id="robot-selection" onchange="robotonchange()" style="font-size: 20px; z-index: 100; position: absolute; left: 0; top: 0;">
+        <select id="robot-selection" onchange="robotonchange()" style="font-size: 30px; z-index: 100; position: absolute; left: 10%; top: 30px;">
             <option>Segway</option>
             <option>四足ロボット</option>
         </select>
@@ -28,7 +28,7 @@
             <input type="button" value="最初に画面をタッチしてください" onclick="onClicked();" style="font-size: 300%; position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
         </div>
         
-        <canvas id="renderCanvas" muted style="border: 3px solid gray; position: absolute; width: 100%; height: 100%; margin: auto; touch-action: none; z-index: 1;"></canvas>
+        <canvas id="renderCanvas" muted style="position: absolute; width: 100%; height: 100%; margin: none; touch-action: none; z-index: 1;"></canvas>
         
         <div id="remote-videos">
 
