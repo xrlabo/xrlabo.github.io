@@ -585,6 +585,10 @@
                                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
                                     if (triggerComponent.value > 0.5) {
+                                        if (!su) {
+                                            lin = 0;
+                                            ang = 0;
+                                        }
                                         su = true;
                                     }
                                     else {
