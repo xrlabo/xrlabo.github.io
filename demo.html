@@ -586,8 +586,13 @@
                                 triggerComponent.onButtonStateChangedObservable.add((event) => {
                                     if (triggerComponent.value > 0.5) {
                                         if (!su) {
+                                            su = true;
                                             lin = 0;
                                             ang = 0;
+                                            setTimeout(() => {
+                                                lin = 0;
+                                                ang = 0;
+                                            }, 50)
                                         }
                                         su = true;
                                     }
