@@ -764,6 +764,9 @@
                 setTimeout(() => {
                     twincam_local_control_recvonly.connect();
                 }, 3000);
+                setTimeout(() => {
+                    robotarm_control_recvonly.connect();
+                }, 3500);
             }
 
             connect_clicked();
