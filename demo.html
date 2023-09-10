@@ -597,6 +597,15 @@
                                         su = true;
                                     }
                                     else {
+                                        if (su) {
+                                            su = false;
+                                            lin = 0;
+                                            ang = 0;
+                                            setTimeout(() => {
+                                                lin = 0;
+                                                ang = 0;
+                                            }, 50)
+                                        }
                                         su = false;
                                     }
                                 });
