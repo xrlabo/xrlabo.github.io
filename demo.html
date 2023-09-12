@@ -622,31 +622,33 @@
                             HMD_ang = 0;
                             old_HMD_ang = 0;
                             scene.onBeforeCameraRenderObservable.add((xr_camera) => {
+                                if (xr_camera.isLeftCamera) {
+                                        xr_camera_px = xr_camera.position.x;
+                                    xr_camera_pz = xr_camera.position.z;
+
+                                    if (abutton_pressed & !old_abutton_pressed) {
+                                        xr_camera_offsetx = xr_camera_px;
+                                        xr_camera_offsetz = xr_camera_pz;
+                                    }
+                                    old_abutton_pressed = abutton_pressed;
+
+                                    if (abutton_pressed && !su) {
+                                        let ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.2;
+                                        let lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.2;
+                                        if (Math.abs(ang_tmp) > 1) {
+                                            ang_tmp = ang_tmp / Math.abs(ang_tmp);
+                                        }
+                                        if (Math.abs(lin_tmp) > 1) {
+                                            lin_tmp = lin_tmp / Math.abs(lin_tmp);
+                                        }
+                                        lin = lin_tmp;
+                                        ang = ang_tmp;
+                                        console.log('ang: ' + ang + ', lin: ' + lin);
+                                    }
+                                }
+
                                 if (header == 0x43) {
                                     if (xr_camera.isLeftCamera) {
-                                        xr_camera_px = xr_camera.position.x;
-                                        xr_camera_pz = xr_camera.position.z;
-
-                                        if (abutton_pressed & !old_abutton_pressed) {
-                                            xr_camera_offsetx = xr_camera_px;
-                                            xr_camera_offsetz = xr_camera_pz;
-                                        }
-                                        old_abutton_pressed = abutton_pressed;
-
-                                        if (abutton_pressed && !su) {
-                                            let ang_tmp = -(xr_camera_px - xr_camera_offsetx)/0.2;
-                                            let lin_tmp = (xr_camera_pz - xr_camera_offsetz)/0.2;
-                                            if (Math.abs(ang_tmp) > 1) {
-                                                ang_tmp = ang_tmp / Math.abs(ang_tmp);
-                                            }
-                                            if (Math.abs(lin_tmp) > 1) {
-                                                lin_tmp = lin_tmp / Math.abs(lin_tmp);
-                                            }
-                                            lin = lin_tmp;
-                                            ang = ang_tmp;
-                                            console.log('ang: ' + ang + ', lin: ' + lin);
-                                        }
-
                                         twincam_setPos_count++;
                                         let q = xr_camera.rotationQuaternion;
                                         let sinX = 2 * q.y * q.z - 2 * q.x * q.w;
