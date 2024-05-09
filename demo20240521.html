@@ -33,7 +33,7 @@
         <!-- Babylon.js のレンダリング内容を表示するための Canvas タグ-->
 		<canvas id="renderCanvas" style="border: 3px solid gray; width: 100%; float: left; touch-action: none; display: inline-block;"></canvas>
 
-        <div id="remote-videos">
+        <div id="remote-videos" style="display: none;">
 
             <video id="remoteVideo_left" controls style="border: 1px solid gray; width: 49.5%; float: left;">
                 <track id="jaTrack" kind="subtitles" srclang="ja" label="テスト" default="default">
@@ -44,7 +44,7 @@
             <video id="robotarm_dummy_video"></video>
         </div>
 
-        <main style="margin: 0; padding: 0;">
+        <main style="margin: 0; padding: 0; display: none;">
             <div class="VelocityStatus" style="float: left; width: 50%; height: 250px; background-color: #ddd;">
                 Unitree A1 status <br>
                 <font size="4">
@@ -63,16 +63,17 @@
         <script type="text/javascript">
             let timer;
             document.addEventListener('keydown', (event) => {
-                if (segway_local_control_recvonly.dataChannel) {
-                    if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                        segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                    }
-                }
-                if (a1_local_control_recvonly.dataChannel) {
-                    if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                        a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
-                    }
-                }                console.log(event);
+                // if (segway_local_control_recvonly.dataChannel) {
+                //     if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                //         segway_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                //     }
+                // }
+                // if (a1_local_control_recvonly.dataChannel) {
+                //     if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                //         a1_local_control_recvonly.dataChannel.send(new Uint8Array([0x99, 0x99, 0x99, 0x99]));
+                //     }
+                // }                
+                console.log(event);
                 clearTimeout(timer);
                 document.body.style.backgroundColor ='#ff3030';
                 timer = setTimeout(bgWhite, 300);
@@ -140,6 +141,8 @@
             let sendrecv_A1_right = sora.sendrecv("a1", null, options_video_audio_sendrecv);
 
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
+
+            let recvonly_robots_control = sora.recvonly("robots-control", null, options_control);
 
             // let segway_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.32:8080/ws");
             // let twincam_local_control_recvonly = new localrecvonly('segway_control_dummy_video', "ws://192.168.11.149:9081/ws");
@@ -280,6 +283,7 @@
             let setPosA = 0;
             let HMD_ang = 0;
             let old_HMD_ang = 0;
+            let send_value = 0;
 
             let buttonheader;
 
@@ -682,15 +686,15 @@
                                             setPos = -1050;
                                         }
                                         old_HMD_ang = HMD_ang;
-                                        let send_value = setPos / 2;
+                                        send_value = setPos / 2;
 
                                         if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
-                                            if (twincam_local_control_recvonly.dataChannel) {
-                                                if (twincam_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
-                                                }
-                                            }
+                                            // if (twincam_local_control_recvonly.dataChannel) {
+                                            //     if (twincam_local_control_recvonly.dataChannel.readyState == 'open') {
+                                            //         twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            //     }
+                                            // }
                                         }
                                     }
                                     if (twincamMode == 1) {
@@ -717,16 +721,17 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            if (twincam_local_control_recvonly.dataChannel) {
-                                if (twincam_local_control_recvonly.dataChannel.state == 'open') {
-                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
-                                }
-                            }
-                            if (a1_local_control_recvonly.dataChannel) {
-                                if (a1_local_control_recvonly.dataChannel.state == 'open') {
-                                    a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
-                                }
-                            }
+                            // if (twincam_local_control_recvonly.dataChannel) {
+                            //     if (twincam_local_control_recvonly.dataChannel.state == 'open') {
+                            //         twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                            //     }
+                            // }
+                            recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, 0x00, 0x00]));
+                            // if (a1_local_control_recvonly.dataChannel) {
+                            //     if (a1_local_control_recvonly.dataChannel.state == 'open') {
+                            //         a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
+                            //     }
+                            // }
                             if (camera.inputs.attached.gamepad) {
                                 camera.inputs.attached.gamepad.detachControl();
                             }
@@ -777,19 +782,20 @@
                 });
                 recvonly_segway_right.connect();
                 recvonly_chair_control.connect();
+                recvonly_robots_control.connect();
 
-                setTimeout(() => {
-                    a1_local_control_recvonly.connect();
-                }, 2000);
-                setTimeout(() => {
-                    segway_local_control_recvonly.connect();
-                }, 2500);
-                setTimeout(() => {
-                    twincam_local_control_recvonly.connect();
-                }, 3000);
-                setTimeout(() => {
-                    robotarm_control_recvonly.connect();
-                }, 3500);
+                // setTimeout(() => {
+                //     a1_local_control_recvonly.connect();
+                // }, 2000);
+                // setTimeout(() => {
+                //     segway_local_control_recvonly.connect();
+                // }, 2500);
+                // setTimeout(() => {
+                //     twincam_local_control_recvonly.connect();
+                // }, 3000);
+                // setTimeout(() => {
+                //     robotarm_control_recvonly.connect();
+                // }, 3500);
             }
 
             connect_clicked();
@@ -826,20 +832,21 @@
             }
 
             function RobotsLocalDataChannelLoop() {
-                if (header == 0x43) {
-                    if (segway_local_control_recvonly.dataChannel) {
-                        if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                            segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                        }
-                    }
-                }
-                else if (header == 0xa1) {
-                    if (a1_local_control_recvonly.dataChannel) {
-                        if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                            a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                        }
-                    }
-                }
+                recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                // if (header == 0x43) {
+                //     if (segway_local_control_recvonly.dataChannel) {
+                //         if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                //             segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                //         }
+                //     }
+                // }
+                // else if (header == 0xa1) {
+                //     if (a1_local_control_recvonly.dataChannel) {
+                //         if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                //             a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                //         }
+                //     }
+                // }
             }
 
             let old_segway_message_stamp = 0;
