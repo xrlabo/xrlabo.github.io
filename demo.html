@@ -107,8 +107,8 @@
         <script type="text/javascript">
             const debug = true;
             // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
-            const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
-            // const sora = Sora.connection("wss://u1.xr360d.net/signaling", debug);
+            // const sora = Sora.connection("ws://192.168.11.64:5000/signaling", debug);
+            const sora = Sora.connection("wss://u1.xr360d.net/signaling", debug);
             // const sora = Sora.connection("wss://sora.ikeilabsora.0am.jp/signaling", debug);
             const options_video_recvonly = {
                 multistream : true,
@@ -135,9 +135,9 @@
                 ]
             };
 
-            let sendrecv_segway_left = sora.sendrecv("segway-left", null, options_video_audio_sendrecv);
+            let recvonly_segway_left = sora.recvonly("segway-left", null, options_video_recvonly);
             let recvonly_segway_right = sora.recvonly("segway-right", null, options_video_recvonly);
-            let sendrecv_A1_right = sora.sendrecv("a1", null, options_video_audio_sendrecv);
+            let recvonlye_A1_right = sora.recvonly("a1", null, options_video_recvonly);
 
             let recvonly_chair_control = sora.recvonly("chair-control", null, options_control);
 
@@ -151,7 +151,7 @@
             let audioStream_id_right = null;
             let videoStream_id_right_A1 = null;
 
-            sendrecv_segway_left.on("track", (event) => {
+            recvonly_segway_left.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(()=> {
@@ -192,7 +192,7 @@
                 }
             });
 
-            sendrecv_A1_right.on("track", (event) => {
+            recvonlye_A1_right.on("track", (event) => {
                 console.log(event);
                 if (event.track.kind == "video") {
                     setTimeout(() => {
@@ -215,7 +215,7 @@
                 // }
             }
 
-            sendrecv_segway_left.on("removetrack", (event) => {
+            recvonly_segway_left.on("removetrack", (event) => {
                 if (event.target.id == mediaStream_id_left) {
                     document.querySelector(`#remoteVideo_left`).srcObject = null;
                     videoStream_id_left = null;
@@ -763,18 +763,21 @@
             let localStream;
 
             function connect_clicked() {
-                navigator.mediaDevices
-                .getUserMedia({ audio: true, video: false })
-                .then((stream) => {
-                    localStream = stream;
-                    console.log(stream);
-                    sendrecv_segway_left.connect(localStream);
-                    sendrecv_A1_right.connect(localStream);
-                    localStream.getAudioTracks()[0].enabled = true;
-                })
-                .catch((e) => {
-                     console.error(e);
-                });
+                // navigator.mediaDevices
+                // .getUserMedia({ audio: true, video: false })
+                // .then((stream) => {
+                //     localStream = stream;
+                //     console.log(stream);
+                //     recvonly_segway_left.connect(localStream);
+                //     recvonlye_A1_right.connect(localStream);
+                //     localStream.getAudioTracks()[0].enabled = true;
+                // })
+                // .catch((e) => {
+                //      console.error(e);
+                // });
+
+                recvonly_segway_left.connect(localStream);
+                recvonlye_A1_right.connect(localStream);
                 recvonly_segway_right.connect();
                 recvonly_chair_control.connect();
 
