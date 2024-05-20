@@ -3,8 +3,8 @@
         <meta charset="utf-8" />
 
 		<!-- Embed latest version of Babylon.js. -->
-		<!-- <script src="https://cdn.babylonjs.com/babylon.js"></script> -->
-        <script src="./Babylon.js/babylon.js"></script>
+		<script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <!-- <script src="./Babylon.js/babylon.js"></script> -->
 
 		<!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
 		<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -776,8 +776,8 @@
                 //      console.error(e);
                 // });
 
-                recvonly_segway_left.connect(localStream);
-                recvonlye_A1_right.connect(localStream);
+                recvonly_segway_left.connect();
+                recvonlye_A1_right.connect();
                 recvonly_segway_right.connect();
                 recvonly_chair_control.connect();
 
@@ -791,7 +791,7 @@
                     twincam_local_control_recvonly.connect();
                 }, 3000);
                 setTimeout(() => {
-                    robotarm_control_recvonly.connect();
+                    // robotarm_control_recvonly.connect();
                 }, 3500);
             }
 
