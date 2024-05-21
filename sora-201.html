@@ -305,8 +305,8 @@
                     videoDome.material._alpha = 0;
                     clearInterval(videoDecrimentalLoop_intervalID);
                     videoDecrimentalLoop_intervalID = null;
-                    sora = Sora.connection(document.getElementById('url_input').value, debug);
-                    sendrecv = sora.sendrecv(document.getElementById('channel_id_input').value, null, options);
+                    sora = Sora.connection("wss://u1.xr360d.net/signaling", debug);
+                    sendrecv = sora.sendrecv(channelId, null, options);
                     set_callback();
                     navigator.mediaDevices
                     .getUserMedia({ audio: true, video: false })
