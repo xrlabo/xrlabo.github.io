@@ -261,7 +261,8 @@
             let camera;
             let cameraFovDegree = 60;
 
-            let videoDome;
+            // let videoDome;
+            let videoDome_segway, videoDome_a1;
             let videoDecrimentalLoop_intervalID = null;
             let videoIncrimentalLoop_intervalID = null;
             let changeVideoFlag = false;
@@ -352,7 +353,23 @@
                 let videoTexture_segway_left = new BABYLON.VideoTexture("video_segway_left", document.getElementById('remoteVideo_left'), scene, true, true);
                 let videoTexture_a1 = new BABYLON.VideoTexture("video_a1_right", document.getElementById('remoteVideo_right_A1'), scene, true, true);
 
-                videoDome = new BABYLON.VideoDome(
+                // videoDome = new BABYLON.VideoDome(
+                //     'VideoDome',
+                //     document.getElementById('remoteVideo_left'),
+                //     {
+                //         resolution: 64,
+                //         // clickToPlay: true,
+                //         autoPlay: true,
+                //         // size: 100
+                //         // useDirectMapping: false
+                //     },
+                //     scene
+                // );
+
+                // videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                // videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+
+                videoDome_segway = new BABYLON.VideoDome(
                     'VideoDome',
                     document.getElementById('remoteVideo_left'),
                     {
@@ -364,9 +381,27 @@
                     },
                     scene
                 );
+                videoDome_segway.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
+                videoDome_segway.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_segway.material.alpha = 0.7;
+                videoDome_segway.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
-                videoDome.setAbsolutePosition(new BABYLON.Vector3(dome_position_x, dome_position_y, dome_position_z));
-                videoDome.setDirection(new BABYLON.Vector3(dome_direction_x, dome_direction_y, dome_direction_z));
+                videoDome_a1 = new BABYLON.VideoDome(
+                    'VideoDome',
+                    document.getElementById('remoteVideo_right_A1'),
+                    {
+                        resolution: 64,
+                        // clickToPlay: true,
+                        autoPlay: true,
+                        // size: 100
+                        // useDirectMapping: false
+                    },
+                    scene
+                );
+                videoDome_a1.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                videoDome_a1.setDirection(new BABYLON.Vector3(-1, 0, 0));
+                videoDome_a1.material.alpha = 0.3;
+                videoDome_a1.material.alphaMode = BABYLON.Engine.ALPHA_ADD;
 
                 var planeb = BABYLON.Mesh.CreatePlane("planeb", 5);
                     planeb.position = new BABYLON.Vector3(-5, 1, 9);
@@ -411,20 +446,20 @@
                             document.getElementsByName('change_video')[0].checked = false;
                             document.getElementsByName('change_video')[1].checked = true;
                             button.textBlock.text = "Change to Segway";
-                            videoDome.texture = videoTexture_a1;
-                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
+                            // videoDome.texture = videoTexture_a1;
+                            // videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                            // videoDome.setDirection(new BABYLON.Vector3(-1, 0, 0));
                         }
                         else {
                             header = 0x43;
                             document.getElementsByName('change_video')[0].checked = true;
                             document.getElementsByName('change_video')[1].checked = false;
-                            videoDome.texture = videoTexture_segway_left;
-                            videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
-                            videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
+                            // videoDome.texture = videoTexture_segway_left;
+                            // videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
+                            // videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "Change to Dog type";
                         }
-                        videoDome.material._alpha = 0;
+                        // videoDome.material._alpha = 0;
                         videoIncrimentalLoop_intervalID = setInterval(videoIncrimentalLoop, 1000/10);
                     }
                 });
@@ -686,19 +721,19 @@
 
                                         if (twincam_setPos_count > 15) {
                                             twincam_setPos_count = 0;
-                                            if (twincam_local_control_recvonly.dataChannel) {
-                                                if (twincam_local_control_recvonly.dataChannel.readyState == 'open') {
-                                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
-                                                }
-                                            }
+                                            // if (twincam_local_control_recvonly.dataChannel) {
+                                            //     if (twincam_local_control_recvonly.dataChannel.readyState == 'open') {
+                                            //         twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                                            //     }
+                                            // }
                                         }
                                     }
-                                    if (twincamMode == 1) {
+                                    if (header == 0x43) {
                                         if (xr_camera.isLeftCamera) {
-                                            videoDome.texture = videoTexture_segway_left;
+                                            videoDome_segway.texture = videoTexture_segway_left;
                                         }
                                         else {
-                                            videoDome.texture = videoTexture_segway_right;
+                                            videoDome_segway.texture = videoTexture_segway_right;
                                         }
                                     }
                                 }
@@ -717,11 +752,11 @@
                             clearInterval(soraChairDataChannelLoop_intervalID);
                             soraChairDataChannelLoop_intervalID = null;
                             recvonly_chair_control.sendMessage("#sora-devtools", new Uint8Array([ 0xcc, 0x00 ]));
-                            if (twincam_local_control_recvonly.dataChannel) {
-                                if (twincam_local_control_recvonly.dataChannel.state == 'open') {
-                                    twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
-                                }
-                            }
+                            // if (twincam_local_control_recvonly.dataChannel) {
+                            //     if (twincam_local_control_recvonly.dataChannel.state == 'open') {
+                            //         twincam_local_control_recvonly.dataChannel.send(new Uint8Array([0xe0, 0x00, 0x00]));
+                            //     }
+                            // }
                             if (a1_local_control_recvonly.dataChannel) {
                                 if (a1_local_control_recvonly.dataChannel.state == 'open') {
                                     a1_local_control_recvonly.dataChannel.send(new Uint8Array([0xa1, 0, 0, 0]));
@@ -788,7 +823,7 @@
                     segway_local_control_recvonly.connect();
                 }, 2500);
                 setTimeout(() => {
-                    twincam_local_control_recvonly.connect();
+                    // twincam_local_control_recvonly.connect();
                 }, 3000);
                 setTimeout(() => {
                     // robotarm_control_recvonly.connect();
@@ -806,25 +841,75 @@
                 }
             }
 
+            // function videoDecrimentalLoop() {
+            //     if (videoDome.material._alpha > 0) {
+            //         videoDome.material._alpha = videoDome.material._alpha - 0.2
+            //     }
+            //     else {
+            //         changeVideoFlag = true;
+            //         clearInterval(videoDecrimentalLoop_intervalID);
+            //         videoDecrimentalLoop_intervalID = null;
+            //     }
+            // }
+
+            // function videoIncrimentalLoop() {
+            //     if (videoDome.material._alpha < 1) {
+            //         videoDome.material._alpha = videoDome.material._alpha + 0.1
+            //     }
+            //     else {
+            //         videoDome.material._alpha = 1;
+            //         clearInterval(videoIncrimentalLoop_intervalID);
+            //         videoIncrimentalLoop_intervalID = null;
+            //     }
+            // }
+
             function videoDecrimentalLoop() {
-                if (videoDome.material._alpha > 0) {
-                    videoDome.material._alpha = videoDome.material._alpha - 0.2
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha > 0.3) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha - 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0.3;
+                        changeVideoFlag = true;
+                        clearInterval(videoDecrimentalLoop_intervalID);
+                        videoDecrimentalLoop_intervalID = null;
+                    }
                 }
-                else {
-                    changeVideoFlag = true;
-                    clearInterval(videoDecrimentalLoop_intervalID);
-                    videoDecrimentalLoop_intervalID = null;
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha > 0.3) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha - 0.1;
+                    }
+                    else {
+                        videoDome_a1.material._alpha = 0.3;
+                        changeVideoFlag = true;
+                        clearInterval(videoDecrimentalLoop_intervalID);
+                        videoDecrimentalLoop_intervalID = null;
+                    }
                 }
             }
 
             function videoIncrimentalLoop() {
-                if (videoDome.material._alpha < 1) {
-                    videoDome.material._alpha = videoDome.material._alpha + 0.1
+                if (header == 0x43) {
+                    if (videoDome_segway.material.alpha < 0.7) {
+                        videoDome_segway.material.alpha = videoDome_segway.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_segway.material.alpha = 0.7;
+                        clearInterval(videoIncrimentalLoop_intervalID);
+                        videoIncrimentalLoop_intervalID = null;
+                        sendjoy = true;
+                    }
                 }
-                else {
-                    videoDome.material._alpha = 1;
-                    clearInterval(videoIncrimentalLoop_intervalID);
-                    videoIncrimentalLoop_intervalID = null;
+                else if (header == 0xa1) {
+                    if (videoDome_a1.material.alpha < 0.7) {
+                        videoDome_a1.material.alpha = videoDome_a1.material.alpha + 0.1;
+                    }
+                    else {
+                        videoDome_a1.material.alpha = 0.7;
+                        clearInterval(videoIncrimentalLoop_intervalID);
+                        videoIncrimentalLoop_intervalID = null;
+                        sendjoy = true;
+                    }
                 }
             }
 
