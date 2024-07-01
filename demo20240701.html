@@ -834,20 +834,21 @@
 
             function RobotsLocalDataChannelLoop() {
                 recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
-                // if (header == 0x43) {
-                //     if (segway_local_control_recvonly.dataChannel) {
-                //         if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
-                //             segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                //         }
-                //     }
-                // }
-                // else if (header == 0xa1) {
-                //     if (a1_local_control_recvonly.dataChannel) {
-                //         if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
-                //             a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
-                //         }
-                //     }
-                // }
+                if (header == 0x43) {
+                    // if (segway_local_control_recvonly.dataChannel) {
+                    //     if (segway_local_control_recvonly.dataChannel.readyState == 'open') {
+                    //         segway_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                    //     }
+                    // }
+                    recvonly_robots_control.sendMessage('#sora-devtools', new Uint8Array([0xe0, new Uint16Array([send_value & 0xff00])[0] >> 8, send_value & 0x00ff]));
+                }
+                else if (header == 0xa1) {
+                    if (a1_local_control_recvonly.dataChannel) {
+                        if (a1_local_control_recvonly.dataChannel.readyState == 'open') {
+                            a1_local_control_recvonly.dataChannel.send(new Uint8Array([ header, 127*side, 127*ang, 127*lin ]));
+                        }
+                    }
+                }
             }
 
             let old_segway_message_stamp = 0;
