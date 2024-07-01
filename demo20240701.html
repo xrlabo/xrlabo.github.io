@@ -423,7 +423,7 @@
                             header = 0x43;
                             document.getElementsByName('change_video')[0].checked = true;
                             document.getElementsByName('change_video')[1].checked = false;
-                            videoDome.texture = videoTexture_segway_left;
+                            videoDome.texture = videoTexture_segway_right;
                             videoDome.setAbsolutePosition(new BABYLON.Vector3(0, 0, 0));
                             videoDome.setDirection(new BABYLON.Vector3(0, 0, 0));
                             button.textBlock.text = "Change to Dog type";
@@ -699,7 +699,8 @@
                                     }
                                     if (twincamMode == 1) {
                                         if (xr_camera.isLeftCamera) {
-                                            videoDome.texture = videoTexture_segway_left;
+                                            // videoDome.texture = videoTexture_segway_left;
+                                            videoDome.texture = videoTexture_segway_right;
                                         }
                                         else {
                                             videoDome.texture = videoTexture_segway_right;
